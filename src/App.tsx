@@ -68,11 +68,10 @@ const MarketplaceApp: React.FC = () => {
                 <button
                   id="tab-catalogue-btn"
                   onClick={() => setCustomerSubTab('catalogue')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                    customerSubTab === 'catalogue'
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${customerSubTab === 'catalogue'
                       ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40'
                       : 'bg-white/[0.04] text-slate-300 hover:text-white hover:bg-white/[0.08] border border-white/5'
-                  }`}
+                    }`}
                 >
                   <Layers className="w-4 h-4 text-indigo-300" />
                   <span>{isArabic ? 'قطع الغيار والكتالوج المباشر' : 'Live Auto Parts Catalogue'}</span>
@@ -81,11 +80,10 @@ const MarketplaceApp: React.FC = () => {
                 <button
                   id="tab-bidding-floor-btn"
                   onClick={() => setCustomerSubTab('bidding')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                    customerSubTab === 'bidding'
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${customerSubTab === 'bidding'
                       ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400 font-extrabold'
                       : 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20'
-                  }`}
+                    }`}
                 >
                   <Gavel className="w-4 h-4 text-amber-400" />
                   <span>{isArabic ? 'منصة طلب ومناقصات القطع (مزايدات المتاجر)' : 'Parts RFQ Bidding Floor'}</span>
@@ -213,7 +211,7 @@ const MarketplaceApp: React.FC = () => {
 
         <div className="max-w-7xl mx-auto px-4 mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-[11px] gap-3">
           <span>© 2026 IQAutoMarket</span>
-          <span>PostgreSQL Enabled · Powered by Google Gemini AI</span>
+          <span>Part of IQAuto Community</span>
         </div>
       </footer>
     </div>
