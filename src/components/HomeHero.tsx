@@ -64,19 +64,17 @@ export const HomeHero: React.FC = () => {
       <div className="mesh-glow mesh-glow-amber w-[400px] h-[400px] bottom-0 left-1/3 opacity-15" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 pt-12 pb-14 sm:pt-16 sm:pb-20 text-center">
-        {/* Sleek Value Prop Badge */}
+        {/* Sleek Minimalist Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md text-xs font-semibold mb-6 shadow-inner">
           <span className="flex h-2 w-2 relative">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
           </span>
           <span className="text-slate-300">
-            {isArabic
-              ? 'سوق قطع الغيار المعتمد الأول وتكامل أنظمة الوكلاء في العراق'
-              : 'Iraq’s Unified Automotive Spare Parts & Dealer Integration Network'}
+            {isArabic ? 'مخزون الوكلاء والربط المباشر' : 'Live Dealer Inventory Network'}
           </span>
           <span className="text-[10px] text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-            LIVE SYNC
+            VERIFIED
           </span>
         </div>
 

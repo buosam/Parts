@@ -212,8 +212,8 @@ const MarketplaceApp: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-[11px] gap-3">
-          <span>© 2026 IQAutoMarket — Automotive Spare Parts & Dealer Integration Marketplace.</span>
-          <span>Deployable on Railway · PostgreSQL Enabled · Powered by Google Gemini AI</span>
+          <span>© 2026 IQAutoMarket</span>
+          <span>PostgreSQL Enabled · Powered by Google Gemini AI</span>
         </div>
       </footer>
     </div>
