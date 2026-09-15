@@ -1,0 +1,6 @@
+{
+  "name": "Spare Parts Marketplace",
+  "description": "AutoID automotive parts & accessories marketplace with vehicle fitment guarantee, out-of-stock part requests, and store dealer bidding reverse auctions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
