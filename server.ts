@@ -3,11 +3,12 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import { initDatabase, isDbConnected } from './src/server/db';
 
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 app.use(express.json({ limit: '15mb' }));
 
@@ -76,6 +77,7 @@ async function callGeminiWithFallback(
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
+    databaseConnected: isDbConnected(),
     hasGeminiKey: !!(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'),
     timestamp: new Date().toISOString(),
   });
@@ -773,6 +775,8 @@ app.post('/api/v1/partner/test-connection', (req, res) => {
   });
 });
 async function startServer() {
+  await initDatabase();
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },

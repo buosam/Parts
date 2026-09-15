@@ -1,0 +1,10 @@
+NODE_ENV=production
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY_HERE
+DATABASE_URL=postgresql://postgres:CaraWHCiJFwBWNvLXHKTzMEqmcLcZIHd@postgres.railway.internal:5432/railway
+PGHOST=postgres.railway.internal
+PGPORT=5432
+PGUSER=postgres
+PGPASSWORD=CaraWHCiJFwBWNvLXHKTzMEqmcLcZIHd
+PGDATABASE=railway
+APP_URL=https://${{RAILWAY_PUBLIC_DOMAIN}}
+GITHUB_TOKEN=
