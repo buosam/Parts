@@ -7,7 +7,6 @@ import React, { useState } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
 import { Header } from './components/Header';
 import { HomeHero } from './components/HomeHero';
-import { SearchResults } from './components/SearchResults';
 import { MasterPartDetailModal } from './components/MasterPartDetailModal';
 import { VehicleSelectorModal } from './components/VehicleSelectorModal';
 import { PhotoSearchModal } from './components/PhotoSearchModal';
@@ -33,7 +32,6 @@ const MarketplaceApp: React.FC = () => {
     setSelectedRequestForBid,
   } = useMarketplace();
   const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
-  const [customerSubTab, setCustomerSubTab] = useState<'catalogue' | 'bidding'>('catalogue');
 
   const isArabic = language === 'ar';
 
@@ -46,15 +44,7 @@ const MarketplaceApp: React.FC = () => {
       <Header />
 
       {/* Automotive Departments Mega-Bar */}
-      {role === 'customer' && (
-        <CarIdDepartmentBar
-          activeView={customerSubTab === 'bidding' ? 'requests' : 'parts'}
-          setActiveView={(v) => {
-            if (v === 'requests') setCustomerSubTab('bidding');
-            else setCustomerSubTab('catalogue');
-          }}
-        />
-      )}
+      {role === 'customer' && <CarIdDepartmentBar />}
 
       {/* Main Role-Based Workspace */}
       <main className="flex-1 pb-16">
@@ -62,42 +52,7 @@ const MarketplaceApp: React.FC = () => {
           <div>
             <HomeHero />
 
-            {/* Sub-view toggle for Customer: Search Catalogue vs Parts Bidding Floor */}
-            <div className="max-w-7xl mx-auto px-4 pt-6">
-              <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4">
-                <button
-                  id="tab-catalogue-btn"
-                  onClick={() => setCustomerSubTab('catalogue')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${customerSubTab === 'catalogue'
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40'
-                      : 'bg-white/[0.04] text-slate-300 hover:text-white hover:bg-white/[0.08] border border-white/5'
-                    }`}
-                >
-                  <Layers className="w-4 h-4 text-indigo-300" />
-                  <span>{isArabic ? 'قطع الغيار والكتالوج المباشر' : 'Live Auto Parts Catalogue'}</span>
-                </button>
-
-                <button
-                  id="tab-bidding-floor-btn"
-                  onClick={() => setCustomerSubTab('bidding')}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${customerSubTab === 'bidding'
-                      ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400 font-extrabold'
-                      : 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20'
-                    }`}
-                >
-                  <Gavel className="w-4 h-4 text-amber-400" />
-                  <span>{isArabic ? 'منصة طلب ومناقصات القطع (مزايدات المتاجر)' : 'Parts RFQ Bidding Floor'}</span>
-                  <span className="text-[9px] bg-slate-950 text-amber-300 font-extrabold px-1.5 py-0.5 rounded uppercase border border-amber-500/30">
-                    LIVE
-                  </span>
-                </button>
-              </div>
-            </div>
-
-            {customerSubTab === 'catalogue' && (
-              <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
-            )}
-            {customerSubTab === 'bidding' && <RequestsBoard />}
+            <RequestsBoard />
           </div>
         )}
 

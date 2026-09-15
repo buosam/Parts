@@ -20,12 +20,12 @@ import {
 import { useMarketplace } from '../context/MarketplaceContext';
 
 interface DepartmentBarProps {
-  activeView: 'parts' | 'requests';
-  setActiveView: (view: 'parts' | 'requests') => void;
+  activeView?: 'parts' | 'requests';
+  setActiveView?: (view: 'parts' | 'requests') => void;
 }
 
-export const CarIdDepartmentBar: React.FC<DepartmentBarProps> = ({ activeView, setActiveView }) => {
-  const { selectedCategory, setSelectedCategory, partRequests, language } = useMarketplace();
+export const CarIdDepartmentBar: React.FC<DepartmentBarProps> = () => {
+  const { selectedCategory, setSelectedCategory, language } = useMarketplace();
   const isArabic = language === 'ar';
 
   const departments = [
@@ -89,12 +89,7 @@ export const CarIdDepartmentBar: React.FC<DepartmentBarProps> = ({ activeView, s
   ];
 
   const handleDeptClick = (dept: typeof departments[0]) => {
-    if (dept.id === 'requests') {
-      setActiveView('requests');
-    } else {
-      setActiveView('parts');
-      setSelectedCategory(dept.id);
-    }
+    setSelectedCategory(dept.id === 'requests' ? 'All' : dept.id);
   };
 
   return (
@@ -103,9 +98,8 @@ export const CarIdDepartmentBar: React.FC<DepartmentBarProps> = ({ activeView, s
         <div className="flex items-center gap-1 overflow-x-auto py-1.5 scrollbar-none">
           {departments.map((dept) => {
             const Icon = dept.icon;
-            const isRequestsActive = dept.id === 'requests' && activeView === 'requests';
-            const isCategoryActive =
-              activeView === 'parts' && dept.isCategory && selectedCategory === dept.id;
+            const isCategoryActive = dept.isCategory && selectedCategory === dept.id;
+            const isRequestsActive = dept.id === 'requests' && selectedCategory === 'All';
             const isActive = isRequestsActive || isCategoryActive;
 
             return (
