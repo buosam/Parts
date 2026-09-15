@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Car,
@@ -27,6 +27,10 @@ import {
   Search,
   MessageSquare,
   Zap,
+  Layers,
+  Disc,
+  Activity,
+  Wrench,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { PartRequest, RequestOffer } from '../types';
@@ -41,10 +45,38 @@ export const RequestsBoard: React.FC = () => {
     selectedRequestForBid,
     setSelectedRequestForBid,
     simulateDealerBid,
+    selectedCategory,
+    setSelectedCategory,
+    activeVehicle,
     language,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
+
+  const categories = [
+    { id: 'All', name: 'All Parts', nameAr: 'جميع القطع', icon: Layers },
+    { id: 'Brake', name: 'Brake & Rotors', nameAr: 'الفرامل والسفايف', icon: Disc },
+    { id: 'Engine', name: 'Engine & Ignition', nameAr: 'المحرك والاشتعال', icon: Activity },
+    { id: 'Suspension', name: 'Suspension & Shocks', nameAr: 'المساعدات والمقصات', icon: Wrench },
+    { id: 'Filters', name: 'Oil & Air Filters', nameAr: 'الفلاتر والزيوت', icon: Filter },
+    { id: 'Cooling', name: 'Cooling & Radiators', nameAr: 'التبريد ومضخات الماء', icon: Zap },
+  ];
+
+  const getCategoryCount = (catId: string) => {
+    if (catId === 'All') return partRequests.length;
+    const catKeywords: Record<string, string[]> = {
+      Brake: ['brake', 'pad', 'rotor', 'disc', 'caliper'],
+      Engine: ['engine', 'plug', 'spark', 'ignition', 'belt', 'valve', 'piston', 'sensor', 'timing', 'motor'],
+      Suspension: ['suspension', 'control arm', 'shock', 'strut', 'bushing', 'spring', 'link', 'steering', 'rack', 'epas'],
+      Filters: ['filter', 'oil', 'air', 'cabin', 'cleaner'],
+      Cooling: ['cool', 'radiator', 'water pump', 'thermostat', 'compressor', 'a/c', 'ac', 'climate'],
+    };
+    const keywords = catKeywords[catId] || [];
+    return partRequests.filter((r) => {
+      const textToSearch = `${r.partName} ${r.partDescription} ${r.partNumberHint || ''}`.toLowerCase();
+      return keywords.some((k) => textToSearch.includes(k));
+    }).length;
+  };
 
   // Perspectives: "buyer" (Customer managing their requests & incoming bids) vs "dealer" (Store owners bidding on requests)
   const [biddingPerspective, setBiddingPerspective] = useState<'buyer' | 'dealer'>('buyer');
@@ -61,10 +93,22 @@ export const RequestsBoard: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const selectedRequest = partRequests.find((r) => r.id === selectedRequestId);
-
   // Filter requests
   const filteredRequests = partRequests.filter((r) => {
+    if (selectedCategory && selectedCategory !== 'All') {
+      const catKeywords: Record<string, string[]> = {
+        Brake: ['brake', 'pad', 'rotor', 'disc', 'caliper'],
+        Engine: ['engine', 'plug', 'spark', 'ignition', 'belt', 'valve', 'piston', 'sensor', 'timing', 'motor'],
+        Suspension: ['suspension', 'control arm', 'shock', 'strut', 'bushing', 'spring', 'link', 'steering', 'rack', 'epas'],
+        Filters: ['filter', 'oil', 'air', 'cabin', 'cleaner'],
+        Cooling: ['cool', 'radiator', 'water pump', 'thermostat', 'compressor', 'a/c', 'ac', 'climate'],
+      };
+      const keywords = catKeywords[selectedCategory] || [];
+      const textToSearch = `${r.partName} ${r.partDescription} ${r.partNumberHint || ''}`.toLowerCase();
+      const matchesCategory = keywords.some((k) => textToSearch.includes(k));
+      if (!matchesCategory) return false;
+    }
+
     if (makeFilter !== 'All' && r.vehicle.make.toLowerCase() !== makeFilter.toLowerCase()) {
       return false;
     }
@@ -79,6 +123,14 @@ export const RequestsBoard: React.FC = () => {
     }
     return true;
   });
+
+  useEffect(() => {
+    if (filteredRequests.length > 0 && !filteredRequests.some((r) => r.id === selectedRequestId)) {
+      setSelectedRequestId(filteredRequests[0].id);
+    }
+  }, [filteredRequests, selectedRequestId]);
+
+  const selectedRequest = partRequests.find((r) => r.id === selectedRequestId);
 
   const totalBidsReceived = partRequests.reduce((sum, r) => sum + r.offers.length, 0);
 
@@ -257,7 +309,113 @@ export const RequestsBoard: React.FC = () => {
 
       {/* Main Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Request Cards */}
+        {/* Side Panel: Automotive Categories & Systems */}
+        <div className="lg:col-span-3 space-y-4">
+          <div className="bg-white rounded-2xl border border-neutral-200 p-4 shadow-xs">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-neutral-800" />
+                <span className="text-xs font-black text-neutral-900 uppercase tracking-wider">
+                  {isArabic ? 'أقسام وقطع الغيار' : 'Part Categories'}
+                </span>
+              </div>
+              {selectedCategory !== 'All' && (
+                <button
+                  onClick={() => setSelectedCategory('All')}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                >
+                  {isArabic ? 'إلغاء الفلتر' : 'Reset'}
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              {categories.map((cat) => {
+                const Icon = cat.icon;
+                const isSelected = selectedCategory === cat.id;
+                const count = getCategoryCount(cat.id);
+
+                return (
+                  <button
+                    key={cat.id}
+                    id={`side-cat-btn-${cat.id}`}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                      isSelected
+                        ? 'bg-neutral-900 text-white shadow-sm font-bold'
+                        : 'text-neutral-700 hover:bg-neutral-100/80 hover:text-neutral-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div
+                        className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                          isSelected
+                            ? 'bg-white/20 text-white'
+                            : 'bg-neutral-100 text-neutral-600'
+                        }`}
+                      >
+                        <Icon className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="truncate">
+                        <span className="block truncate">{isArabic ? cat.nameAr : cat.name}</span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ${
+                        isSelected
+                          ? 'bg-white/20 text-white'
+                          : 'bg-neutral-100 text-neutral-600'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quick Vehicle Fitment Card on Side */}
+          <div className="bg-gradient-to-br from-neutral-900 to-neutral-800 text-white rounded-2xl p-4 border border-neutral-700 shadow-md">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                {isArabic ? 'توافق المركبة' : 'Selected Vehicle'}
+              </span>
+              <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-black px-1.5 py-0.5 rounded">
+                FIT CHECK
+              </span>
+            </div>
+            {activeVehicle ? (
+              <div>
+                <p className="text-xs font-black text-white">
+                  {activeVehicle.make} {activeVehicle.model} ({activeVehicle.year})
+                </p>
+                <p className="text-[11px] text-neutral-400 mt-0.5">{activeVehicle.engine}</p>
+                <button
+                  onClick={() => setActiveModal('vehicle_picker')}
+                  className="mt-3 w-full py-1.5 px-3 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer text-center"
+                >
+                  {isArabic ? 'تغيير السيارة' : 'Change Vehicle'}
+                </button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-neutral-300 leading-relaxed">
+                  {isArabic ? 'حدد سيارتك لفلترة الطلبات المتوافقة' : 'Set vehicle to filter compatible requests'}
+                </p>
+                <button
+                  onClick={() => setActiveModal('vehicle_picker')}
+                  className="mt-3 w-full py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-neutral-950 text-[11px] font-black rounded-lg transition-colors cursor-pointer text-center"
+                >
+                  {isArabic ? 'اختيار المركبة' : 'Select Vehicle'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Center Column: Request Cards */}
         <div className="lg:col-span-4 space-y-3">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-neutral-700 uppercase tracking-wide">
@@ -352,7 +510,7 @@ export const RequestsBoard: React.FC = () => {
         </div>
 
         {/* Right Column: Detailed Request Workspace & Competing Bids Matrix */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-5">
           {selectedRequest ? (
             <div className="bg-white rounded-2xl border border-neutral-200 p-5 sm:p-6 shadow-xs space-y-6">
               {/* Header Info */}

@@ -29,22 +29,11 @@ export const HomeHero: React.FC = () => {
     setActiveModal,
     searchQuery,
     setSearchQuery,
-    selectedCategory,
-    setSelectedCategory,
     language,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
   const [localInput, setLocalInput] = useState(searchQuery);
-
-  const categories = [
-    { id: 'All', name: 'All Parts', nameAr: 'جميع القطع', icon: Layers },
-    { id: 'Brake', name: 'Brake & Rotors', nameAr: 'الفرامل والسفايف', icon: Disc },
-    { id: 'Engine', name: 'Engine & Ignition', nameAr: 'المحرك والاشتعال', icon: Activity },
-    { id: 'Suspension', name: 'Suspension & Shocks', nameAr: 'المساعدات والمقصات', icon: Layers },
-    { id: 'Filters', name: 'Oil & Air Filters', nameAr: 'الفلاتر والزيوت', icon: Filter },
-    { id: 'Cooling', name: 'Cooling & Radiators', nameAr: 'التبريد ومضخات الماء', icon: Zap },
-  ];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,31 +207,6 @@ export const HomeHero: React.FC = () => {
               <Gavel className="w-4 h-4 text-slate-950 group-hover:rotate-12 transition-transform" />
               <span>{isArabic ? 'طلب قطعة للمزايدة' : 'Request RFQ Bidding'}</span>
             </button>
-          </div>
-        </div>
-
-        {/* Clean Category Selector Row */}
-        <div className="mt-12 pt-8 border-t border-white/10">
-          <div className="flex flex-wrap justify-center gap-2">
-            {categories.map((cat) => {
-              const Icon = cat.icon;
-              const isSelected = selectedCategory === cat.id;
-              return (
-                <button
-                  key={cat.id}
-                  id={`cat-chip-${cat.id}`}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40'
-                      : 'bg-white/[0.03] hover:bg-white/[0.07] text-slate-300 hover:text-white border border-white/5'
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{isArabic ? cat.nameAr : cat.name}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
       </div>
