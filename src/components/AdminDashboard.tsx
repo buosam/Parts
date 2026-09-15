@@ -28,10 +28,14 @@ export const AdminDashboard: React.FC = () => {
     disputes,
     addMasterPart,
     language,
+    dealerIntegrations,
+    syncJobs,
+    syncErrors,
+    dealerBranches,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
-  const [activeTab, setActiveTab] = useState<'demand' | 'suppliers' | 'catalogue' | 'disputes'>('demand');
+  const [activeTab, setActiveTab] = useState<'integrations' | 'demand' | 'suppliers' | 'catalogue'>('integrations');
 
   // New Master Part state
   const [showAddPart, setShowAddPart] = useState(false);
@@ -70,6 +74,11 @@ export const AdminDashboard: React.FC = () => {
     setNewPartName('');
   };
 
+  const totalSyncedStock = dealerIntegrations.reduce((acc, i) => acc + (i.totalInventorySynced || 0), 0);
+  const avgHealth = Math.round(
+    dealerIntegrations.reduce((acc, i) => acc + (i.syncHealthScore || 100), 0) / (dealerIntegrations.length || 1)
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Top Banner */}
@@ -80,37 +89,56 @@ export const AdminDashboard: React.FC = () => {
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
             </div>
             <h2 className="text-xl font-black text-neutral-900 tracking-tight">
-              {isArabic ? 'لوحة تحكم إدارة المنصة' : 'Marketplace Admin & Intelligence Suite'}
+              {isArabic ? 'لوحة تحكم إدارة منصة IQAutoMarket' : 'IQAutoMarket Admin & Intelligence Suite'}
             </h2>
-            <span className="text-xs font-bold text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded-full">
-              PRD Sections 20 & 21
+            <span className="text-xs font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+              Enterprise B2B
             </span>
           </div>
           <p className="text-xs text-neutral-500 mt-0.5">
             {isArabic
-              ? 'إدارة الكتالوج المركزي، نظام ذكاء الطلب (Demand Intelligence)، توثيق الموردين، وفض النزاعات'
-              : 'Master catalogue normalization, demand intelligence, supplier verification & disputes'}
+              ? 'مراقبة شبكة تكاملات الوكلاء (ERP/DMS/API)، الكتالوج الموحد، ذكاء الطلب الإقليمي، وتوثيق الشركاء'
+              : 'Dealer ERP/DMS integration health, master catalogue normalization, demand intelligence & partner governance'}
           </p>
         </div>
 
         {/* Quick stat counters */}
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-2 text-xs flex-wrap">
           <div className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl">
-            <span className="text-neutral-400 block text-[10px]">Master Parts</span>
-            <span className="font-bold text-neutral-900">{masterParts.length} Active</span>
+            <span className="text-neutral-400 block text-[10px]">Active ERP/DMS Feeds</span>
+            <span className="font-bold text-neutral-900">{dealerIntegrations.length} Connected</span>
           </div>
           <div className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl">
-            <span className="text-neutral-400 block text-[10px]">Dealers</span>
-            <span className="font-bold text-neutral-900">{suppliers.length} Verified</span>
+            <span className="text-neutral-400 block text-[10px]">Synced Inventory</span>
+            <span className="font-bold text-emerald-600">{totalSyncedStock.toLocaleString()} Units</span>
+          </div>
+          <div className="px-3 py-1.5 bg-white border border-neutral-200 rounded-xl">
+            <span className="text-neutral-400 block text-[10px]">Network Health</span>
+            <span className="font-bold text-neutral-900">{avgHealth}%</span>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-neutral-200 mt-6 mb-6 gap-2 text-xs font-bold">
+      <div className="flex border-b border-neutral-200 mt-6 mb-6 gap-2 text-xs font-bold overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('integrations')}
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'integrations'
+              ? 'border-red-600 text-red-600 font-black'
+              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4 text-red-600" />
+          <span>{isArabic ? 'مراقبة تكاملات الوكلاء (B2B Integrations)' : 'Dealer Integrations Oversight'}</span>
+          <span className="bg-red-100 text-red-800 px-1.5 py-0.2 rounded-full text-[10px] font-black">
+            LIVE
+          </span>
+        </button>
+
         <button
           onClick={() => setActiveTab('demand')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'demand'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-neutral-500 hover:text-neutral-800'
@@ -122,7 +150,7 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('suppliers')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'suppliers'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-neutral-500 hover:text-neutral-800'
@@ -134,7 +162,7 @@ export const AdminDashboard: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('catalogue')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'catalogue'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-neutral-500 hover:text-neutral-800'
@@ -144,6 +172,174 @@ export const AdminDashboard: React.FC = () => {
           <span>Master Parts Database</span>
         </button>
       </div>
+
+      {/* TAB 0: Dealer Integrations Oversight (PRD Section 2 & 9) */}
+      {activeTab === 'integrations' && (
+        <div className="space-y-6 text-xs">
+          {/* Top Network Intelligence Header */}
+          <div className="bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-900 rounded-2xl p-6 text-white shadow-md">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded bg-red-600 text-white font-black text-[10px] uppercase tracking-wider">
+                    DEALER ECOSYSTEM
+                  </span>
+                  <h3 className="font-bold text-base">
+                    {isArabic ? 'شبكة الربط والتكامل المباشر لمتاجر العراق' : 'Iraq Automotive Dealer B2B Integration Hub'}
+                  </h3>
+                </div>
+                <p className="text-neutral-300 text-xs mt-1 max-w-2xl">
+                  {isArabic
+                    ? 'مراقبة موصلات ERP و DMS و POS للوكلاء المعتمدين والموزعين مع رصد تلقائي لجودة الأسعار والمخزون وحجز القطع.'
+                    : 'System-wide monitoring of real-time dealer feeds (CDK, SAP B1, Custom POS, and Smart CSV pipelines) powering marketplace inventory.'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-white/10 rounded-xl text-center border border-white/10">
+                  <div className="text-lg font-black text-emerald-400">99.4%</div>
+                  <div className="text-[10px] text-neutral-400 uppercase font-bold">API Uptime</div>
+                </div>
+                <div className="p-3 bg-white/10 rounded-xl text-center border border-white/10">
+                  <div className="text-lg font-black text-white">4,820</div>
+                  <div className="text-[10px] text-neutral-400 uppercase font-bold">Daily Webhooks</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Connected Dealer Integrations Table */}
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-black text-neutral-900">
+                  {isArabic ? 'الوكلاء ومزودو الأنظمة المتصلة' : 'Connected Dealerships & Inventory Connectors'}
+                </h4>
+                <p className="text-neutral-500 text-[11px]">
+                  {dealerIntegrations.length} active enterprise connections synchronized across Erbil, Baghdad, and Basra.
+                </p>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-neutral-50 border-b border-neutral-200 text-neutral-400 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Dealership</th>
+                    <th className="p-3">Provider & Version</th>
+                    <th className="p-3">Method</th>
+                    <th className="p-3">Synced SKUs</th>
+                    <th className="p-3">Total Stock Units</th>
+                    <th className="p-3">Sync Schedule</th>
+                    <th className="p-3">Health Score</th>
+                    <th className="p-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100 font-medium text-neutral-800">
+                  {dealerIntegrations.map((integ) => (
+                    <tr key={integ.id} className="hover:bg-neutral-50/70 transition-colors">
+                      <td className="p-3 font-bold text-neutral-900">
+                        {integ.dealerName}
+                        <div className="text-[10px] text-neutral-400 font-normal font-mono">{integ.dealerId}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-semibold text-neutral-900">{integ.providerName}</div>
+                        <div className="text-[10px] text-neutral-400 uppercase font-mono">{integ.providerType} · {integ.providerVersion || 'v1.0'}</div>
+                      </td>
+                      <td className="p-3">
+                        <span className="font-mono uppercase font-bold text-[10px] px-2 py-0.5 rounded bg-neutral-100 text-neutral-700">
+                          {integ.integrationMethod}
+                        </span>
+                      </td>
+                      <td className="p-3 font-bold text-neutral-900">{integ.totalProductsSynced.toLocaleString()}</td>
+                      <td className="p-3 font-bold text-emerald-700">{integ.totalInventorySynced.toLocaleString()}</td>
+                      <td className="p-3 text-neutral-500">{integ.syncRules?.syncFrequency || 'Every 15 min'}</td>
+                      <td className="p-3">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-emerald-600">{integ.syncHealthScore}%</span>
+                          <div className="w-12 h-1.5 rounded-full bg-neutral-100 overflow-hidden">
+                            <div
+                              className="h-full bg-emerald-500 rounded-full"
+                              style={{ width: `${integ.syncHealthScore}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            integ.status === 'active'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {integ.status.toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* System Sync Errors Audit */}
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-2xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-black text-neutral-900">
+                  {isArabic ? 'سجل تدقيق أخطاء المزامنة عبر الشبكة' : 'Network-Wide Sync Exception Audit'}
+                </h4>
+                <p className="text-neutral-500 text-[11px]">
+                  Unresolved validation errors requiring dealer item master corrections.
+                </p>
+              </div>
+              <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
+                {syncErrors.filter((e) => e.status === 'open').length} Open Exceptions
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-neutral-50 border-b border-neutral-200 text-neutral-400 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th className="p-3">Dealer</th>
+                    <th className="p-3">Record ID</th>
+                    <th className="p-3">Error Category</th>
+                    <th className="p-3">Message & Diagnostics</th>
+                    <th className="p-3">Date Detected</th>
+                    <th className="p-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {syncErrors.map((err) => (
+                    <tr key={err.id} className="hover:bg-neutral-50/70">
+                      <td className="p-3 font-bold text-neutral-900">{err.dealerName}</td>
+                      <td className="p-3 font-mono font-bold text-neutral-700">{err.externalRecordId}</td>
+                      <td className="p-3">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                          {err.errorType.replace(/_/g, ' ').toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="p-3 max-w-md text-neutral-700">{err.errorMessage}</td>
+                      <td className="p-3 text-neutral-400">{new Date(err.dateDetected).toLocaleDateString()}</td>
+                      <td className="p-3">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                            err.status === 'resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {err.status.toUpperCase()}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: Demand Intelligence System (PRD Section 21) */}
       {activeTab === 'demand' && (

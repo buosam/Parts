@@ -50,6 +50,19 @@ export interface VehicleFitment {
   position?: string; // e.g. Front, Rear, Left, Right
 }
 
+export interface BranchStock {
+  branchId: string;
+  branchName: string;
+  city: string;
+  availableQty: number;
+  reservedQty: number;
+  onHandQty: number;
+  priceUSD?: number;
+  priceIQD?: number;
+  pickupAvailable: boolean;
+  deliveryEstimatedHours: number;
+}
+
 export interface SupplierOffer {
   id: string;
   supplierId: string;
@@ -64,12 +77,19 @@ export interface SupplierOffer {
   priceIQD: number;
   stockStatus: StockStatus;
   stockQuantity: number;
+  reservedQuantity?: number;
   warranty: string; // e.g. "12-Month Official Warranty"
   deliveryTime: string; // e.g. "Same Day Delivery (2-4 hrs)", "1-2 Days"
   deliveryOptions: ('pickup' | 'supplier_delivery' | 'express_courier')[];
   supplierCity: string;
   supplierLocationDetail: string;
   notes?: string;
+  // B2B Integration & Multi-Branch additions
+  externalProductId?: string;
+  externalSku?: string;
+  syncSource?: 'manual' | 'api' | 'csv' | 'erp' | 'dms';
+  lastSyncedAt?: string;
+  branches?: BranchStock[];
 }
 
 export interface MasterPart {
@@ -368,3 +388,205 @@ export interface CarAuction {
   isWatchlisted?: boolean;
   viewsCount?: number;
 }
+
+// ==========================================
+// IQAutoMarket Dealer Integration Data Models
+// ==========================================
+
+export type IntegrationProviderType =
+  | 'erp'
+  | 'dms'
+  | 'pos'
+  | 'inventory_system'
+  | 'wms'
+  | 'excel_csv'
+  | 'custom'
+  | 'other';
+
+export type IntegrationMethod =
+  | 'api'
+  | 'csv_excel'
+  | 'sftp'
+  | 'webhook'
+  | 'custom_connector';
+
+export type IntegrationStatus = 'active' | 'paused' | 'error' | 'syncing' | 'pending_setup';
+
+export type DataQualityStatus =
+  | 'valid'
+  | 'valid_with_warnings'
+  | 'requires_review'
+  | 'invalid'
+  | 'rejected'
+  | 'published'
+  | 'archived';
+
+export interface DealerBranch {
+  id: string;
+  dealerId: string;
+  externalBranchCode?: string;
+  branchName: string;
+  branchNameAr?: string;
+  city: 'Baghdad' | 'Erbil' | 'Sulaymaniyah' | 'Basra' | 'Duhok' | 'Najaf' | 'Karbala' | 'Kirkuk' | 'Mosul';
+  address: string;
+  phone: string;
+  isWarehouse: boolean;
+  isShowroom: boolean;
+  offersPickup: boolean;
+  offersLocalDelivery: boolean;
+  avgDeliveryHours: number;
+}
+
+export interface IntegrationSyncRules {
+  syncFrequency: 'realtime' | 'every_15min' | 'hourly' | 'daily' | 'manual_only';
+  autoPublishNewProducts: boolean;
+  requireAdminApproval: boolean;
+  priceSource: 'retail' | 'wholesale' | 'dealer_cost_markup';
+  currency: 'USD' | 'IQD';
+  stockSource: 'available' | 'on_hand_minus_reserved';
+  hideOutOfStock: boolean;
+  autoUpdatePrices: boolean;
+  syncOrdersBackToDealer: boolean;
+  stockReservationMode: 'marketplace' | 'dealer_system';
+  includedBranchIds: string[];
+}
+
+export interface IntegrationFieldMapping {
+  id: string;
+  integrationId: string;
+  sourceField: string; // e.g., 'ItemCode'
+  destinationField: string; // e.g., 'partNumber'
+  transformationRule?: 'trim' | 'uppercase' | 'multiply_by_exchange_rate' | 'none' | 'prefix_sku';
+  defaultValue?: string;
+  required: boolean;
+}
+
+export interface DealerIntegration {
+  id: string;
+  dealerId: string;
+  dealerName: string;
+  providerName: string; // e.g. "CDK Global DMS", "SAP Business One", "Custom POS"
+  providerVersion?: string;
+  providerType: IntegrationProviderType;
+  integrationMethod: IntegrationMethod;
+  status: IntegrationStatus;
+  apiKey?: string;
+  maskedApiKey?: string;
+  webhookSecret?: string;
+  endpointUrl?: string;
+  sftpHost?: string;
+  sftpUsername?: string;
+  syncRules: IntegrationSyncRules;
+  fieldMappings: IntegrationFieldMapping[];
+  lastSyncAt?: string;
+  nextSyncAt?: string;
+  syncHealthScore: number; // 0 - 100
+  totalProductsSynced: number;
+  totalInventorySynced: number;
+  totalPriceRecordsSynced: number;
+  failedRecordsCount: number;
+  pendingUpdatesCount: number;
+  apiCallsLast24h: number;
+  webhookStatus: 'active' | 'degraded' | 'idle' | 'failed';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IntegrationSyncJob {
+  id: string;
+  integrationId: string;
+  dealerId: string;
+  dealerName: string;
+  syncType: 'full' | 'incremental' | 'price_only' | 'inventory_only' | 'manual' | 'webhook';
+  status: 'running' | 'completed' | 'failed' | 'completed_with_warnings';
+  startedAt: string;
+  completedAt?: string;
+  durationMs?: number;
+  recordsProcessed: number;
+  recordsCreated: number;
+  recordsUpdated: number;
+  recordsFailed: number;
+  errorSummary?: string;
+}
+
+export interface IntegrationSyncError {
+  id: string;
+  syncJobId?: string;
+  integrationId: string;
+  dealerId: string;
+  dealerName: string;
+  externalRecordId: string;
+  productNameHint?: string;
+  errorType:
+    | 'missing_part_number'
+    | 'invalid_price'
+    | 'negative_stock'
+    | 'unrecognized_brand'
+    | 'unmatched_vehicle'
+    | 'unmapped_branch'
+    | 'api_auth_failed'
+    | 'duplicate_sku'
+    | 'rate_limit_exceeded';
+  errorMessage: string;
+  suggestedSolution: string;
+  rawPayloadSample?: string;
+  status: 'open' | 'investigating' | 'resolved' | 'ignored';
+  dateDetected: string;
+  resolvedAt?: string;
+}
+
+export interface ExternalProduct {
+  id: string;
+  integrationId: string;
+  dealerId: string;
+  externalProductId: string;
+  externalSku?: string;
+  externalPartNumber: string;
+  iqautomarketProductId?: string;
+  title: string;
+  brand: string;
+  priceUSD: number;
+  priceIQD: number;
+  totalQuantity: number;
+  dataQualityStatus: DataQualityStatus;
+  lastSeenAt: string;
+  syncStatus: 'synced' | 'pending' | 'failed' | 'moderation_needed';
+}
+
+export interface ExternalInventoryRecord {
+  id: string;
+  integrationId: string;
+  dealerId: string;
+  externalInventoryId: string;
+  externalProductId: string;
+  branchId: string;
+  externalQuantity: number;
+  normalizedAvailableQty: number;
+  reservedQty: number;
+  lastSyncedAt: string;
+}
+
+export interface ExternalOrder {
+  id: string;
+  integrationId: string;
+  dealerId: string;
+  iqautomarketOrderId: string;
+  externalOrderId?: string;
+  exportStatus: 'pending_export' | 'exported' | 'awaiting_dealer_confirmation' | 'confirmed' | 'rejected' | 'failed';
+  lastSyncAt: string;
+  syncError?: string;
+}
+
+export interface IntegrationWebhook {
+  id: string;
+  integrationId: string;
+  dealerId: string;
+  eventType: 'product.created' | 'product.updated' | 'stock.changed' | 'price.changed' | 'order.created' | 'order.status_changed';
+  eventId: string;
+  receivedAt: string;
+  processedAt?: string;
+  status: 'success' | 'failed' | 'retry_scheduled';
+  retryCount: number;
+  payloadSummary: string;
+}
+

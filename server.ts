@@ -396,6 +396,382 @@ Output strictly raw JSON without markdown.`;
   }
 });
 
+// ========================================================
+// IQAutoMarket Partner API v1 (B2B Dealer Integration Engine)
+// ========================================================
+
+// In-memory partner store for live REST API verification & sandbox testing
+const partnerProductsDB: Map<string, any> = new Map([
+  [
+    'EXT-04465',
+    {
+      externalId: 'EXT-04465',
+      sku: 'ABC-BRK-04465',
+      partNumber: '04465-60290',
+      oemNumber: '04465-60290',
+      title: 'Front Brake Pad Set (Ceramic)',
+      brand: 'Toyota Genuine',
+      category: 'Brake',
+      priceUSD: 145,
+      priceIQD: 191400,
+      availableStock: 28,
+      reservedStock: 2,
+      condition: 'genuine',
+      branches: [
+        { branchId: 'ERB-01', branchName: 'Erbil Main Showroom', quantity: 12 },
+        { branchId: 'BGD-01', branchName: 'Baghdad Distribution Hub', quantity: 16 },
+      ],
+      dataQualityStatus: 'published',
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+  [
+    'EXT-04152',
+    {
+      externalId: 'EXT-04152',
+      sku: 'ABC-FLT-04152',
+      partNumber: '04152-YZZA1',
+      oemNumber: '04152-YZZA1',
+      title: 'Engine Oil Filter Element with O-Rings',
+      brand: 'Toyota Genuine',
+      category: 'Filters',
+      priceUSD: 16,
+      priceIQD: 21120,
+      availableStock: 65,
+      reservedStock: 0,
+      condition: 'genuine',
+      branches: [
+        { branchId: 'ERB-01', branchName: 'Erbil Main Showroom', quantity: 45 },
+        { branchId: 'BGD-01', branchName: 'Baghdad Distribution Hub', quantity: 20 },
+      ],
+      dataQualityStatus: 'published',
+      updatedAt: new Date().toISOString(),
+    },
+  ],
+]);
+
+// Helper for partner authentication simulation
+function validatePartnerAuth(req: express.Request, res: express.Response): boolean {
+  const authHeader = req.headers.authorization || (req.headers['x-api-key'] as string);
+  // Accept standard Bearer token or X-API-Key or sandbox requests
+  if (!authHeader && req.query.sandbox !== 'true') {
+    res.status(401).json({
+      error: 'UNAUTHORIZED',
+      message: 'Missing Authorization header or X-API-Key. Provide Bearer <iqm_live_key>',
+      timestamp: new Date().toISOString(),
+    });
+    return false;
+  }
+  return true;
+}
+
+// 1. Products Endpoints
+app.get('/api/v1/partner/products', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const list = Array.from(partnerProductsDB.values());
+  res.json({
+    success: true,
+    total: list.length,
+    page: 1,
+    pageSize: 50,
+    data: list,
+  });
+});
+
+app.post('/api/v1/partner/products', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const { externalId, partNumber, title, brand, priceUSD, availableStock = 0, oemNumber, category } = req.body;
+
+  if (!partNumber || !title || priceUSD === undefined) {
+    return res.status(400).json({
+      error: 'VALIDATION_FAILED',
+      message: 'Fields [partNumber, title, priceUSD] are mandatory for product creation.',
+    });
+  }
+
+  const id = externalId || `EXT-${partNumber}`;
+  const newProduct = {
+    externalId: id,
+    sku: req.body.sku || id,
+    partNumber: String(partNumber).toUpperCase(),
+    oemNumber: oemNumber || partNumber,
+    title,
+    brand: brand || 'OEM Genuine',
+    category: category || 'Engine',
+    priceUSD: Number(priceUSD),
+    priceIQD: Math.round(Number(priceUSD) * 1320),
+    availableStock: Number(availableStock),
+    reservedStock: 0,
+    condition: req.body.condition || 'genuine',
+    branches: req.body.branches || [],
+    dataQualityStatus: 'published',
+    updatedAt: new Date().toISOString(),
+  };
+
+  partnerProductsDB.set(id, newProduct);
+  res.status(201).json({
+    success: true,
+    message: `Product [${partNumber}] successfully registered on IQAutoMarket.`,
+    data: newProduct,
+  });
+});
+
+app.get('/api/v1/partner/products/:externalId', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const prod = partnerProductsDB.get(req.params.externalId);
+  if (!prod) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: `Product ${req.params.externalId} not found.` });
+  }
+  res.json({ success: true, data: prod });
+});
+
+app.patch('/api/v1/partner/products/:externalId', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const prod = partnerProductsDB.get(req.params.externalId);
+  if (!prod) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: `Product ${req.params.externalId} not found.` });
+  }
+
+  const updated = {
+    ...prod,
+    ...req.body,
+    updatedAt: new Date().toISOString(),
+  };
+  partnerProductsDB.set(req.params.externalId, updated);
+  res.json({ success: true, message: 'Product updated.', data: updated });
+});
+
+app.delete('/api/v1/partner/products/:externalId', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  if (!partnerProductsDB.has(req.params.externalId)) {
+    return res.status(404).json({ error: 'NOT_FOUND', message: 'Product not found.' });
+  }
+  partnerProductsDB.delete(req.params.externalId);
+  res.json({ success: true, message: `Product ${req.params.externalId} deleted.` });
+});
+
+// 2. Inventory Endpoints
+app.get('/api/v1/partner/inventory', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const inventoryList = Array.from(partnerProductsDB.values()).map((p) => ({
+    externalProductId: p.externalId,
+    partNumber: p.partNumber,
+    availableStock: p.availableStock,
+    reservedStock: p.reservedStock,
+    branches: p.branches,
+    lastSyncedAt: p.updatedAt,
+  }));
+  res.json({ success: true, total: inventoryList.length, data: inventoryList });
+});
+
+app.post('/api/v1/partner/inventory/bulk', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const { items } = req.body;
+  if (!Array.isArray(items)) {
+    return res.status(400).json({ error: 'INVALID_PAYLOAD', message: 'items must be an array of inventory records.' });
+  }
+
+  let updatedCount = 0;
+  items.forEach((item: any) => {
+    const extId = item.externalProductId || item.externalId;
+    const prod = partnerProductsDB.get(extId);
+    if (prod) {
+      if (item.availableStock !== undefined) prod.availableStock = Number(item.availableStock);
+      if (item.priceUSD !== undefined) {
+        prod.priceUSD = Number(item.priceUSD);
+        prod.priceIQD = Math.round(Number(item.priceUSD) * 1320);
+      }
+      prod.updatedAt = new Date().toISOString();
+      updatedCount++;
+    }
+  });
+
+  res.json({
+    success: true,
+    processed: items.length,
+    updated: updatedCount,
+    message: `Bulk inventory update processed. ${updatedCount} records synchronized.`,
+  });
+});
+
+app.post('/api/v1/partner/inventory/sync', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  res.json({
+    success: true,
+    jobId: `job-sync-${Date.now()}`,
+    status: 'QUEUED',
+    estimatedSeconds: 3,
+    message: 'Full inventory synchronization scheduled.',
+  });
+});
+
+app.get('/api/v1/partner/inventory/sync-status', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  res.json({
+    success: true,
+    status: 'COMPLETED',
+    lastSyncAt: new Date().toISOString(),
+    totalRecordsSynced: partnerProductsDB.size,
+    healthScore: 99,
+  });
+});
+
+// 3. Price Endpoints
+app.get('/api/v1/partner/prices', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const prices = Array.from(partnerProductsDB.values()).map((p) => ({
+    externalProductId: p.externalId,
+    partNumber: p.partNumber,
+    priceUSD: p.priceUSD,
+    priceIQD: p.priceIQD,
+    currency: 'USD',
+  }));
+  res.json({ success: true, data: prices });
+});
+
+app.post('/api/v1/partner/prices/bulk', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const { priceUpdates } = req.body;
+  if (!Array.isArray(priceUpdates)) {
+    return res.status(400).json({ error: 'INVALID_PAYLOAD', message: 'priceUpdates must be an array.' });
+  }
+
+  let count = 0;
+  priceUpdates.forEach((item: any) => {
+    const prod = partnerProductsDB.get(item.externalProductId);
+    if (prod && item.priceUSD > 0) {
+      prod.priceUSD = Number(item.priceUSD);
+      prod.priceIQD = Math.round(Number(item.priceUSD) * 1320);
+      prod.updatedAt = new Date().toISOString();
+      count++;
+    }
+  });
+
+  res.json({ success: true, updated: count, message: `${count} price records updated.` });
+});
+
+// 4. Branch Endpoints
+app.get('/api/v1/partner/branches', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  res.json({
+    success: true,
+    branches: [
+      { id: 'ERB-01', name: 'Erbil Main Showroom', city: 'Erbil', isWarehouse: true, isShowroom: true },
+      { id: 'BGD-01', name: 'Baghdad Distribution Hub', city: 'Baghdad', isWarehouse: true, isShowroom: false },
+      { id: 'SUL-01', name: 'Sulaymaniyah Express Depot', city: 'Sulaymaniyah', isWarehouse: true, isShowroom: true },
+      { id: 'BSR-01', name: 'Basra Southern Logistics Hub', city: 'Basra', isWarehouse: true, isShowroom: false },
+    ],
+  });
+});
+
+// 5. Order Endpoints
+app.get('/api/v1/partner/orders', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  res.json({
+    success: true,
+    orders: [
+      {
+        orderId: 'ORD-7821',
+        externalOrderId: 'ERP-ORD-99120',
+        customerName: 'Ahmed Al-Tikriti',
+        customerCity: 'Erbil',
+        items: [{ partNumber: '04465-60290', title: 'Front Brake Pad Set', quantity: 1, priceUSD: 145 }],
+        status: 'DISPATCHED',
+        totalUSD: 145,
+        currency: 'USD',
+        createdAt: '2026-09-08T16:00:00Z',
+      },
+    ],
+  });
+});
+
+app.post('/api/v1/partner/orders/:id/acknowledge', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  res.json({
+    success: true,
+    orderId: req.params.id,
+    status: 'ACKNOWLEDGED',
+    acknowledgedAt: new Date().toISOString(),
+    message: `Order ${req.params.id} acknowledged by dealer system.`,
+  });
+});
+
+app.post('/api/v1/partner/orders/:id/confirm', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  res.json({
+    success: true,
+    orderId: req.params.id,
+    externalOrderId: req.body.externalOrderId || `ERP-ORD-${Math.floor(10000 + Math.random() * 90000)}`,
+    status: 'CONFIRMED',
+    confirmedAt: new Date().toISOString(),
+    message: `Order ${req.params.id} confirmed and reserved in dealer ERP.`,
+  });
+});
+
+app.post('/api/v1/partner/orders/:id/status', (req, res) => {
+  if (!validatePartnerAuth(req, res)) return;
+  const { status, trackingNumber } = req.body;
+  res.json({
+    success: true,
+    orderId: req.params.id,
+    newStatus: status || 'PREPARING',
+    trackingNumber: trackingNumber || 'IQ-EXPRESS-9921',
+    updatedAt: new Date().toISOString(),
+  });
+});
+
+// 6. Webhooks Ingestion Endpoints
+app.post('/api/v1/partner/webhooks/inventory', (req, res) => {
+  const sig = req.headers['x-iqm-signature'];
+  res.json({
+    success: true,
+    eventId: `evt-wh-${Date.now()}`,
+    receivedAt: new Date().toISOString(),
+    status: 'PROCESSED',
+    message: 'Inventory change webhook acknowledged.',
+  });
+});
+
+app.post('/api/v1/partner/webhooks/products', (req, res) => {
+  res.json({
+    success: true,
+    eventId: `evt-wh-prod-${Date.now()}`,
+    receivedAt: new Date().toISOString(),
+    status: 'PROCESSED',
+  });
+});
+
+app.post('/api/v1/partner/webhooks/orders', (req, res) => {
+  res.json({
+    success: true,
+    eventId: `evt-wh-ord-${Date.now()}`,
+    receivedAt: new Date().toISOString(),
+    status: 'PROCESSED',
+  });
+});
+
+// 7. Test Connection Sandbox Endpoint
+app.post('/api/v1/partner/test-connection', (req, res) => {
+  const { endpointUrl, apiKey, method } = req.body;
+  const latencyMs = Math.floor(45 + Math.random() * 80);
+
+  res.json({
+    success: true,
+    connected: true,
+    latencyMs,
+    serverTimestamp: new Date().toISOString(),
+    protocolVersion: 'IQAutoMarket-Partner-API/1.0',
+    capabilities: {
+      productSync: true,
+      inventorySync: true,
+      priceSync: true,
+      branchSync: true,
+      orderSync: true,
+      webhooks: true,
+    },
+    message: `Connection successful to ${endpointUrl || 'IQAutoMarket Gateway'}. Authenticated with method [${method || 'API_KEY'}].`,
+  });
+});
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
@@ -412,7 +788,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Spare Parts Marketplace Server running on http://0.0.0.0:${PORT}`);
+    console.log(`IQAutoMarket Server running on http://0.0.0.0:${PORT}`);
   });
 }
 

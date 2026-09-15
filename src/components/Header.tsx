@@ -127,6 +127,7 @@ export const Header: React.FC = () => {
       {/* Main Header Bar */}
       <div className="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4">
         {/* Brand & Tagline - Inspired by CARiD's automotive styling */}
+        {/* Brand & Tagline - IQAutoMarket */}
         <div className="flex items-center gap-3">
           <div
             onClick={() => {
@@ -134,22 +135,22 @@ export const Header: React.FC = () => {
             }}
             className="cursor-pointer flex items-center gap-2.5 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-black tracking-tighter text-lg shadow-md group-hover:bg-red-700 transition-colors">
-              ID
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center font-black tracking-tighter text-sm shadow-md group-hover:from-red-700 group-hover:to-red-800 transition-all">
+              IQ
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-black tracking-tight text-neutral-900 text-base sm:text-lg">
-                  Auto<span className="text-red-600">ID</span>
+                  IQAuto<span className="text-red-600">Market</span>
                 </span>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-red-700 bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
-                  {isArabic ? 'سوبرستور' : 'SUPERSTORE'}
+                  {isArabic ? 'العراق' : 'IRAQ'}
                 </span>
               </div>
               <p className="text-[11px] text-neutral-500 hidden sm:block">
                 {isArabic
-                  ? 'قطع الغيار ومناقصات وعروض المتاجر الحية'
-                  : 'Automotive Parts & Store Dealer Bidding'}
+                  ? 'سوق قطع الغيار المعتمد وتكامل أنظمة الوكلاء'
+                  : 'Genuine Parts & Integrated Dealer Marketplace'}
               </p>
             </div>
           </div>

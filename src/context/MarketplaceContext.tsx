@@ -21,6 +21,13 @@ import {
   CarAuction,
   AuctionBid,
   PrefilledPartRequest,
+  DealerIntegration,
+  IntegrationSyncJob,
+  IntegrationSyncError,
+  ExternalProduct,
+  DealerBranch,
+  IntegrationFieldMapping,
+  IntegrationWebhook,
 } from '../types';
 import {
   INITIAL_VEHICLES,
@@ -31,6 +38,12 @@ import {
   DEMAND_INTELLIGENCE,
   INITIAL_REVIEWS,
   INITIAL_ORDERS,
+  INITIAL_DEALER_INTEGRATIONS,
+  INITIAL_SYNC_JOBS,
+  INITIAL_SYNC_ERRORS,
+  INITIAL_EXTERNAL_PRODUCTS,
+  INITIAL_DEALER_BRANCHES,
+  DEFAULT_FIELD_MAPPINGS,
 } from '../data/mockData';
 import { INITIAL_AUCTIONS } from '../data/mockAuctions';
 
@@ -105,6 +118,28 @@ interface MarketplaceContextType {
   setSelectedAuction: (auction: CarAuction | null) => void;
   isSubmitCarModalOpen: boolean;
   setIsSubmitCarModalOpen: (open: boolean) => void;
+  // B2B Dealer Integrations & Inventory Synchronization
+  dealerIntegrations: DealerIntegration[];
+  syncJobs: IntegrationSyncJob[];
+  syncErrors: IntegrationSyncError[];
+  externalProducts: ExternalProduct[];
+  dealerBranches: DealerBranch[];
+  createOrUpdateIntegration: (integration: Partial<DealerIntegration> & { dealerId: string; providerName: string }) => DealerIntegration;
+  toggleIntegrationStatus: (integrationId: string, status: DealerIntegration['status']) => void;
+  triggerManualSync: (integrationId: string, syncType?: IntegrationSyncJob['syncType']) => Promise<IntegrationSyncJob>;
+  resolveSyncError: (errorId: string, action: 'resolve' | 'ignore' | 'retry') => void;
+  generateOrRotateApiKey: (integrationId: string) => { apiKey: string; maskedApiKey: string };
+  generateWebhookSecret: (integrationId: string) => string;
+  saveFieldMappings: (integrationId: string, mappings: IntegrationFieldMapping[]) => void;
+  addOrUpdateDealerBranch: (branch: Omit<DealerBranch, 'id'> & { id?: string }) => DealerBranch;
+  deleteDealerBranch: (branchId: string) => void;
+  processSmartCsvImport: (
+    dealerId: string,
+    rows: Record<string, any>[],
+    mappings: IntegrationFieldMapping[],
+    options?: { branchId?: string; currency?: 'USD' | 'IQD'; autoPublish?: boolean }
+  ) => { createdCount: number; updatedCount: number; errorCount: number; errors: string[] };
+  simulatePartnerWebhook: (dealerId: string, eventType: IntegrationWebhook['eventType'], payload: any) => { success: boolean; message: string };
 }
 
 const MarketplaceContext = createContext<MarketplaceContextType | undefined>(undefined);
@@ -188,6 +223,32 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [selectedAuction, setSelectedAuction] = useState<CarAuction | null>(null);
   const [isSubmitCarModalOpen, setIsSubmitCarModalOpen] = useState<boolean>(false);
 
+  // B2B Dealer Integrations & Inventory Synchronization State
+  const [dealerIntegrations, setDealerIntegrations] = useState<DealerIntegration[]>(() => {
+    const saved = localStorage.getItem('sp_dealer_integrations');
+    return saved ? JSON.parse(saved) : INITIAL_DEALER_INTEGRATIONS;
+  });
+
+  const [syncJobs, setSyncJobs] = useState<IntegrationSyncJob[]>(() => {
+    const saved = localStorage.getItem('sp_sync_jobs');
+    return saved ? JSON.parse(saved) : INITIAL_SYNC_JOBS;
+  });
+
+  const [syncErrors, setSyncErrors] = useState<IntegrationSyncError[]>(() => {
+    const saved = localStorage.getItem('sp_sync_errors');
+    return saved ? JSON.parse(saved) : INITIAL_SYNC_ERRORS;
+  });
+
+  const [externalProducts, setExternalProducts] = useState<ExternalProduct[]>(() => {
+    const saved = localStorage.getItem('sp_external_products');
+    return saved ? JSON.parse(saved) : INITIAL_EXTERNAL_PRODUCTS;
+  });
+
+  const [dealerBranches, setDealerBranches] = useState<DealerBranch[]>(() => {
+    const saved = localStorage.getItem('sp_dealer_branches');
+    return saved ? JSON.parse(saved) : INITIAL_DEALER_BRANCHES;
+  });
+
   // Parts Bidding & Reverse Auctions State
   const [prefilledPartRequest, setPrefilledPartRequest] = useState<PrefilledPartRequest | null>(null);
   const [selectedRequestForBid, setSelectedRequestForBid] = useState<PartRequest | null>(null);
@@ -247,6 +308,26 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   useEffect(() => {
     localStorage.setItem('sp_car_auctions', JSON.stringify(carAuctions));
   }, [carAuctions]);
+
+  useEffect(() => {
+    localStorage.setItem('sp_dealer_integrations', JSON.stringify(dealerIntegrations));
+  }, [dealerIntegrations]);
+
+  useEffect(() => {
+    localStorage.setItem('sp_sync_jobs', JSON.stringify(syncJobs));
+  }, [syncJobs]);
+
+  useEffect(() => {
+    localStorage.setItem('sp_sync_errors', JSON.stringify(syncErrors));
+  }, [syncErrors]);
+
+  useEffect(() => {
+    localStorage.setItem('sp_external_products', JSON.stringify(externalProducts));
+  }, [externalProducts]);
+
+  useEffect(() => {
+    localStorage.setItem('sp_dealer_branches', JSON.stringify(dealerBranches));
+  }, [dealerBranches]);
 
   const placeBid = (
     auctionId: string,
@@ -782,6 +863,439 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return newRO;
   };
 
+  // ==========================================
+  // Dealer Integrations & Inventory Sync Actions
+  // ==========================================
+
+  const createOrUpdateIntegration = (
+    data: Partial<DealerIntegration> & { dealerId: string; providerName: string }
+  ): DealerIntegration => {
+    const sup = suppliers.find((s) => s.id === data.dealerId);
+    const dealerName = sup ? sup.companyName : 'Authorized Dealer';
+    const existingIndex = dealerIntegrations.findIndex(
+      (i) => i.id === data.id || (i.dealerId === data.dealerId && i.providerType === data.providerType)
+    );
+
+    const randomKey = `iqm_live_${Math.random().toString(36).substring(2, 12)}${Date.now().toString(36)}`;
+    const masked = `iqm_live_${randomKey.substring(9, 13)}••••••••••••••••••••${randomKey.slice(-4)}`;
+    const randomWhSecret = `whsec_${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 6)}`;
+
+    let savedIntegration: DealerIntegration;
+
+    if (existingIndex >= 0) {
+      const existing = dealerIntegrations[existingIndex];
+      savedIntegration = {
+        ...existing,
+        ...data,
+        dealerName: existing.dealerName || dealerName,
+        updatedAt: new Date().toISOString(),
+      };
+      setDealerIntegrations((prev) => {
+        const copy = [...prev];
+        copy[existingIndex] = savedIntegration;
+        return copy;
+      });
+    } else {
+      savedIntegration = {
+        id: data.id || `integ-${Date.now().toString().slice(-5)}`,
+        dealerId: data.dealerId,
+        dealerName,
+        providerName: data.providerName,
+        providerVersion: data.providerVersion || 'v1.0',
+        providerType: data.providerType || 'erp',
+        integrationMethod: data.integrationMethod || 'api',
+        status: data.status || 'active',
+        apiKey: data.apiKey || randomKey,
+        maskedApiKey: data.maskedApiKey || masked,
+        webhookSecret: data.webhookSecret || randomWhSecret,
+        endpointUrl: data.endpointUrl || '',
+        sftpHost: data.sftpHost || '',
+        sftpUsername: data.sftpUsername || '',
+        syncRules: data.syncRules || {
+          syncFrequency: 'every_15min',
+          autoPublishNewProducts: true,
+          requireAdminApproval: false,
+          priceSource: 'retail',
+          currency: 'USD',
+          stockSource: 'available',
+          hideOutOfStock: false,
+          autoUpdatePrices: true,
+          syncOrdersBackToDealer: true,
+          stockReservationMode: 'marketplace',
+          includedBranchIds: dealerBranches.filter((b) => b.dealerId === data.dealerId).map((b) => b.id),
+        },
+        fieldMappings: data.fieldMappings || DEFAULT_FIELD_MAPPINGS,
+        lastSyncAt: new Date().toISOString(),
+        nextSyncAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+        syncHealthScore: 98,
+        totalProductsSynced: data.totalProductsSynced || 120,
+        totalInventorySynced: data.totalInventorySynced || 450,
+        totalPriceRecordsSynced: data.totalPriceRecordsSynced || 120,
+        failedRecordsCount: 0,
+        pendingUpdatesCount: 0,
+        apiCallsLast24h: 1,
+        webhookStatus: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setDealerIntegrations((prev) => [savedIntegration, ...prev]);
+    }
+
+    return savedIntegration;
+  };
+
+  const toggleIntegrationStatus = (integrationId: string, status: DealerIntegration['status']) => {
+    setDealerIntegrations((prev) =>
+      prev.map((i) => (i.id === integrationId ? { ...i, status, updatedAt: new Date().toISOString() } : i))
+    );
+  };
+
+  const triggerManualSync = async (
+    integrationId: string,
+    syncType: IntegrationSyncJob['syncType'] = 'incremental'
+  ): Promise<IntegrationSyncJob> => {
+    const integration = dealerIntegrations.find((i) => i.id === integrationId);
+    const dealerId = integration?.dealerId || 'sup-1';
+    const dealerName = integration?.dealerName || 'ABC Genuine Parts';
+
+    // Simulate async network processing
+    const startedAt = new Date().toISOString();
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const processed = Math.floor(80 + Math.random() * 200);
+    const updated = Math.floor(processed * 0.9);
+    const created = processed - updated;
+    const failed = Math.random() > 0.8 ? 1 : 0;
+    const completedAt = new Date().toISOString();
+
+    const newJob: IntegrationSyncJob = {
+      id: `job-${Date.now().toString().slice(-4)}`,
+      integrationId,
+      dealerId,
+      dealerName,
+      syncType,
+      status: failed > 0 ? 'completed_with_warnings' : 'completed',
+      startedAt,
+      completedAt,
+      durationMs: 820,
+      recordsProcessed: processed,
+      recordsCreated: created,
+      recordsUpdated: updated,
+      recordsFailed: failed,
+      errorSummary: failed > 0 ? '1 record had invalid price formatting' : undefined,
+    };
+
+    setSyncJobs((prev) => [newJob, ...prev]);
+
+    // Update integration metrics
+    setDealerIntegrations((prev) =>
+      prev.map((i) => {
+        if (i.id === integrationId) {
+          return {
+            ...i,
+            lastSyncAt: completedAt,
+            nextSyncAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+            totalProductsSynced: i.totalProductsSynced + created,
+            totalInventorySynced: i.totalInventorySynced + processed,
+            totalPriceRecordsSynced: i.totalPriceRecordsSynced + updated,
+            apiCallsLast24h: i.apiCallsLast24h + 1,
+            failedRecordsCount: i.failedRecordsCount + failed,
+            syncHealthScore: failed > 0 ? Math.max(85, i.syncHealthScore - 2) : Math.min(100, i.syncHealthScore + 1),
+          };
+        }
+        return i;
+      })
+    );
+
+    return newJob;
+  };
+
+  const resolveSyncError = (errorId: string, action: 'resolve' | 'ignore' | 'retry') => {
+    setSyncErrors((prev) =>
+      prev.map((e) => {
+        if (e.id === errorId) {
+          return {
+            ...e,
+            status: action === 'ignore' ? 'ignored' : 'resolved',
+            resolvedAt: new Date().toISOString(),
+          };
+        }
+        return e;
+      })
+    );
+  };
+
+  const generateOrRotateApiKey = (integrationId: string) => {
+    const raw = `iqm_live_${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}${Date.now().toString(36)}`;
+    const masked = `iqm_live_${raw.substring(9, 13)}••••••••••••••••••••${raw.slice(-4)}`;
+
+    setDealerIntegrations((prev) =>
+      prev.map((i) => (i.id === integrationId ? { ...i, apiKey: raw, maskedApiKey: masked, updatedAt: new Date().toISOString() } : i))
+    );
+
+    return { apiKey: raw, maskedApiKey: masked };
+  };
+
+  const generateWebhookSecret = (integrationId: string) => {
+    const secret = `whsec_${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 8)}`;
+    setDealerIntegrations((prev) =>
+      prev.map((i) => (i.id === integrationId ? { ...i, webhookSecret: secret, updatedAt: new Date().toISOString() } : i))
+    );
+    return secret;
+  };
+
+  const saveFieldMappings = (integrationId: string, mappings: IntegrationFieldMapping[]) => {
+    setDealerIntegrations((prev) =>
+      prev.map((i) => (i.id === integrationId ? { ...i, fieldMappings: mappings, updatedAt: new Date().toISOString() } : i))
+    );
+  };
+
+  const addOrUpdateDealerBranch = (branchData: Omit<DealerBranch, 'id'> & { id?: string }): DealerBranch => {
+    const id = branchData.id || `branch-${Date.now().toString().slice(-4)}`;
+    const fullBranch: DealerBranch = {
+      ...branchData,
+      id,
+    };
+
+    setDealerBranches((prev) => {
+      const exists = prev.some((b) => b.id === id);
+      if (exists) {
+        return prev.map((b) => (b.id === id ? fullBranch : b));
+      }
+      return [...prev, fullBranch];
+    });
+
+    return fullBranch;
+  };
+
+  const deleteDealerBranch = (branchId: string) => {
+    setDealerBranches((prev) => prev.filter((b) => b.id !== branchId));
+  };
+
+  const processSmartCsvImport = (
+    dealerId: string,
+    rows: Record<string, any>[],
+    mappings: IntegrationFieldMapping[],
+    options?: { branchId?: string; currency?: 'USD' | 'IQD'; autoPublish?: boolean }
+  ) => {
+    const sup = suppliers.find((s) => s.id === dealerId);
+    const supplierName = sup ? sup.companyName : 'Authorized Dealer';
+    const errors: string[] = [];
+    let createdCount = 0;
+    let updatedCount = 0;
+
+    // Helper to resolve mapped field value
+    const getMappedVal = (row: Record<string, any>, destField: string) => {
+      const map = mappings.find((m) => m.destinationField === destField);
+      if (!map) {
+        // Fallback to direct key if present
+        return row[destField] ?? row[destField.toLowerCase()] ?? '';
+      }
+      let val = row[map.sourceField] ?? row[map.sourceField.toLowerCase()] ?? map.defaultValue ?? '';
+      if (typeof val === 'string') {
+        if (map.transformationRule === 'uppercase') val = val.toUpperCase().trim();
+        else if (map.transformationRule === 'trim') val = val.trim();
+      }
+      return val;
+    };
+
+    const targetBranch = dealerBranches.find((b) => b.id === options?.branchId && b.dealerId === dealerId) || dealerBranches[0];
+
+    setMasterParts((prevParts) => {
+      const updatedParts = [...prevParts];
+
+      rows.forEach((row, idx) => {
+        const partNumber = String(getMappedVal(row, 'partNumber') || '').trim().toUpperCase();
+        const title = String(getMappedVal(row, 'title') || getMappedVal(row, 'partName') || '').trim();
+        const brand = String(getMappedVal(row, 'brand') || 'OEM Genuine').trim();
+        const rawPrice = Number(getMappedVal(row, 'priceUSD') || getMappedVal(row, 'price') || 0);
+        const rawStock = Number(getMappedVal(row, 'totalQuantity') || getMappedVal(row, 'stock') || 0);
+        const oemNumber = String(getMappedVal(row, 'oemNumber') || partNumber).trim().toUpperCase();
+
+        if (!partNumber) {
+          errors.push(`Row ${idx + 1}: Missing mandatory Part Number / ItemCode`);
+          return;
+        }
+
+        if (isNaN(rawPrice) || rawPrice <= 0) {
+          errors.push(`Row ${idx + 1} (${partNumber}): Invalid price value ($${rawPrice})`);
+          return;
+        }
+
+        const priceUSD = rawPrice;
+        const priceIQD = Math.round(priceUSD * 1320);
+        const stockQty = Math.max(0, isNaN(rawStock) ? 0 : rawStock);
+
+        const existingPart = updatedParts.find(
+          (p) =>
+            p.partNumber.toUpperCase() === partNumber ||
+            p.oemNumber?.toUpperCase() === partNumber ||
+            p.alternativeNumbers?.some((alt) => alt.toUpperCase() === partNumber)
+        );
+
+        const branchEntry = targetBranch
+          ? {
+              branchId: targetBranch.id,
+              branchName: targetBranch.branchName,
+              city: targetBranch.city,
+              availableQty: stockQty,
+              reservedQty: 0,
+              onHandQty: stockQty,
+              priceUSD,
+              priceIQD,
+              pickupAvailable: targetBranch.offersPickup,
+              deliveryEstimatedHours: targetBranch.avgDeliveryHours,
+            }
+          : undefined;
+
+        const newOffer: SupplierOffer = {
+          id: `off-csv-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 5)}`,
+          supplierId: dealerId,
+          supplierName,
+          supplierRating: sup?.rating || 4.8,
+          verifiedInteractionsCount: sup?.verifiedInteractionsCount || 600,
+          repeatPurchaseRate: sup?.repeatCustomerPercentage || 95,
+          quality: 'genuine',
+          brand: brand || 'Genuine OEM',
+          priceUSD,
+          priceIQD,
+          stockStatus: stockQty > 0 ? 'in_stock_today' : 'order_on_demand',
+          stockQuantity: stockQty,
+          reservedQuantity: 0,
+          warranty: '12-Month Official Warranty',
+          deliveryTime: 'Same Day Delivery (2-4 hrs)',
+          deliveryOptions: ['pickup', 'supplier_delivery', 'express_courier'],
+          supplierCity: targetBranch?.city || sup?.city || 'Erbil',
+          supplierLocationDetail: targetBranch?.address || sup?.address || 'Main Showroom',
+          notes: 'Synchronized via IQAutoMarket Smart CSV/Excel Import Pipeline.',
+          externalProductId: `CSV-SKU-${partNumber}`,
+          externalSku: `SKU-${partNumber}`,
+          syncSource: 'csv',
+          lastSyncedAt: 'Just now',
+          branches: branchEntry ? [branchEntry] : undefined,
+        };
+
+        if (existingPart) {
+          updatedCount++;
+          existingPart.offers = [newOffer, ...existingPart.offers.filter((o) => o.supplierId !== dealerId)];
+        } else {
+          createdCount++;
+          updatedParts.push({
+            id: `part-${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+            partNumber,
+            oemNumber,
+            partName: title || `Auto Part ${partNumber}`,
+            manufacturer: brand,
+            brand,
+            category: 'Engine',
+            description: `IQAutoMarket Verified Part: ${title || partNumber}. Imported from ${supplierName}.`,
+            specifications: { 'Part Number': partNumber, 'OEM Reference': oemNumber, 'Stock Level': `${stockQty} units` },
+            imageUrl: 'https://images.unsplash.com/photo-1558441719-8b489c63f7d1?auto=format&fit=crop&w=600&q=80',
+            compatibleVehicles: [
+              {
+                make: 'Universal',
+                model: 'Compatible Vehicles Listed on Box',
+                yearStart: 2016,
+                yearEnd: 2025,
+                engine: 'Standard Configuration',
+              },
+            ],
+            offers: [newOffer],
+          });
+        }
+      });
+
+      return updatedParts;
+    });
+
+    // Update integration summary
+    const integration = dealerIntegrations.find((i) => i.dealerId === dealerId);
+    if (integration) {
+      setDealerIntegrations((prev) =>
+        prev.map((i) =>
+          i.id === integration.id
+            ? {
+                ...i,
+                lastSyncAt: new Date().toISOString(),
+                totalProductsSynced: i.totalProductsSynced + createdCount,
+                totalInventorySynced: i.totalInventorySynced + createdCount + updatedCount,
+                totalPriceRecordsSynced: i.totalPriceRecordsSynced + createdCount + updatedCount,
+                failedRecordsCount: i.failedRecordsCount + errors.length,
+              }
+            : i
+        )
+      );
+    }
+
+    return { createdCount, updatedCount, errorCount: errors.length, errors };
+  };
+
+  const simulatePartnerWebhook = (
+    dealerId: string,
+    eventType: IntegrationWebhook['eventType'],
+    payload: any
+  ): { success: boolean; message: string } => {
+    const sup = suppliers.find((s) => s.id === dealerId);
+    const dealerName = sup ? sup.companyName : 'Partner Dealer';
+
+    if (eventType === 'stock.changed' && payload.partNumber) {
+      const partNum = String(payload.partNumber).toUpperCase();
+      const newQty = Number(payload.newQuantity ?? 15);
+      setMasterParts((prev) =>
+        prev.map((p) => {
+          if (p.partNumber.toUpperCase() === partNum || p.alternativeNumbers?.some((a) => a.toUpperCase() === partNum)) {
+            return {
+              ...p,
+              offers: p.offers.map((off) => {
+                if (off.supplierId === dealerId) {
+                  return {
+                    ...off,
+                    stockQuantity: newQty,
+                    stockStatus: newQty > 0 ? 'in_stock_today' : 'order_on_demand',
+                    lastSyncedAt: 'Real-time Webhook (Just now)',
+                  };
+                }
+                return off;
+              }),
+            };
+          }
+          return p;
+        })
+      );
+    }
+
+    if (eventType === 'price.changed' && payload.partNumber) {
+      const partNum = String(payload.partNumber).toUpperCase();
+      const newPriceUSD = Number(payload.newPriceUSD ?? 120);
+      setMasterParts((prev) =>
+        prev.map((p) => {
+          if (p.partNumber.toUpperCase() === partNum || p.alternativeNumbers?.some((a) => a.toUpperCase() === partNum)) {
+            return {
+              ...p,
+              offers: p.offers.map((off) => {
+                if (off.supplierId === dealerId) {
+                  return {
+                    ...off,
+                    priceUSD: newPriceUSD,
+                    priceIQD: Math.round(newPriceUSD * 1320),
+                    lastSyncedAt: 'Real-time Webhook (Just now)',
+                  };
+                }
+                return off;
+              }),
+            };
+          }
+          return p;
+        })
+      );
+    }
+
+    return {
+      success: true,
+      message: `Webhook event [${eventType}] successfully validated & ingested for ${dealerName}. Real-time marketplace inventory updated.`,
+    };
+  };
+
   return (
     <MarketplaceContext.Provider
       value={{
@@ -846,6 +1360,23 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setSelectedAuction,
         isSubmitCarModalOpen,
         setIsSubmitCarModalOpen,
+        // B2B Dealer Integrations & Inventory Synchronization
+        dealerIntegrations,
+        syncJobs,
+        syncErrors,
+        externalProducts,
+        dealerBranches,
+        createOrUpdateIntegration,
+        toggleIntegrationStatus,
+        triggerManualSync,
+        resolveSyncError,
+        generateOrRotateApiKey,
+        generateWebhookSecret,
+        saveFieldMappings,
+        addOrUpdateDealerBranch,
+        deleteDealerBranch,
+        processSmartCsvImport,
+        simulatePartnerWebhook,
       }}
     >
       {children}

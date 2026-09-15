@@ -19,8 +19,19 @@ import {
   TrendingUp,
   MapPin,
   Clock,
+  Zap,
+  Server,
+  Code2,
+  Building2,
+  AlertTriangle,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
+import { IntegrationDashboard } from './DealerIntegrations/IntegrationDashboard';
+import { IntegrationOnboardingWizard } from './DealerIntegrations/IntegrationOnboardingWizard';
+import { SmartCsvImportModal } from './DealerIntegrations/SmartCsvImportModal';
+import { DealerErrorCenter } from './DealerIntegrations/DealerErrorCenter';
+import { PartnerApiSandbox } from './DealerIntegrations/PartnerApiSandbox';
+import { BranchInventoryManager } from './DealerIntegrations/BranchInventoryManager';
 
 export const SupplierPortal: React.FC = () => {
   const {
@@ -31,6 +42,8 @@ export const SupplierPortal: React.FC = () => {
     orders,
     updateOrderStatus,
     language,
+    dealerIntegrations,
+    syncErrors,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
@@ -38,7 +51,14 @@ export const SupplierPortal: React.FC = () => {
   // Active supplier is ABC Genuine Parts (sup-1)
   const currentSupplier = suppliers.find((s) => s.id === 'sup-1') || suppliers[0];
 
-  const [activeTab, setActiveTab] = useState<'requests' | 'orders' | 'bulk_upload'>('requests');
+  const [activeTab, setActiveTab] = useState<'integrations' | 'requests' | 'orders' | 'bulk_upload'>('integrations');
+
+  // Integration sub-modals
+  const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState<boolean>(false);
+  const [isErrorCenterOpen, setIsErrorCenterOpen] = useState<boolean>(false);
+  const [isApiSandboxOpen, setIsApiSandboxOpen] = useState<boolean>(false);
+  const [isBranchManagerOpen, setIsBranchManagerOpen] = useState<boolean>(false);
 
   // Submit quote state for inbound request
   const [selectedReqForQuote, setSelectedReqForQuote] = useState<string | null>(null);
@@ -62,6 +82,8 @@ export const SupplierPortal: React.FC = () => {
   );
 
   const supplierOrders = orders.filter((o) => o.supplierId === currentSupplier.id);
+  const primaryInteg = dealerIntegrations.find((i) => i.dealerId === currentSupplier.id);
+  const openErrors = syncErrors.filter((e) => e.dealerId === currentSupplier.id && e.status === 'open');
 
   const handleOpenQuoteModal = (req: any) => {
     setSelectedReqForQuote(req.id);
@@ -118,7 +140,7 @@ export const SupplierPortal: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Supplier Profile Banner (PRD Section 15) */}
+      {/* Supplier Profile Banner */}
       <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-start gap-4">
@@ -134,6 +156,12 @@ export const SupplierPortal: React.FC = () => {
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
                   Level 3 Verified Genuine Partner
                 </span>
+                {primaryInteg && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-50 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                    <Server className="w-3 h-3 text-blue-600" />
+                    ERP Integrated ({primaryInteg.providerType.toUpperCase()})
+                  </span>
+                )}
               </div>
               <div className="text-xs text-neutral-500 flex flex-wrap items-center gap-3 mt-1.5">
                 <span className="flex items-center gap-1">
@@ -141,17 +169,14 @@ export const SupplierPortal: React.FC = () => {
                   {currentSupplier.city} • {currentSupplier.address}
                 </span>
                 <span>Phone: {currentSupplier.phone}</span>
-                <span>
-                  Delivery Radius:{' '}
-                  {Array.isArray(currentSupplier.deliveryCoverage)
-                    ? currentSupplier.deliveryCoverage.join(', ')
-                    : currentSupplier.deliveryCoverage || 'Nationwide'}
+                <span className="font-semibold text-emerald-700">
+                  ⚡ Auto-Sync Active ({primaryInteg?.syncRules?.syncFrequency || 'every 15 min'})
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Supplier KPIs (PRD Section 15) */}
+          {/* Supplier KPIs */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
               <div className="flex items-center justify-center gap-1 text-amber-500">
@@ -165,38 +190,54 @@ export const SupplierPortal: React.FC = () => {
 
             <div className="px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
               <div className="text-base font-black text-emerald-700">
-                {currentSupplier.onTimeDeliveryRate}%
+                {primaryInteg?.syncHealthScore || 98}%
               </div>
               <span className="text-[10px] text-neutral-500 font-semibold block uppercase mt-0.5">
-                On-Time Fulfillment
+                Sync Health Score
               </span>
             </div>
 
             <div className="px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
               <div className="text-base font-black text-neutral-900">
-                {currentSupplier.repeatCustomerPercentage}%
+                {(primaryInteg?.totalProductsSynced || 3420).toLocaleString()}
               </div>
               <span className="text-[10px] text-neutral-500 font-semibold block uppercase mt-0.5">
-                Repeat Customer Rate
+                Live SKUs
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-neutral-200 mb-6 gap-2 text-xs font-bold">
+      {/* Tabs Bar */}
+      <div className="flex border-b border-neutral-200 mb-6 gap-2 text-xs font-bold overflow-x-auto">
+        <button
+          id="supplier-tab-integrations"
+          onClick={() => setActiveTab('integrations')}
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'integrations'
+              ? 'border-red-600 text-red-600 font-black'
+              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+          }`}
+        >
+          <Zap className="w-4 h-4 text-red-600" />
+          <span>{isArabic ? 'تكامل ومزامنة المخزون (ERP / API)' : 'Integrations & Inventory Sync'}</span>
+          <span className="bg-red-100 text-red-800 font-black px-1.5 py-0.2 rounded-full text-[10px]">
+            B2B
+          </span>
+        </button>
+
         <button
           id="supplier-tab-requests"
           onClick={() => setActiveTab('requests')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'requests'
-              ? 'border-emerald-600 text-emerald-700'
+              ? 'border-emerald-600 text-emerald-700 font-black'
               : 'border-transparent text-neutral-500 hover:text-neutral-800'
           }`}
         >
           <Clock className="w-4 h-4" />
-          <span>Inbound Part Requests</span>
+          <span>{isArabic ? 'طلبات ومناقصات القطع الواردة' : 'Inbound Part Requests'}</span>
           <span className="bg-emerald-100 text-emerald-900 px-1.5 py-0.2 rounded-full text-[10px]">
             {inboundRequests.length}
           </span>
@@ -205,14 +246,14 @@ export const SupplierPortal: React.FC = () => {
         <button
           id="supplier-tab-orders"
           onClick={() => setActiveTab('orders')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'orders'
-              ? 'border-emerald-600 text-emerald-700'
+              ? 'border-emerald-600 text-emerald-700 font-black'
               : 'border-transparent text-neutral-500 hover:text-neutral-800'
           }`}
         >
           <PackageCheck className="w-4 h-4" />
-          <span>Active Customer Orders</span>
+          <span>{isArabic ? 'الطلبات المباشرة' : 'Active Customer Orders'}</span>
           <span className="bg-neutral-100 text-neutral-800 px-1.5 py-0.2 rounded-full text-[10px]">
             {supplierOrders.length}
           </span>
@@ -221,16 +262,28 @@ export const SupplierPortal: React.FC = () => {
         <button
           id="supplier-tab-bulk"
           onClick={() => setActiveTab('bulk_upload')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 ${
+          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'bulk_upload'
-              ? 'border-emerald-600 text-emerald-700'
+              ? 'border-emerald-600 text-emerald-700 font-black'
               : 'border-transparent text-neutral-500 hover:text-neutral-800'
           }`}
         >
           <FileSpreadsheet className="w-4 h-4" />
-          <span>Bulk Inventory Upload (CSV)</span>
+          <span>{isArabic ? 'استيراد CSV سريع' : 'Quick CSV Upload'}</span>
         </button>
       </div>
+
+      {/* TAB 0: B2B Dealer Integrations Dashboard (PRD Section 2 & 3) */}
+      {activeTab === 'integrations' && (
+        <IntegrationDashboard
+          supplierId={currentSupplier.id}
+          onOpenWizard={() => setIsWizardOpen(true)}
+          onOpenCsvImport={() => setIsCsvModalOpen(true)}
+          onOpenErrorCenter={() => setIsErrorCenterOpen(true)}
+          onOpenApiSandbox={() => setIsApiSandboxOpen(true)}
+          onOpenBranchManager={() => setIsBranchManagerOpen(true)}
+        />
+      )}
 
       {/* TAB 1: Inbound Part Requests to Bid on (PRD Section 16 & 23) */}
       {activeTab === 'requests' && (
@@ -535,6 +588,55 @@ export const SupplierPortal: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Sub-Modals */}
+      {isWizardOpen && (
+        <IntegrationOnboardingWizard
+          supplierId={currentSupplier.id}
+          onClose={() => setIsWizardOpen(false)}
+        />
+      )}
+
+      {isCsvModalOpen && (
+        <SmartCsvImportModal
+          supplierId={currentSupplier.id}
+          onClose={() => setIsCsvModalOpen(false)}
+        />
+      )}
+
+      {isErrorCenterOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-5xl rounded-3xl border border-neutral-200 shadow-2xl p-6 my-6 max-h-[85vh] overflow-y-auto animate-scaleUp">
+            <DealerErrorCenter
+              supplierId={currentSupplier.id}
+              onClose={() => setIsErrorCenterOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {isApiSandboxOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-5xl rounded-3xl border border-neutral-200 shadow-2xl p-6 my-6 max-h-[85vh] overflow-y-auto animate-scaleUp">
+            <PartnerApiSandbox
+              supplierId={currentSupplier.id}
+              onClose={() => setIsApiSandboxOpen(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {isBranchManagerOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white w-full max-w-4xl rounded-3xl border border-neutral-200 shadow-2xl p-6 my-6 max-h-[85vh] overflow-y-auto animate-scaleUp">
+            <BranchInventoryManager
+              supplierId={currentSupplier.id}
+              onClose={() => setIsBranchManagerOpen(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

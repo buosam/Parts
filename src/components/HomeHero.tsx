@@ -58,24 +58,38 @@ export const HomeHero: React.FC = () => {
     <div className="bg-linear-to-b from-neutral-900 via-neutral-900 to-neutral-800 text-white border-b border-neutral-800">
       <div className="max-w-5xl mx-auto px-4 pt-10 pb-12 sm:pt-14 sm:pb-16 text-center">
         {/* Core Value Prop Eyebrow */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-semibold mb-4">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-bold mb-4">
+          <ShieldCheck className="w-3.5 h-3.5 text-red-400" />
           <span>
             {isArabic
-              ? 'القطعة الصحيحة، من المورد المناسب، بالسعر الأفضل'
-              : 'Find the right part, from the right supplier, at the right price'}
+              ? 'سوق قطع الغيار المعتمد الأول في العراق والشرق الأوسط'
+              : 'Iraq’s Premier Automotive Spare Parts & Dealer Integration Marketplace'}
           </span>
         </div>
 
-        {/* Primary Headline (PRD Section 6) */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white max-w-2xl mx-auto leading-tight">
-          {isArabic ? 'اعثر على القطعة المطابقة لسيارتك بدقة' : 'Find the right part for your car'}
+        {/* Primary Headline (PRD Section 1) */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white max-w-3xl mx-auto leading-tight">
+          {isArabic ? (
+            <>
+              ابحث عن القطعة. اعثر على المورد الأنسب.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-300 to-red-400">
+                أو دع الوكلاء المعتمدين يتنافسون لتوفيرها لك.
+              </span>
+            </>
+          ) : (
+            <>
+              Search for the part. Find the right supplier.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-300 to-red-400">
+                Or let verified dealers compete to find it for you.
+              </span>
+            </>
+          )}
         </h1>
 
-        <p className="mt-3 text-sm sm:text-base text-neutral-400 max-w-xl mx-auto">
+        <p className="mt-3 text-sm sm:text-base text-neutral-400 max-w-2xl mx-auto">
           {isArabic
-            ? 'كتالوج مركزي موثق، مقارنة فورية بين الموردين للأصلي والـ OEM، وتأكيد التوافق برقم الشاصي.'
-            : 'Centralized master catalogue, side-by-side Genuine & OEM supplier comparison, and verified fitment.'}
+            ? 'شراء مباشر من مخازن الوكلاء المتصلة فورياً، أو إنشاء طلب قطعة غير متوفرة لمزايدة كبار التجار والموزعين في بغداد وأربيل والبصرة.'
+            : 'Direct purchase with live dealer ERP inventory sync, plus reverse marketplace requests where verified suppliers bid to supply hard-to-find parts.'}
         </p>
 
         {/* Vehicle Section: "My Vehicle" (PRD Section 6) */}

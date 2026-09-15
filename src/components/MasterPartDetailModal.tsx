@@ -29,6 +29,7 @@ import {
   Send,
   Sparkles,
   Gavel,
+  Zap,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { MasterPart, SupplierOffer } from '../types';
@@ -603,7 +604,39 @@ export const MasterPartDetailModal: React.FC<MasterPartDetailModalProps> = ({ pa
                             <MapPin className="w-3 h-3" />
                             {offer.supplierCity} ({offer.supplierLocationDetail})
                           </span>
+                          {offer.syncSource && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-blue-50 text-blue-800 px-2 py-0.5 rounded border border-blue-200">
+                              <Zap className="w-3 h-3 text-blue-600" />
+                              <span>{offer.syncSource.toUpperCase()} Live Sync ({offer.lastSyncedAt || 'Active'})</span>
+                            </span>
+                          )}
                         </div>
+
+                        {/* Multi-Branch Inventory Availability (PRD Section 4.3) */}
+                        {offer.branches && offer.branches.length > 0 && (
+                          <div className="pt-2">
+                            <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1">
+                              {isArabic ? 'المخزون المتوفر بحسب الفروع والمستودعات:' : 'Branch & Warehouse Availability:'}
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {offer.branches.map((b) => (
+                                <span
+                                  key={b.branchId}
+                                  className="inline-flex items-center gap-1 text-[11px] font-medium bg-neutral-100/80 border border-neutral-200 px-2 py-0.5 rounded-md text-neutral-800"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                  <span className="font-bold">{b.city}:</span>
+                                  <span>{b.availableQty} in stock</span>
+                                  {b.pickupAvailable && (
+                                    <span className="text-[9px] text-emerald-700 font-bold bg-emerald-50 px-1 rounded">
+                                      Pickup
+                                    </span>
+                                  )}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         {offer.notes && (
                           <p className="text-[11px] text-neutral-500 italic bg-white p-1.5 rounded border border-neutral-100">

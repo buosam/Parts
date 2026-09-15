@@ -132,15 +132,14 @@ const MarketplaceApp: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center font-black text-sm">
-                ID
+                IQ
               </div>
               <span className="font-bold text-white text-sm tracking-tight">
-                AUTO ID SPARE PARTS
+                IQAutoMarket
               </span>
             </div>
             <p className="text-neutral-400 text-xs leading-relaxed">
-              Premier automotive spare parts marketplace with reverse auction bidding.
-              When parts are out of stock, 120+ verified stores and dealers compete to supply them at the lowest price.
+              Premium automotive spare-parts marketplace for Iraq. Connects vehicle owners and workshops with genuine dealers, aftermarket suppliers, and real-time ERP/DMS inventory synchronization.
             </p>
           </div>
 
@@ -149,12 +148,12 @@ const MarketplaceApp: React.FC = () => {
               Core Capabilities
             </h4>
             <ul className="space-y-1.5 text-neutral-400">
-              <li>Centralized Master Catalogue</li>
-              <li>Vehicle Fitment Database & VIN Decoder</li>
-              <li>Out-of-Stock Parts Bidding & Reverse Auctions</li>
-              <li>Store Owner & Dealer Quotation Portal</li>
+              <li>Direct Marketplace Purchases</li>
+              <li>Reverse RFQ Bidding for Unavailable Parts</li>
+              <li>B2B Dealer ERP / DMS & REST API Sync</li>
+              <li>Multi-Branch & Warehouse Stock Allocation</li>
+              <li>Vehicle Fitment Guarantee (VIN Matched)</li>
               <li>AI Photo Identification (Gemini Vision)</li>
-              <li>Workshop Repair Sourcing Engine</li>
             </ul>
           </div>
 
@@ -163,11 +162,11 @@ const MarketplaceApp: React.FC = () => {
               Regional Coverage
             </h4>
             <ul className="space-y-1.5 text-neutral-400">
-              <li>Baghdad Sheikh Omar & Sinak Parts Market</li>
-              <li>Erbil Industrial Zone & 60m Road Hubs</li>
-              <li>Basra Auto District & Port Clearance</li>
-              <li>Sulaymaniyah & Duhok Logistics</li>
-              <li>Same-Day Express Courier Delivery</li>
+              <li>Baghdad Sheikh Omar & Sinak Parts Hubs</li>
+              <li>Erbil 60m Road & Industrial Zones</li>
+              <li>Basra Auto District & Southern Logistics</li>
+              <li>Sulaymaniyah & Duhok Distribution Depots</li>
+              <li>Same-Day Local Delivery & Branch Pickup</li>
             </ul>
           </div>
 
@@ -181,15 +180,15 @@ const MarketplaceApp: React.FC = () => {
                 <span>Level 3 Genuine Guarantee</span>
               </div>
               <p className="text-neutral-400">
-                100% Escrow and payment at counter upon physical fitment inspection.
+                100% Verified parts with payment at counter upon physical inspection or verified delivery.
               </p>
             </div>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between text-neutral-500 text-[11px] gap-2">
-          <span>© 2026 AutoID Spare Parts Marketplace. All rights reserved.</span>
-          <span>Powered by Google Gemini 2.5 Flash & Full-Stack Node.js</span>
+          <span>© 2026 IQAutoMarket — Automotive Spare Parts & Dealer Integration Marketplace.</span>
+          <span>Deployable on Railway · Powered by Google Gemini AI</span>
         </div>
       </footer>
     </div>
