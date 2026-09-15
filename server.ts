@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
@@ -777,22 +778,33 @@ app.post('/api/v1/partner/test-connection', (req, res) => {
 async function startServer() {
   await initDatabase();
 
-  if (process.env.NODE_ENV !== 'production') {
+  const possibleDistPaths = [
+    path.join(process.cwd(), 'dist'),
+    path.join(__dirname, 'dist'),
+    path.join(__dirname, '../dist'),
+    path.resolve('dist'),
+  ];
+
+  const distPath = possibleDistPaths.find((p) => fs.existsSync(path.join(p, 'index.html')));
+
+  if (distPath) {
+    console.log(`📦 Serving static production frontend from: ${distPath}`);
+    app.use(express.static(distPath));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/')) return next();
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
+  } else {
+    console.log('⚡ Launching Vite in development middleware mode...');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`IQAutoMarket Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🚀 IQAutoMarket Server running on http://0.0.0.0:${PORT}`);
   });
 }
 
