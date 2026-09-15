@@ -1,0 +1,12 @@
+# Nixpacks configuration for Railway Node 20+ runtime and TailwindCSS v4 native binary support
+[phases.setup]
+nixPkgs = ["nodejs_20", "npm-10_x"]
+
+[phases.install]
+cmds = ["npm install --include=optional"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm run start"
