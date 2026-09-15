@@ -23,7 +23,7 @@ import { SupplierStorefrontModal } from './components/SupplierStorefrontModal';
 import { DealerReviewModal } from './components/DealerReviewModal';
 import { CarIdDepartmentBar } from './components/CarIdDepartmentBar';
 import { MasterPart } from './types';
-import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, Flame } from 'lucide-react';
+import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2 } from 'lucide-react';
 
 const MarketplaceApp: React.FC = () => {
   const {
@@ -40,12 +40,12 @@ const MarketplaceApp: React.FC = () => {
   return (
     <div
       dir={isArabic ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-neutral-100/60 text-neutral-900 font-sans flex flex-col selection:bg-red-500 selection:text-white"
+      className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans flex flex-col selection:bg-indigo-500 selection:text-white"
     >
       {/* Universal Header */}
       <Header />
 
-      {/* CARiD-inspired Automotive Departments Mega-Bar */}
+      {/* Automotive Departments Mega-Bar */}
       {role === 'customer' && (
         <CarIdDepartmentBar
           activeView={customerSubTab === 'bidding' ? 'requests' : 'parts'}
@@ -64,33 +64,33 @@ const MarketplaceApp: React.FC = () => {
 
             {/* Sub-view toggle for Customer: Search Catalogue vs Parts Bidding Floor */}
             <div className="max-w-7xl mx-auto px-4 pt-6">
-              <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 pb-3">
+              <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-4">
                 <button
                   id="tab-catalogue-btn"
                   onClick={() => setCustomerSubTab('catalogue')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                     customerSubTab === 'catalogue'
-                      ? 'bg-neutral-900 text-white shadow-xs'
-                      : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40'
+                      : 'bg-white/[0.04] text-slate-300 hover:text-white hover:bg-white/[0.08] border border-white/5'
                   }`}
                 >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>{isArabic ? 'قطع الغيار والكتالوج المباشر' : 'Auto Parts Catalogue'}</span>
+                  <Layers className="w-4 h-4 text-indigo-300" />
+                  <span>{isArabic ? 'قطع الغيار والكتالوج المباشر' : 'Live Auto Parts Catalogue'}</span>
                 </button>
 
                 <button
                   id="tab-bidding-floor-btn"
                   onClick={() => setCustomerSubTab('bidding')}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                     customerSubTab === 'bidding'
-                      ? 'bg-amber-500 text-neutral-950 shadow-md font-black'
-                      : 'bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-300'
+                      ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/30 border border-amber-400 font-extrabold'
+                      : 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 border border-amber-500/20'
                   }`}
                 >
-                  <Gavel className="w-3.5 h-3.5 text-amber-600" />
-                  <span>{isArabic ? 'منصة طلب ومناقصات القطع (مزايدات المتاجر)' : 'Parts Bidding Floor (Store Owner Bids)'}</span>
-                  <span className="text-[9px] bg-neutral-900 text-amber-400 font-black px-1.5 py-0.5 rounded uppercase">
-                    LIVE RFQs
+                  <Gavel className="w-4 h-4 text-amber-400" />
+                  <span>{isArabic ? 'منصة طلب ومناقصات القطع (مزايدات المتاجر)' : 'Parts RFQ Bidding Floor'}</span>
+                  <span className="text-[9px] bg-slate-950 text-amber-300 font-extrabold px-1.5 py-0.5 rounded uppercase border border-amber-500/30">
+                    LIVE
                   </span>
                 </button>
               </div>
@@ -126,69 +126,94 @@ const MarketplaceApp: React.FC = () => {
         />
       )}
 
-      {/* Footer */}
-      <footer className="bg-neutral-900 text-neutral-300 border-t border-neutral-800 text-xs py-10">
+      {/* Sleek Footer */}
+      <footer className="bg-[#070a12] text-slate-300 border-t border-white/10 text-xs py-12">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center font-black text-sm">
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center font-black text-sm shadow-md">
                 IQ
               </div>
-              <span className="font-bold text-white text-sm tracking-tight">
-                IQAutoMarket
+              <span className="font-extrabold text-white text-base tracking-tight">
+                IQAuto<span className="text-indigo-400">Market</span>
               </span>
             </div>
-            <p className="text-neutral-400 text-xs leading-relaxed">
-              Premium automotive spare-parts marketplace for Iraq. Connects vehicle owners and workshops with genuine dealers, aftermarket suppliers, and real-time ERP/DMS inventory synchronization.
+            <p className="text-slate-400 text-xs leading-relaxed">
+              Iraq’s unified automotive spare-parts ecosystem. Seamlessly connects car owners and repair workshops with verified dealers and real-time ERP/DMS inventory synchronization.
             </p>
           </div>
 
           <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-200">
               Core Capabilities
             </h4>
-            <ul className="space-y-1.5 text-neutral-400">
-              <li>Direct Marketplace Purchases</li>
-              <li>Reverse RFQ Bidding for Unavailable Parts</li>
-              <li>B2B Dealer ERP / DMS & REST API Sync</li>
-              <li>Multi-Branch & Warehouse Stock Allocation</li>
-              <li>Vehicle Fitment Guarantee (VIN Matched)</li>
-              <li>AI Photo Identification (Gemini Vision)</li>
+            <ul className="space-y-2 text-slate-400 text-xs">
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Direct Marketplace Purchases</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Reverse RFQ Dealer Bidding</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>B2B ERP / DMS & REST API Sync</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Multi-Branch Stock Allocation</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>AI Photo Vision Search</span>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
-              Regional Coverage
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-200">
+              Regional Hubs
             </h4>
-            <ul className="space-y-1.5 text-neutral-400">
-              <li>Baghdad Sheikh Omar & Sinak Parts Hubs</li>
-              <li>Erbil 60m Road & Industrial Zones</li>
-              <li>Basra Auto District & Southern Logistics</li>
-              <li>Sulaymaniyah & Duhok Distribution Depots</li>
-              <li>Same-Day Local Delivery & Branch Pickup</li>
+            <ul className="space-y-2 text-slate-400 text-xs">
+              <li className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Baghdad (Al-Sinak & Sheikh Omar Hubs)</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Erbil (Central Warehouse & 60m Ring)</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Basra (Southern Auto District)</span>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Sulaymaniyah & Duhok Depots</span>
+              </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
-              Trust & Security
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-200">
+              Trust & Guarantee
             </h4>
-            <div className="p-3 bg-neutral-800/80 rounded-xl border border-neutral-700/80 space-y-2 text-[11px] text-neutral-300">
+            <div className="p-3.5 bg-white/[0.03] rounded-2xl border border-white/10 space-y-2 text-[11px] text-slate-300">
               <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Level 3 Genuine Guarantee</span>
+                <span>100% Genuine Part Fitment</span>
               </div>
-              <p className="text-neutral-400">
-                100% Verified parts with payment at counter upon physical inspection or verified delivery.
+              <p className="text-slate-400 leading-relaxed">
+                Verified genuine and OEM-spec components with physical inspection on pickup or doorstep courier delivery.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 mt-8 pt-6 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between text-neutral-500 text-[11px] gap-2">
+        <div className="max-w-7xl mx-auto px-4 mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-[11px] gap-3">
           <span>© 2026 IQAutoMarket — Automotive Spare Parts & Dealer Integration Marketplace.</span>
-          <span>Deployable on Railway · Powered by Google Gemini AI</span>
+          <span>Deployable on Railway · PostgreSQL Enabled · Powered by Google Gemini AI</span>
         </div>
       </footer>
     </div>

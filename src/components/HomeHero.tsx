@@ -15,9 +15,11 @@ import {
   Activity,
   Layers,
   Zap,
-  CheckCircle2,
-  ArrowRight,
   ShieldCheck,
+  ChevronRight,
+  Gavel,
+  ArrowRight,
+  MapPin,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 
@@ -36,12 +38,12 @@ export const HomeHero: React.FC = () => {
   const [localInput, setLocalInput] = useState(searchQuery);
 
   const categories = [
-    { id: 'All', name: 'All Categories', nameAr: 'جميع القطع', icon: Layers },
-    { id: 'Brake', name: 'Brake', nameAr: 'الفرامل والسفايف', icon: Disc },
-    { id: 'Engine', name: 'Engine', nameAr: 'المحرك والاشتعال', icon: Activity },
-    { id: 'Suspension', name: 'Suspension', nameAr: 'المساعدات والمقصات', icon: Layers },
-    { id: 'Filters', name: 'Filters', nameAr: 'الفلاتر (زيت وهواء)', icon: Filter },
-    { id: 'Cooling', name: 'Cooling', nameAr: 'التبريد ومضخات الماء', icon: Zap },
+    { id: 'All', name: 'All Parts', nameAr: 'جميع القطع', icon: Layers },
+    { id: 'Brake', name: 'Brake & Rotors', nameAr: 'الفرامل والسفايف', icon: Disc },
+    { id: 'Engine', name: 'Engine & Ignition', nameAr: 'المحرك والاشتعال', icon: Activity },
+    { id: 'Suspension', name: 'Suspension & Shocks', nameAr: 'المساعدات والمقصات', icon: Layers },
+    { id: 'Filters', name: 'Oil & Air Filters', nameAr: 'الفلاتر والزيوت', icon: Filter },
+    { id: 'Cooling', name: 'Cooling & Radiators', nameAr: 'التبريد ومضخات الماء', icon: Zap },
   ];
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -55,81 +57,95 @@ export const HomeHero: React.FC = () => {
   };
 
   return (
-    <div className="bg-linear-to-b from-neutral-900 via-neutral-900 to-neutral-800 text-white border-b border-neutral-800">
-      <div className="max-w-5xl mx-auto px-4 pt-10 pb-12 sm:pt-14 sm:pb-16 text-center">
-        {/* Core Value Prop Eyebrow */}
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-300 text-xs font-bold mb-4">
-          <ShieldCheck className="w-3.5 h-3.5 text-red-400" />
-          <span>
+    <div className="relative overflow-hidden bg-[#0a0e1a] text-white border-b border-white/10">
+      {/* Ambient Lighting & Mesh Gradients */}
+      <div className="mesh-glow mesh-glow-blue w-[500px] h-[500px] -top-32 -left-32" />
+      <div className="mesh-glow mesh-glow-indigo w-[600px] h-[600px] top-10 -right-40" />
+      <div className="mesh-glow mesh-glow-amber w-[400px] h-[400px] bottom-0 left-1/3 opacity-15" />
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-12 pb-14 sm:pt-16 sm:pb-20 text-center">
+        {/* Sleek Value Prop Badge */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 backdrop-blur-md text-xs font-semibold mb-6 shadow-inner">
+          <span className="flex h-2 w-2 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+          </span>
+          <span className="text-slate-300">
             {isArabic
-              ? 'سوق قطع الغيار المعتمد الأول في العراق والشرق الأوسط'
-              : 'Iraq’s Premier Automotive Spare Parts & Dealer Integration Marketplace'}
+              ? 'سوق قطع الغيار المعتمد الأول وتكامل أنظمة الوكلاء في العراق'
+              : 'Iraq’s Unified Automotive Spare Parts & Dealer Integration Network'}
+          </span>
+          <span className="text-[10px] text-emerald-400 font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+            LIVE SYNC
           </span>
         </div>
 
-        {/* Primary Headline (PRD Section 1) */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white max-w-3xl mx-auto leading-tight">
+        {/* Primary Headline */}
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.15]">
           {isArabic ? (
             <>
-              ابحث عن القطعة. اعثر على المورد الأنسب.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-300 to-red-400">
-                أو دع الوكلاء المعتمدين يتنافسون لتوفيرها لك.
-              </span>
+              ابحث عن القطعة بدقة.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-amber-300">
+                أو دع الوكلاء المعتمدين يتنافسون
+              </span>{' '}
+              لتوفيرها لك.
             </>
           ) : (
             <>
-              Search for the part. Find the right supplier.{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-300 to-red-400">
-                Or let verified dealers compete to find it for you.
-              </span>
+              Search for genuine parts.{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-amber-300">
+                Or let verified dealers compete
+              </span>{' '}
+              to supply them.
             </>
           )}
         </h1>
 
-        <p className="mt-3 text-sm sm:text-base text-neutral-400 max-w-2xl mx-auto">
+        <p className="mt-4 text-sm sm:text-base md:text-lg text-slate-300/80 max-w-2xl mx-auto font-normal leading-relaxed">
           {isArabic
-            ? 'شراء مباشر من مخازن الوكلاء المتصلة فورياً، أو إنشاء طلب قطعة غير متوفرة لمزايدة كبار التجار والموزعين في بغداد وأربيل والبصرة.'
-            : 'Direct purchase with live dealer ERP inventory sync, plus reverse marketplace requests where verified suppliers bid to supply hard-to-find parts.'}
+            ? 'شراء مباشر من مخازن الوكلاء المتصلة فورياً (Erbil, Baghdad, Sulaymaniyah, Basra) أو إرسال طلب للمناقصة الفورية.'
+            : 'Direct purchase with live dealer ERP/DMS inventory synchronization across Iraq, plus reverse RFQ bidding for hard-to-find components.'}
         </p>
 
-        {/* Vehicle Section: "My Vehicle" (PRD Section 6) */}
-        <div className="mt-6 flex justify-center">
-          <div className="inline-flex items-center gap-3 bg-neutral-800/90 border border-neutral-700/80 rounded-2xl px-4 py-2 text-left shadow-lg">
-            <div className="w-8 h-8 rounded-xl bg-neutral-700/80 text-emerald-400 flex items-center justify-center">
+        {/* Guaranteed Fitment Selector Pill */}
+        <div className="mt-7 flex justify-center">
+          <button
+            id="hero-change-vehicle-btn"
+            onClick={() => setActiveModal('vehicle_picker')}
+            className="group flex items-center gap-3.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-indigo-500/40 rounded-2xl px-4 py-2.5 backdrop-blur-xl shadow-2xl transition-all"
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-500/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center group-hover:scale-105 transition-transform">
               <Car className="w-4 h-4" />
             </div>
-            <div>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-                {isArabic ? 'سيارتي المحددة' : 'MY VEHICLE'}
+            <div className="text-left">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1.5">
+                <span>{isArabic ? 'المركبة المحددة للتوافق' : 'GUARANTEED FITMENT'}</span>
+                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-1 rounded font-bold">
+                  100% FIT
+                </span>
               </div>
-              <div className="text-xs font-bold text-white flex items-center gap-2">
+              <div className="text-xs sm:text-sm font-semibold text-white flex items-center gap-1.5">
                 {activeVehicle ? (
                   <span>
-                    {activeVehicle.make} {activeVehicle.model} {activeVehicle.year} • {activeVehicle.engine}
+                    {activeVehicle.make} {activeVehicle.model} {activeVehicle.year} • <span className="text-slate-400">{activeVehicle.engine}</span>
                   </span>
                 ) : (
-                  <span className="text-amber-300">
-                    {isArabic ? 'لم يتم تحديد سيارة بعد' : 'No Vehicle Selected'}
+                  <span className="text-amber-300 font-medium">
+                    {isArabic ? 'اضغط لاختيار سيارتك وتأكيد التوافق' : 'Select vehicle to filter matching inventory'}
                   </span>
                 )}
+                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </div>
-            <button
-              id="hero-change-vehicle-btn"
-              onClick={() => setActiveModal('vehicle_picker')}
-              className="ml-2 text-xs font-semibold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition-colors"
-            >
-              {isArabic ? 'تغيير المركبة' : 'Change Vehicle'}
-            </button>
-          </div>
+          </button>
         </div>
 
-        {/* Primary Search Bar (PRD Section 6 & 7) */}
+        {/* Main Search Experience */}
         <div className="mt-8 max-w-3xl mx-auto">
           <form onSubmit={handleSearchSubmit} className="relative">
-            <div className="relative flex items-center bg-white rounded-2xl p-2 shadow-2xl border-2 border-neutral-700 focus-within:border-emerald-500 transition-all">
-              <div className="pl-3 pr-2 text-neutral-400">
-                <Search className="w-5 h-5" />
+            <div className="relative flex items-center bg-slate-900/90 rounded-2xl p-2 shadow-2xl border border-white/15 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all">
+              <div className="pl-3 pr-2 text-slate-400">
+                <Search className="w-5 h-5 text-indigo-400" />
               </div>
               <input
                 type="text"
@@ -138,77 +154,77 @@ export const HomeHero: React.FC = () => {
                 onChange={(e) => setLocalInput(e.target.value)}
                 placeholder={
                   isArabic
-                    ? 'ابحث برقم القطعة (04465-60290)، اسم القطعة (فحمات)، أو جملة طبيعية...'
-                    : 'Search part name, part number (e.g. 04465-60290), or natural phrase...'
+                    ? 'ابحث برقم القطعة (04465-60290)، اسم القطعة، أو مواصفات سيارتك...'
+                    : 'Search part name, OEM number (e.g. 04465-60290), or description...'
                 }
-                className="w-full text-neutral-900 placeholder:text-neutral-400 text-sm sm:text-base font-medium bg-transparent focus:outline-hidden py-2"
+                className="w-full text-white placeholder:text-slate-500 text-sm sm:text-base font-medium bg-transparent focus:outline-hidden py-2 px-1"
               />
               <button
                 type="submit"
                 id="main-search-submit-btn"
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-colors shrink-0 shadow-sm"
+                className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shrink-0 shadow-lg shadow-indigo-600/25 cursor-pointer"
               >
-                {isArabic ? 'بحث' : 'Search Parts'}
+                {isArabic ? 'بحث مباشر' : 'Search Parts'}
               </button>
             </div>
           </form>
 
-          {/* Quick Search Chips */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-3 text-xs text-neutral-400">
-            <span className="font-semibold text-neutral-500">Popular:</span>
+          {/* Popular Search Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3.5 text-xs text-slate-400">
+            <span className="font-semibold text-slate-500 text-[11px]">Popular:</span>
             {[
               { label: '04465-60290 (Prado Brake Pads)', query: '04465-60290' },
               { label: 'Oil Filter 04152-YZZA1', query: '04152-YZZA1' },
               { label: 'Control Arm 48068-60030', query: '48068-60030' },
-              { label: 'Patrol Y62 Brakes', query: 'Nissan Patrol' },
+              { label: 'Nissan Patrol Y62 Shocks', query: 'Nissan Patrol' },
             ].map((chip) => (
               <button
                 key={chip.query}
                 type="button"
                 onClick={() => handleQuickSearch(chip.query)}
-                className="bg-neutral-800 hover:bg-neutral-700 hover:text-white px-2.5 py-1 rounded-lg text-neutral-300 border border-neutral-700 text-[11px] transition-colors"
+                className="bg-white/[0.04] hover:bg-white/[0.09] hover:text-white px-2.5 py-1 rounded-lg text-slate-300 border border-white/5 text-[11px] transition-colors cursor-pointer"
               >
                 {chip.label}
               </button>
             ))}
           </div>
 
-          {/* Secondary Actions: Search by Photo & Request a Part (PRD Section 6) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 max-w-2xl mx-auto">
+          {/* Secondary Action Cards (Photo Search, RFQ Bidding, Quote Upload) */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-7 max-w-2xl mx-auto">
             <button
               id="hero-search-by-photo-btn"
               onClick={() => setActiveModal('photo_search')}
-              className="flex items-center justify-center gap-2 p-3 rounded-xl bg-neutral-800/80 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white transition-all group"
+              className="flex items-center justify-center gap-2.5 p-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-slate-200 hover:text-white transition-all group cursor-pointer"
             >
               <Camera className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-              <span>{isArabic ? 'البحث بالصورة (AI)' : 'Search by Photo'}</span>
-              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1 rounded">
-                AI
+              <span>{isArabic ? 'البحث بالصورة (AI)' : 'AI Photo Search'}</span>
+              <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded">
+                VISION
               </span>
             </button>
 
             <button
               id="hero-upload-quote-btn"
               onClick={() => setActiveModal('quote_upload')}
-              className="flex items-center justify-center gap-2 p-3 rounded-xl bg-neutral-800/80 hover:bg-neutral-700 border border-neutral-700 text-xs font-semibold text-neutral-200 hover:text-white transition-all group"
+              className="flex items-center justify-center gap-2.5 p-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs font-semibold text-slate-200 hover:text-white transition-all group cursor-pointer"
             >
               <FileText className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
-              <span>{isArabic ? 'رفع تسعيرة كراج' : 'Upload Garage Quote'}</span>
+              <span>{isArabic ? 'رفع تسعيرة كراج' : 'Scan Garage Quote'}</span>
             </button>
 
             <button
               id="hero-request-part-btn"
               onClick={() => setActiveModal('request_part')}
-              className="flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white shadow-md transition-all group"
+              className="flex items-center justify-center gap-2.5 p-3 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-xs font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition-all group cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-emerald-200 group-hover:rotate-12 transition-transform" />
-              <span>{isArabic ? 'طلب قطعة غير متوفرة' : 'Request a Part'}</span>
+              <Gavel className="w-4 h-4 text-slate-950 group-hover:rotate-12 transition-transform" />
+              <span>{isArabic ? 'طلب قطعة للمزايدة' : 'Request RFQ Bidding'}</span>
             </button>
           </div>
         </div>
 
-        {/* Popular Categories (PRD Section 6) */}
-        <div className="mt-10 pt-8 border-t border-neutral-800">
+        {/* Clean Category Selector Row */}
+        <div className="mt-12 pt-8 border-t border-white/10">
           <div className="flex flex-wrap justify-center gap-2">
             {categories.map((cat) => {
               const Icon = cat.icon;
@@ -218,13 +234,13 @@ export const HomeHero: React.FC = () => {
                   key={cat.id}
                   id={`cat-chip-${cat.id}`}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'bg-neutral-800/60 hover:bg-neutral-800 text-neutral-300 hover:text-white border border-neutral-700/60'
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400/40'
+                      : 'bg-white/[0.03] hover:bg-white/[0.07] text-slate-300 hover:text-white border border-white/5'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5 text-indigo-400" />
                   <span>{isArabic ? cat.nameAr : cat.name}</span>
                 </button>
               );

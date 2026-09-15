@@ -13,13 +13,12 @@ import {
   ShieldCheck,
   Wrench,
   Store,
-  SlidersHorizontal,
   ChevronDown,
   Globe,
   Bell,
   Sparkles,
   Gavel,
-  Plus,
+  Layers,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
@@ -42,55 +41,50 @@ export const Header: React.FC = () => {
 
   const roleLabels: Record<UserRole, { label: string; labelAr: string; icon: React.ReactNode; desc: string }> = {
     customer: {
-      label: 'Vehicle Owner',
-      labelAr: 'مالك سيارة',
-      icon: <Car className="w-4 h-4 text-emerald-600" />,
+      label: 'Buyer Portal',
+      labelAr: 'المشتري',
+      icon: <Car className="w-3.5 h-3.5 text-emerald-400" />,
       desc: 'Search, Compare & Request',
     },
     workshop: {
       label: 'Workshop Portal',
       labelAr: 'بوابة الورش',
-      icon: <Wrench className="w-4 h-4 text-blue-600" />,
+      icon: <Wrench className="w-3.5 h-3.5 text-blue-400" />,
       desc: 'Repair Orders & Smart Procurement',
     },
     supplier: {
-      label: 'Supplier / Dealer',
-      labelAr: 'المورد / التاجر',
-      icon: <Store className="w-4 h-4 text-amber-600" />,
-      desc: 'ABC Genuine Parts Portal',
+      label: 'Dealer / Supplier',
+      labelAr: 'الوكلاء والموردين',
+      icon: <Store className="w-3.5 h-3.5 text-amber-400" />,
+      desc: 'ERP & Inventory Sync Hub',
     },
     admin: {
-      label: 'Marketplace Admin',
+      label: 'Platform Admin',
       labelAr: 'إدارة المنصة',
-      icon: <ShieldCheck className="w-4 h-4 text-indigo-600" />,
-      desc: 'Catalogue & Demand Intelligence',
+      icon: <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" />,
+      desc: 'Network Intelligence & Error Center',
     },
   };
 
-  const pendingOffersCount = partRequests.reduce(
-    (sum, r) => sum + (r.status === 'offers_received' ? r.offers.length : 0),
-    0
-  );
-
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200">
+    <header className="sticky top-0 z-40 bg-[#0a0e1a]/90 backdrop-blur-xl border-b border-white/10">
       {/* Top Banner & Role Navigation */}
-      <div className="bg-neutral-900 text-neutral-100 text-xs px-4 py-2">
+      <div className="bg-black/40 text-slate-300 text-xs px-4 py-2 border-b border-white/5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-medium text-[11px] border border-emerald-500/30">
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-medium text-[11px] border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              {isArabic ? 'سوق قطع الغيار المعتمد' : 'Verified Automotive Spare Parts Marketplace'}
+              {isArabic ? 'سوق قطع الغيار وتكامل الوكلاء المعتمد' : 'Verified Automotive Spare Parts & Dealer Network'}
             </span>
-            <span className="hidden md:inline text-neutral-400">
-              {isArabic ? 'العراق والشرق الأوسط' : 'Serving Iraq & Regional Automotive Networks'}
+            <span className="hidden md:inline text-slate-400 text-[11px]">
+              {isArabic ? 'بغداد • أربيل • السليمانية • البصرة' : 'Baghdad • Erbil • Sulaymaniyah • Basra'}
             </span>
           </div>
 
           {/* Role selector bar */}
-          <div className="flex items-center gap-1 bg-neutral-800 p-1 rounded-lg border border-neutral-700">
-            <span className="text-[11px] text-neutral-400 px-2 font-medium hidden sm:inline">
-              {isArabic ? 'الدور الحالي:' : 'Operating As:'}
+          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10">
+            <span className="text-[11px] text-slate-400 px-2 font-medium hidden sm:inline">
+              {isArabic ? 'المنظومة:' : 'View Mode:'}
             </span>
             {(['customer', 'workshop', 'supplier', 'admin'] as UserRole[]).map((r) => {
               const active = role === r;
@@ -99,10 +93,10 @@ export const Header: React.FC = () => {
                   key={r}
                   id={`role-btn-${r}`}
                   onClick={() => setRole(r)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
                     active
-                      ? 'bg-neutral-100 text-neutral-900 shadow-sm'
-                      : 'text-neutral-300 hover:text-white hover:bg-neutral-700/60'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
                   }`}
                 >
                   {roleLabels[r].icon}
@@ -116,9 +110,9 @@ export const Header: React.FC = () => {
           <button
             id="language-toggle-btn"
             onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
-            className="flex items-center gap-1 px-2.5 py-1 rounded bg-neutral-800 hover:bg-neutral-700 text-neutral-300 hover:text-white text-xs font-medium border border-neutral-700"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-medium border border-white/10 transition-colors cursor-pointer"
           >
-            <Globe className="w-3.5 h-3.5" />
+            <Globe className="w-3.5 h-3.5 text-indigo-400" />
             <span>{isArabic ? 'English' : 'العربية'}</span>
           </button>
         </div>
@@ -126,63 +120,62 @@ export const Header: React.FC = () => {
 
       {/* Main Header Bar */}
       <div className="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4">
-        {/* Brand & Tagline - Inspired by CARiD's automotive styling */}
         {/* Brand & Tagline - IQAutoMarket */}
         <div className="flex items-center gap-3">
           <div
             onClick={() => {
               setSelectedCategory('All');
             }}
-            className="cursor-pointer flex items-center gap-2.5 group"
+            className="cursor-pointer flex items-center gap-3 group"
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center font-black tracking-tighter text-sm shadow-md group-hover:from-red-700 group-hover:to-red-800 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white flex items-center justify-center font-black tracking-tighter text-sm shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-all border border-indigo-400/30">
               IQ
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black tracking-tight text-neutral-900 text-base sm:text-lg">
-                  IQAuto<span className="text-red-600">Market</span>
+              <div className="flex items-center gap-2">
+                <span className="font-black tracking-tight text-white text-base sm:text-lg">
+                  IQAuto<span className="text-indigo-400">Market</span>
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-red-700 bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
                   {isArabic ? 'العراق' : 'IRAQ'}
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-500 hidden sm:block">
+              <p className="text-[11px] text-slate-400 hidden sm:block font-medium">
                 {isArabic
                   ? 'سوق قطع الغيار المعتمد وتكامل أنظمة الوكلاء'
-                  : 'Genuine Parts & Integrated Dealer Marketplace'}
+                  : 'Genuine Parts & Integrated Dealer Network'}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Center: Active Vehicle Selector Pill (Guaranteed Fitment - CARiD signature) */}
+        {/* Center: Active Vehicle Selector Pill */}
         <div className="hidden lg:flex items-center">
           <button
             id="header-active-vehicle-btn"
             onClick={() => setActiveModal('vehicle_picker')}
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-neutral-50 border border-neutral-200 hover:border-red-500 hover:bg-red-50/20 transition-all text-left group"
+            className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 hover:border-indigo-500/40 hover:bg-white/[0.08] transition-all text-left group cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-lg bg-white border border-neutral-200 flex items-center justify-center text-neutral-700 group-hover:text-red-600 group-hover:border-red-300">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-300 group-hover:scale-105 transition-transform">
               <Car className="w-4 h-4" />
             </div>
             <div>
-              <div className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-red-600 flex items-center gap-1">
+              <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1.5">
                 <span>{isArabic ? 'سيارتي المحددة' : 'MY VEHICLE'}</span>
-                <span className="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1 rounded">
+                <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1 rounded">
                   FITMENT
                 </span>
               </div>
-              <div className="text-xs font-semibold text-neutral-900 flex items-center gap-1.5">
+              <div className="text-xs font-semibold text-white flex items-center gap-1.5">
                 {activeVehicle ? (
                   <>
                     <span>{activeVehicle.make} {activeVehicle.model} {activeVehicle.year}</span>
-                    <span className="text-[11px] text-neutral-500 font-normal">({activeVehicle.engine})</span>
+                    <span className="text-[11px] text-slate-400 font-normal">({activeVehicle.engine})</span>
                   </>
                 ) : (
-                  <span className="text-red-700 font-bold">{isArabic ? 'اختر سيارتك لتأكيد التوافق' : 'Select Vehicle to Guarantee Fit'}</span>
+                  <span className="text-amber-300 font-semibold">{isArabic ? 'اختر سيارتك لتأكيد التوافق' : 'Select Vehicle to Guarantee Fit'}</span>
                 )}
-                <ChevronDown className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-700" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
               </div>
             </div>
           </button>
@@ -195,9 +188,9 @@ export const Header: React.FC = () => {
             id="header-parts-bidding-btn"
             onClick={() => setActiveModal('request_part')}
             title={isArabic ? 'طلب قطعة غير متوفرة لمزايدة المتاجر' : 'Request out-of-stock part for dealer bidding'}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer"
           >
-            <Gavel className="w-3.5 h-3.5 text-amber-600" />
+            <Gavel className="w-3.5 h-3.5 text-amber-400" />
             <span>{isArabic ? 'مزايدة ومناقصة قطع' : 'Parts Bidding'}</span>
           </button>
 
@@ -206,20 +199,20 @@ export const Header: React.FC = () => {
             id="quick-photo-search-btn"
             onClick={() => setActiveModal('photo_search')}
             title={isArabic ? 'البحث بالصورة بواسطة الذكاء الاصطناعي' : 'Search Part by Photo (AI Identification)'}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-neutral-700 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200/80 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-200 bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 transition-all cursor-pointer"
           >
-            <Camera className="w-4 h-4 text-emerald-600" />
+            <Camera className="w-4 h-4 text-emerald-400" />
             <span className="hidden md:inline">{isArabic ? 'بحث بالصورة' : 'Photo Search'}</span>
-            <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1 rounded">AI</span>
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1 rounded">AI</span>
           </button>
 
           {/* Quick Request a Part */}
           <button
             id="quick-request-part-btn"
             onClick={() => setActiveModal('request_part')}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-neutral-900 hover:bg-neutral-800 shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <Sparkles className="w-4 h-4 text-indigo-200" />
             <span>{isArabic ? 'طلب قطعة' : 'Request Part'}</span>
           </button>
 
@@ -227,12 +220,12 @@ export const Header: React.FC = () => {
           <button
             id="header-cart-btn"
             onClick={() => setActiveModal('cart')}
-            className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-neutral-200 hover:border-neutral-400 bg-white text-neutral-700 transition-colors"
+            className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] text-slate-200 hover:text-white transition-colors cursor-pointer"
             title={isArabic ? 'السلة والطلبات' : 'Cart & Active Orders'}
           >
             <ShoppingBag className="w-4 h-4" />
             {cart.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-md">
                 {cart.length}
               </span>
             )}
@@ -241,17 +234,17 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Mobile Vehicle Selector bar if screen is small */}
-      <div className="lg:hidden border-t border-neutral-100 bg-neutral-50 px-4 py-2 flex items-center justify-between text-xs">
+      <div className="lg:hidden border-t border-white/5 bg-black/30 px-4 py-2 flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
-          <Car className="w-3.5 h-3.5 text-neutral-500" />
-          <span className="text-neutral-500">{isArabic ? 'المركبة:' : 'Vehicle:'}</span>
-          <span className="font-semibold text-neutral-900">
+          <Car className="w-3.5 h-3.5 text-indigo-400" />
+          <span className="text-slate-400">{isArabic ? 'المركبة:' : 'Vehicle:'}</span>
+          <span className="font-semibold text-white">
             {activeVehicle ? `${activeVehicle.make} ${activeVehicle.model} ${activeVehicle.year}` : 'None Selected'}
           </span>
         </div>
         <button
           onClick={() => setActiveModal('vehicle_picker')}
-          className="text-emerald-700 font-medium hover:underline text-[11px]"
+          className="text-indigo-400 font-medium hover:underline text-[11px]"
         >
           {isArabic ? 'تغيير' : 'Change'}
         </button>
