@@ -5,6 +5,21 @@
 
 export type UserRole = 'customer' | 'workshop' | 'supplier' | 'admin';
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  companyName?: string;
+  city?: string;
+  address?: string;
+  verificationStatus?: 'verified' | 'pending' | 'unverified';
+  businessType?: string;
+  registeredAt: string;
+  avatarUrl?: string;
+}
+
 export type QualityClassification = 'genuine' | 'oem' | 'aftermarket' | 'used' | 'reconditioned';
 
 export type StockStatus = 'in_stock_today' | 'in_stock_2days' | 'order_on_demand' | 'out_of_stock';

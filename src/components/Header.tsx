@@ -21,6 +21,8 @@ import {
   Layers,
   DollarSign,
   Coins,
+  User,
+  LogOut,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
@@ -29,6 +31,9 @@ export const Header: React.FC = () => {
   const {
     role,
     setRole,
+    currentUser,
+    openAuthModal,
+    logout,
     language,
     setLanguage,
     currency,
@@ -248,6 +253,42 @@ export const Header: React.FC = () => {
               </span>
             )}
           </button>
+
+          {/* User Account / Sign In */}
+          {currentUser ? (
+            <div className="flex items-center gap-1.5 pl-1">
+              <button
+                id="header-user-profile-btn"
+                onClick={() => openAuthModal(role, 'signin')}
+                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-xs transition-all cursor-pointer group"
+                title={isArabic ? 'إدارة الحساب والبوابة' : 'Account & Portal Gateway'}
+              >
+                <img
+                  src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'}
+                  alt={currentUser.name}
+                  className="w-6 h-6 rounded-lg object-cover border border-white/20"
+                />
+                <div className="text-left hidden md:block">
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5 leading-tight">
+                    <span className="truncate max-w-[100px]">{currentUser.name.split(' ')[0]}</span>
+                    <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded">
+                      {currentUser.role}
+                    </span>
+                  </div>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
+              </button>
+            </div>
+          ) : (
+            <button
+              id="header-signin-btn"
+              onClick={() => openAuthModal(role, 'signin')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>{isArabic ? 'دخول / تسجيل' : 'Sign In'}</span>
+            </button>
+          )}
         </div>
       </div>
 

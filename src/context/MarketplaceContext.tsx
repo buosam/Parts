@@ -6,6 +6,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   UserRole,
+  UserProfile,
   Vehicle,
   MasterPart,
   Supplier,
@@ -89,9 +90,17 @@ interface MarketplaceContextType {
   addSupplierOfferToPart: (masterPartId: string, offer: Omit<SupplierOffer, 'id'>) => void;
   bulkUploadProducts: (supplierId: string, mappedRows: { partNumber: string; partName: string; priceUSD: number; stock: number; brand: string; quality: string }[]) => { matchedCount: number; newCount: number };
   createRepairOrder: (ro: Omit<RepairOrder, 'id' | 'orderNumber' | 'status' | 'date'>) => RepairOrder;
+  // Authentication & Profiles
+  currentUser: UserProfile | null;
+  authModalTab: 'signin' | 'signup';
+  authTargetRole: UserRole;
+  openAuthModal: (role?: UserRole, tab?: 'signin' | 'signup') => void;
+  login: (email: string, password: string, role: UserRole) => Promise<{ success: boolean; message?: string }>;
+  signup: (data: { name: string; email: string; phone: string; password: string; role: UserRole; companyName?: string; city?: string; businessType?: string }) => Promise<{ success: boolean; message?: string }>;
+  logout: () => void;
   // Modals & Navigation triggers
-  activeModal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | null;
-  setActiveModal: (modal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | null) => void;
+  activeModal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null;
+  setActiveModal: (modal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null) => void;
   selectedSupplierIdForStore: string | null;
   setSelectedSupplierIdForStore: (id: string | null) => void;
   selectedOrderForRating: Order | null;
@@ -275,8 +284,136 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [prefilledPartRequest, setPrefilledPartRequest] = useState<PrefilledPartRequest | null>(null);
   const [selectedRequestForBid, setSelectedRequestForBid] = useState<PartRequest | null>(null);
 
+  // User Profiles & Authentication
+  const DEFAULT_PROFILES: Record<UserRole, UserProfile> = {
+    customer: {
+      id: 'usr-cust-1',
+      name: 'Ahmed Al-Tikriti',
+      email: 'ahmed@iqautomarket.iq',
+      phone: '+964 770 123 4567',
+      role: 'customer',
+      city: 'Baghdad',
+      address: 'Karrada, District 903, Street 14',
+      verificationStatus: 'verified',
+      registeredAt: '2025-11-12',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+    },
+    workshop: {
+      id: 'usr-work-1',
+      name: 'Mustafa Al-Kadhimi',
+      email: 'service@babilauto.iq',
+      phone: '+964 750 987 6543',
+      role: 'workshop',
+      companyName: 'Babil Diagnostic & Performance Garage',
+      city: 'Erbil',
+      address: '100m Road Industrial Zone, Hub #4B',
+      verificationStatus: 'verified',
+      registeredAt: '2025-08-20',
+      avatarUrl: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=120&q=80',
+    },
+    supplier: {
+      id: 'usr-sup-1',
+      name: 'Hassan Al-Mansour',
+      email: 'sales@mansourparts.iq',
+      phone: '+964 780 555 1234',
+      role: 'supplier',
+      companyName: 'Al-Mansour Genuine Auto Parts Ltd.',
+      city: 'Baghdad',
+      address: 'Al-Sinak Wholesale Commercial District',
+      verificationStatus: 'verified',
+      businessType: 'Authorized Distributor',
+      registeredAt: '2025-05-10',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
+    },
+    admin: {
+      id: 'usr-adm-1',
+      name: 'Zaid Al-Rawi',
+      email: 'admin@iqautomarket.iq',
+      phone: '+964 771 000 9999',
+      role: 'admin',
+      companyName: 'IQAutoMarket Operations HQ',
+      city: 'Baghdad',
+      address: 'Baghdad Tech Tower, Level 18',
+      verificationStatus: 'verified',
+      registeredAt: '2025-01-01',
+      avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80',
+    },
+  };
+
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem('sp_current_user');
+    return saved ? JSON.parse(saved) : DEFAULT_PROFILES.customer;
+  });
+
+  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
+  const [authTargetRole, setAuthTargetRole] = useState<UserRole>('customer');
+
+  const openAuthModal = (targetRole?: UserRole, tab: 'signin' | 'signup' = 'signin') => {
+    if (targetRole) setAuthTargetRole(targetRole);
+    setAuthModalTab(tab);
+    setActiveModal('auth');
+  };
+
+  const login = async (email: string, password: string, selectedRole: UserRole): Promise<{ success: boolean; message?: string }> => {
+    // Simulate network validation latency
+    await new Promise((res) => setTimeout(res, 600));
+
+    // Demo lookup or fallback profile
+    const existing = DEFAULT_PROFILES[selectedRole];
+    const userProfile: UserProfile = {
+      ...existing,
+      email: email || existing.email,
+      role: selectedRole,
+    };
+
+    setCurrentUser(userProfile);
+    setRole(selectedRole);
+    localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+    setActiveModal(null);
+    return { success: true };
+  };
+
+  const signup = async (data: {
+    name: string;
+    email: string;
+    phone: string;
+    password: string;
+    role: UserRole;
+    companyName?: string;
+    city?: string;
+    businessType?: string;
+  }): Promise<{ success: boolean; message?: string }> => {
+    // Simulate server user provisioning latency
+    await new Promise((res) => setTimeout(res, 700));
+
+    const newUser: UserProfile = {
+      id: `usr-${Date.now().toString().slice(-6)}`,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      role: data.role,
+      companyName: data.companyName,
+      city: data.city || 'Baghdad',
+      businessType: data.businessType,
+      verificationStatus: data.role === 'admin' ? 'verified' : data.role === 'customer' ? 'verified' : 'pending',
+      registeredAt: new Date().toISOString().slice(0, 10),
+      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`,
+    };
+
+    setCurrentUser(newUser);
+    setRole(data.role);
+    localStorage.setItem('sp_current_user', JSON.stringify(newUser));
+    setActiveModal(null);
+    return { success: true };
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('sp_current_user');
+  };
+
   // UI state
-  const [activeModal, setActiveModal] = useState<'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | null>(null);
+  const [activeModal, setActiveModal] = useState<'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null>(null);
   const [selectedSupplierIdForStore, setSelectedSupplierIdForStore] = useState<string | null>(null);
   const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -1356,6 +1493,13 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         addSupplierOfferToPart,
         bulkUploadProducts,
         createRepairOrder,
+        currentUser,
+        authModalTab,
+        authTargetRole,
+        openAuthModal,
+        login,
+        signup,
+        logout,
         activeModal,
         setActiveModal,
         selectedSupplierIdForStore,

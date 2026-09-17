@@ -78,36 +78,17 @@ export const CarIdDepartmentBar: React.FC = () => {
                 id={`dept-tab-${dept.id}`}
                 onClick={() => setSelectedCategory(dept.id)}
                 className={`group shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  dept.isSpecial
-                    ? isActive
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/30 font-black'
-                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    : isActive
+                  isActive
                     ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
                     : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
                 <Icon
                   className={`w-3.5 h-3.5 ${
-                    dept.isSpecial
-                      ? isActive
-                        ? 'text-slate-950'
-                        : 'text-amber-400 animate-pulse'
-                      : isActive
-                      ? 'text-white'
-                      : 'text-slate-400 group-hover:text-indigo-400'
+                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'
                   }`}
                 />
                 <span>{isArabic ? dept.labelAr : dept.label}</span>
-                {dept.badge && (
-                  <span
-                    className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider ${
-                      isActive ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
-                    }`}
-                  >
-                    {dept.badge}
-                  </span>
-                )}
               </button>
             );
           })}

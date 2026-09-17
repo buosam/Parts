@@ -19,6 +19,7 @@ import { WorkshopDashboard } from './components/WorkshopDashboard';
 import { SupplierPortal } from './components/SupplierPortal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { CartModal } from './components/CartModal';
+import { AuthModal } from './components/AuthModal';
 import { SupplierStorefrontModal } from './components/SupplierStorefrontModal';
 import { DealerReviewModal } from './components/DealerReviewModal';
 import { CarIdDepartmentBar } from './components/CarIdDepartmentBar';
@@ -128,6 +129,7 @@ const MarketplaceApp: React.FC = () => {
       <QuoteUploadModal />
       <RequestPartModal />
       <CartModal />
+      <AuthModal />
       <SupplierStorefrontModal />
       <DealerReviewModal />
 
