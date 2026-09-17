@@ -12,7 +12,7 @@ import {
   PackageCheck,
   Plus,
   Truck,
-  CheckCircle,
+  CheckCircle2,
   FileSpreadsheet,
   AlertCircle,
   ArrowRight,
@@ -24,7 +24,11 @@ import {
   Code2,
   Building2,
   AlertTriangle,
-  Coins,
+  Gavel,
+  DollarSign,
+  Layers,
+  ChevronRight,
+  RefreshCw,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { IntegrationDashboard } from './DealerIntegrations/IntegrationDashboard';
@@ -46,32 +50,28 @@ export const SupplierPortal: React.FC = () => {
     dealerIntegrations,
     syncErrors,
     formatPrice,
+    setSelectedRequestForBid,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
-
-  // Active supplier is ABC Genuine Parts (sup-1)
   const currentSupplier = suppliers.find((s) => s.id === 'sup-1') || suppliers[0];
 
-  const [activeTab, setActiveTab] = useState<'integrations' | 'requests' | 'orders' | 'bulk_upload'>('integrations');
+  const [activeTab, setActiveTab] = useState<'overview' | 'requests' | 'inventory' | 'orders' | 'branches'>('overview');
 
-  // Integration sub-modals
+  // Integration modals
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
   const [isCsvModalOpen, setIsCsvModalOpen] = useState<boolean>(false);
   const [isErrorCenterOpen, setIsErrorCenterOpen] = useState<boolean>(false);
   const [isApiSandboxOpen, setIsApiSandboxOpen] = useState<boolean>(false);
   const [isBranchManagerOpen, setIsBranchManagerOpen] = useState<boolean>(false);
 
-  // Submit quote state for inbound request
-  const [selectedReqForQuote, setSelectedReqForQuote] = useState<string | null>(null);
-  const [quotePartName, setQuotePartName] = useState('');
-  const [quotePartNumber, setQuotePartNumber] = useState('');
-  const [quotePriceUSD, setQuotePriceUSD] = useState(135);
-  const [quoteBrand, setQuoteBrand] = useState('Toyota Genuine');
-  const [quoteQuality, setQuoteQuality] = useState<'genuine' | 'oem' | 'aftermarket'>('genuine');
-  const [quoteWarranty, setQuoteWarranty] = useState('12-Month Official Warranty');
-  const [quoteDelivery, setQuoteDelivery] = useState('Same Day Delivery / Instant Pickup');
-  const [quoteNotes, setQuoteNotes] = useState('Original sealed box with holographic tamper seal.');
+  // Manual Add Part form state
+  const [showAddPart, setShowAddPart] = useState(false);
+  const [manualPartNumber, setManualPartNumber] = useState('');
+  const [manualPartName, setManualPartName] = useState('');
+  const [manualPrice, setManualPrice] = useState(120);
+  const [manualStock, setManualStock] = useState(15);
+  const [manualAddedSuccess, setManualAddedSuccess] = useState(false);
 
   // Bulk Upload State
   const [csvText, setCsvText] = useState(
@@ -84,37 +84,32 @@ export const SupplierPortal: React.FC = () => {
   );
 
   const supplierOrders = orders.filter((o) => o.supplierId === currentSupplier.id);
+  const pendingOrders = supplierOrders.filter((o) => o.status === 'placed' || o.status === 'confirmed');
   const primaryInteg = dealerIntegrations.find((i) => i.dealerId === currentSupplier.id);
   const openErrors = syncErrors.filter((e) => e.dealerId === currentSupplier.id && e.status === 'open');
 
-  const handleOpenQuoteModal = (req: any) => {
-    setSelectedReqForQuote(req.id);
-    setQuotePartName(req.partName);
-    setQuotePartNumber(req.partNumberHint || '04465-60290');
-  };
-
-  const handleSubmitQuote = (e: React.FormEvent) => {
+  const handleManualAddSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedReqForQuote) return;
+    if (!manualPartNumber || !manualPartName) return;
 
-    submitSupplierOffer(selectedReqForQuote, {
-      supplierId: currentSupplier.id,
-      supplierName: currentSupplier.companyName,
-      supplierRating: currentSupplier.rating,
-      verifiedInteractionsCount: currentSupplier.verifiedInteractionsCount,
-      partName: quotePartName,
-      partNumber: quotePartNumber,
-      brand: quoteBrand,
-      quality: quoteQuality,
-      priceUSD: Number(quotePriceUSD),
-      priceIQD: Math.round(Number(quotePriceUSD) * 1500),
-      warranty: quoteWarranty,
-      deliveryTime: quoteDelivery,
-      stockStatus: 'in_stock_today',
-      notes: quoteNotes,
-    });
+    bulkUploadProducts(currentSupplier.id, [
+      {
+        partNumber: manualPartNumber,
+        partName: manualPartName,
+        priceUSD: Number(manualPrice),
+        stock: Number(manualStock),
+        brand: 'Toyota Genuine',
+        quality: 'genuine',
+      },
+    ]);
 
-    setSelectedReqForQuote(null);
+    setManualAddedSuccess(true);
+    setManualPartNumber('');
+    setManualPartName('');
+    setTimeout(() => {
+      setManualAddedSuccess(false);
+      setShowAddPart(false);
+    }, 1500);
   };
 
   const handleRunBulkUpload = () => {
@@ -141,450 +136,508 @@ export const SupplierPortal: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8" dir={isArabic ? 'rtl' : 'ltr'}>
-      {/* Supplier Profile Banner */}
-      <div className="glass-panel rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl mb-8 relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="flex items-start gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center font-black text-2xl shadow-lg shadow-amber-500/20 shrink-0">
-              ABC
-            </div>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  {currentSupplier.companyName}
-                </h2>
-                <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-500/10 text-emerald-300 px-3 py-0.5 rounded-full border border-emerald-500/20">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                  Level 3 Verified Genuine Partner
-                </span>
-                {primaryInteg && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-indigo-500/10 text-indigo-300 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
-                    <Server className="w-3 h-3 text-indigo-400" />
-                    ERP Synced ({primaryInteg.providerType.toUpperCase()})
-                  </span>
-                )}
-              </div>
-              <div className="text-xs text-slate-400 flex flex-wrap items-center gap-3 mt-2">
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                  {currentSupplier.city} • {currentSupplier.address}
-                </span>
-                <span>Phone: {currentSupplier.phone}</span>
-                <span className="font-semibold text-emerald-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  Auto-Sync Active ({primaryInteg?.syncRules?.syncFrequency || 'every 15 min'})
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Supplier KPIs */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-2xl text-center min-w-[90px]">
-              <div className="flex items-center justify-center gap-1 text-amber-400">
-                <Star className="w-4 h-4 fill-amber-400" />
-                <span className="text-base font-black text-white">{currentSupplier.rating}</span>
-              </div>
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase mt-0.5">
-                Dealer Rating
-              </span>
-            </div>
-
-            <div className="px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-2xl text-center min-w-[90px]">
-              <div className="text-base font-black text-emerald-400">
-                {primaryInteg?.syncHealthScore || 98}%
-              </div>
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase mt-0.5">
-                Health Score
-              </span>
-            </div>
-
-            <div className="px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-2xl text-center min-w-[90px]">
-              <div className="text-base font-black text-white">
-                {(primaryInteg?.totalProductsSynced || 3420).toLocaleString()}
-              </div>
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase mt-0.5">
-                Live SKUs
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs Bar */}
-      <div className="flex border-b border-white/10 mb-6 gap-2 text-xs font-bold overflow-x-auto">
-        <button
-          id="supplier-tab-integrations"
-          onClick={() => setActiveTab('integrations')}
-          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-            activeTab === 'integrations'
-              ? 'border-indigo-500 text-indigo-400 font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-        >
-          <Zap className="w-4 h-4 text-indigo-400" />
-          <span>{isArabic ? 'تكامل ومزامنة المخزون (ERP / API)' : 'Integrations & Inventory Sync'}</span>
-          <span className="bg-indigo-500/20 text-indigo-300 font-black px-2 py-0.2 rounded-full text-[10px] border border-indigo-500/30">
-            B2B
-          </span>
-        </button>
-
-        <button
-          id="supplier-tab-requests"
-          onClick={() => setActiveTab('requests')}
-          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-            activeTab === 'requests'
-              ? 'border-amber-500 text-amber-400 font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-        >
-          <Clock className="w-4 h-4 text-amber-400" />
-          <span>{isArabic ? 'طلبات ومناقصات القطع الواردة' : 'Inbound Part Requests'}</span>
-          <span className="bg-amber-500/20 text-amber-300 px-2 py-0.2 rounded-full text-[10px] font-bold border border-amber-500/30">
-            {inboundRequests.length}
-          </span>
-        </button>
-
-        <button
-          id="supplier-tab-orders"
-          onClick={() => setActiveTab('orders')}
-          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-            activeTab === 'orders'
-              ? 'border-emerald-500 text-emerald-400 font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-        >
-          <PackageCheck className="w-4 h-4 text-emerald-400" />
-          <span>{isArabic ? 'الطلبات المباشرة' : 'Active Customer Orders'}</span>
-          <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.2 rounded-full text-[10px] font-bold border border-emerald-500/30">
-            {supplierOrders.length}
-          </span>
-        </button>
-
-        <button
-          id="supplier-tab-bulk"
-          onClick={() => setActiveTab('bulk_upload')}
-          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
-            activeTab === 'bulk_upload'
-              ? 'border-blue-500 text-blue-400 font-black'
-              : 'border-transparent text-slate-400 hover:text-white'
-          }`}
-        >
-          <FileSpreadsheet className="w-4 h-4 text-blue-400" />
-          <span>{isArabic ? 'استيراد CSV سريع' : 'Quick CSV Upload'}</span>
-        </button>
-      </div>
-
-      {/* TAB 0: B2B Dealer Integrations Dashboard */}
-      {activeTab === 'integrations' && (
-        <IntegrationDashboard
-          supplierId={currentSupplier.id}
-          onOpenWizard={() => setIsWizardOpen(true)}
-          onOpenCsvImport={() => setIsCsvModalOpen(true)}
-          onOpenErrorCenter={() => setIsErrorCenterOpen(true)}
-          onOpenApiSandbox={() => setIsApiSandboxOpen(true)}
-          onOpenBranchManager={() => setIsBranchManagerOpen(true)}
-        />
-      )}
-
-      {/* TAB 1: Inbound Part Requests to Bid on */}
-      {activeTab === 'requests' && (
-        <div className="space-y-4">
-          <div className="text-xs text-slate-400">
-            {isArabic ? 'إشعارات تلقائية للطلبات المطابقة لاختصاصاتك (Toyota, Lexus, Genuine):' : 'Automated notifications for parts matching your certified brand specializations (Toyota, Lexus, Genuine):'}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {inboundRequests.map((req) => {
-              const alreadyBid = req.offers.some((o) => o.supplierId === currentSupplier.id);
-
-              return (
-                <div
-                  key={req.id}
-                  id={`inbound-req-card-${req.id}`}
-                  className="glass-panel rounded-3xl border border-white/10 p-6 shadow-xl flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="font-mono text-xs font-bold text-slate-400 bg-white/[0.04] px-2.5 py-0.5 rounded-lg border border-white/5">
-                        #{req.requestNumber}
-                      </span>
-                      <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/10 px-2.5 py-0.5 rounded-lg border border-emerald-500/20">
-                        Target City: {req.preferredCity || 'Baghdad Central'}
-                      </span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-white">{req.partName}</h3>
-                    <div className="text-xs text-slate-400 mt-1">
-                      {isArabic ? 'المركبة:' : 'Vehicle:'}{' '}
-                      <strong className="text-slate-200">
-                        {req.vehicle.make} {req.vehicle.model} {req.vehicle.year} ({req.vehicle.engine})
-                      </strong>
-                    </div>
-
-                    {req.partDescription && (
-                      <p className="text-xs text-slate-300 mt-2.5 p-3 bg-white/[0.02] rounded-xl border border-white/5 line-clamp-2 leading-relaxed">
-                        "{req.partDescription}"
-                      </p>
-                    )}
-
-                    <div className="mt-3.5 flex items-center justify-between text-xs text-slate-400 border-t border-white/5 pt-2.5">
-                      <span>Requirement: <strong className="text-slate-200">{req.qualityPreference.replace(/_/g, ' ')}</strong></span>
-                      <span>Required: {req.requiredDate}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 pt-4 border-t border-white/10">
-                    {alreadyBid ? (
-                      <div className="py-2.5 bg-emerald-500/10 text-emerald-300 text-xs font-bold rounded-xl text-center border border-emerald-500/30 flex items-center justify-center gap-1.5">
-                        <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
-                        Quotation Submitted by Your Dealership
-                      </div>
-                    ) : (
-                      <button
-                        id={`open-quote-modal-btn-${req.id}`}
-                        onClick={() => handleOpenQuoteModal(req)}
-                        className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <span>Submit Live Dealer Quotation</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: Direct Customer Orders */}
-      {activeTab === 'orders' && (
-        <div className="space-y-4">
-          <div className="text-xs text-slate-400">
-            Direct marketplace and workshop purchases assigned to your dealership:
-          </div>
-
-          <div className="glass-panel rounded-3xl border border-white/10 p-6 shadow-xl overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-white/[0.02] border-b border-white/10 text-slate-400 font-bold uppercase text-[10px]">
-                <tr>
-                  <th className="p-3">Order #</th>
-                  <th className="p-3">Customer / Workshop</th>
-                  <th className="p-3">Vehicle</th>
-                  <th className="p-3">Items Count</th>
-                  <th className="p-3">Total Amount</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Update Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5 text-slate-200">
-                {supplierOrders.map((ord) => (
-                  <tr key={ord.id} className="hover:bg-white/[0.03]">
-                    <td className="p-3 font-mono font-bold text-indigo-300">{ord.orderNumber}</td>
-                    <td className="p-3 font-bold text-white">
-                      {ord.customerName}
-                      <div className="text-[10px] text-slate-400 font-normal">{ord.customerPhone}</div>
-                    </td>
-                    <td className="p-3 text-slate-300">{ord.vehicleInfo}</td>
-                    <td className="p-3">{ord.items.length} items</td>
-                    <td className="p-3 font-black text-emerald-400">
-                      {formatPrice(ord.totalUSD, ord.totalIQD)}
-                    </td>
-                    <td className="p-3">
-                      <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {ord.status}
-                      </span>
-                    </td>
-                    <td className="p-3">
-                      <select
-                        value={ord.status}
-                        onChange={(e) => updateOrderStatus(ord.id, e.target.value as any)}
-                        className="bg-slate-900 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-hidden cursor-pointer"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="confirmed">Confirmed</option>
-                        <option value="preparing">Preparing</option>
-                        <option value="dispatched">Dispatched</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="completed">Completed</option>
-                      </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: Quick CSV Upload */}
-      {activeTab === 'bulk_upload' && (
-        <div className="glass-panel rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl space-y-6">
-          <div>
-            <h3 className="text-base font-extrabold text-white">Quick Batch Stock Importer</h3>
-            <p className="text-xs text-slate-400 mt-1">
-              Direct CSV copy-paste to bulk update SKU stock quantities and prices.
-            </p>
-          </div>
-
-          <textarea
-            value={csvText}
-            onChange={(e) => setCsvText(e.target.value)}
-            rows={6}
-            className="w-full p-4 bg-slate-950 font-mono text-xs text-indigo-300 border border-white/10 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-          />
-
-          <div className="flex items-center justify-between">
-            <button
-              onClick={handleRunBulkUpload}
-              className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
-            >
-              Parse & Sync {csvText.trim().split('\n').length - 1} SKUs
-            </button>
-
-            {uploadStats && (
-              <span className="text-xs font-bold text-emerald-400">
-                ✓ Synced {uploadStats.matchedCount} matched catalog items, created {uploadStats.newCount} new parts.
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Submit Quote Modal */}
-      {selectedReqForQuote && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="glass-panel border border-amber-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-xs space-y-4 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="font-extrabold text-white text-base flex items-center gap-2">
-                <Store className="w-4 h-4 text-amber-400" />
-                <span>Submit Dealer Quote for RFQ</span>
-              </h3>
-              <button
-                onClick={() => setSelectedReqForQuote(null)}
-                className="text-slate-400 hover:text-white cursor-pointer px-2 py-1 rounded bg-white/[0.05]"
-              >
-                Cancel
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitQuote} className="space-y-3.5">
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">Part Name</label>
-                <input
-                  type="text"
-                  required
-                  value={quotePartName}
-                  onChange={(e) => setQuotePartName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-bold mb-1">Part # OEM</label>
-                  <input
-                    type="text"
-                    required
-                    value={quotePartNumber}
-                    onChange={(e) => setQuotePartNumber(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white font-mono focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-bold mb-1">Price (USD)</label>
-                  <input
-                    type="number"
-                    required
-                    value={quotePriceUSD}
-                    onChange={(e) => setQuotePriceUSD(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-300 font-bold mb-1">Brand</label>
-                  <input
-                    type="text"
-                    required
-                    value={quoteBrand}
-                    onChange={(e) => setQuoteBrand(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-bold mb-1">Quality Tier</label>
-                  <select
-                    value={quoteQuality}
-                    onChange={(e) => setQuoteQuality(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white focus:outline-hidden cursor-pointer"
-                  >
-                    <option value="genuine">Genuine (Original OEM)</option>
-                    <option value="oem">OEM Tier 1</option>
-                    <option value="aftermarket">Certified Aftermarket</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">Warranty & Notes</label>
-                <input
-                  type="text"
-                  value={quoteNotes}
-                  onChange={(e) => setQuoteNotes(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-lg shadow-amber-500/20 cursor-pointer transition-all"
-              >
-                Publish Live Bid to Buyer
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Dealer Integrations Modals */}
+    <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8" dir={isArabic ? 'rtl' : 'ltr'}>
+      {/* Modals */}
       {isWizardOpen && (
         <IntegrationOnboardingWizard
-          supplierId={currentSupplier.id}
+          dealerId={currentSupplier.id}
+          dealerName={currentSupplier.companyName}
           onClose={() => setIsWizardOpen(false)}
+          onComplete={() => setIsWizardOpen(false)}
         />
       )}
-
       {isCsvModalOpen && (
         <SmartCsvImportModal
           dealerId={currentSupplier.id}
           onClose={() => setIsCsvModalOpen(false)}
+          onSuccess={() => setIsCsvModalOpen(false)}
         />
       )}
-
       {isErrorCenterOpen && (
         <DealerErrorCenter
           dealerId={currentSupplier.id}
           onClose={() => setIsErrorCenterOpen(false)}
         />
       )}
-
       {isApiSandboxOpen && (
         <PartnerApiSandbox
           dealerId={currentSupplier.id}
           onClose={() => setIsApiSandboxOpen(false)}
         />
       )}
-
       {isBranchManagerOpen && (
         <BranchInventoryManager
           dealerId={currentSupplier.id}
           onClose={() => setIsBranchManagerOpen(false)}
         />
+      )}
+
+      {/* Dealer Header */}
+      <div className="bg-[#0e1424] rounded-3xl border border-white/10 p-6 sm:p-8 mb-6 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-black text-xl shadow-lg shadow-indigo-600/30 shrink-0">
+              <Store className="w-7 h-7" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-white">
+                  {currentSupplier.companyName}
+                </h1>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-500/10 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  {isArabic ? 'وكيل معتمد' : 'Verified Dealer'}
+                </span>
+              </div>
+              <div className="text-xs text-slate-400 flex items-center gap-3 mt-1">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400" />
+                  {currentSupplier.city} • {currentSupplier.address}
+                </span>
+                <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  {isArabic ? 'متصل بنظام المخزون' : 'ERP Connected'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Action */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsWizardOpen(true)}
+              className="px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 text-xs font-bold rounded-xl border border-white/10 transition-colors cursor-pointer flex items-center gap-2 min-h-[44px]"
+            >
+              <Server className="w-4 h-4 text-indigo-400" />
+              <span>{isArabic ? 'ربط نظام المخزون (ERP)' : 'Connect Inventory'}</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('requests')}
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl shadow-md transition-colors cursor-pointer flex items-center gap-2 min-h-[44px]"
+            >
+              <Gavel className="w-4 h-4" />
+              <span>{isArabic ? 'عروض الأسعار' : 'Customer Requests'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-white/10 mb-6 gap-2 text-xs font-bold overflow-x-auto">
+        {[
+          { id: 'overview', label: isArabic ? 'أعمال اليوم' : "Today's Business", icon: TrendingUp },
+          { id: 'requests', label: isArabic ? 'الطلبات الواردة' : 'Requests', count: inboundRequests.length, icon: Gavel },
+          { id: 'inventory', label: isArabic ? 'إدارة المخزون' : 'Inventory', icon: Layers },
+          { id: 'orders', label: isArabic ? 'طلبات الشراء' : 'Orders', count: pendingOrders.length, icon: PackageCheck },
+          { id: 'branches', label: isArabic ? 'الفروع والمستودعات' : 'Branches', icon: Building2 },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer min-h-[44px] ${
+                isActive
+                  ? 'border-indigo-500 text-indigo-400 font-black'
+                  : 'border-transparent text-slate-400 hover:text-white'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className="bg-indigo-500/20 text-indigo-300 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* TAB 1: OVERVIEW (TODAY'S BUSINESS) */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          {/* Actionable KPIs (Section 12) */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
+              <span className="text-xs font-bold text-slate-400 block">
+                {isArabic ? 'الطلبات الجديدة' : 'New Requests'}
+              </span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-white">{inboundRequests.length}</span>
+                <span className="text-[11px] font-bold text-amber-400">{isArabic ? 'تنتظر التسعير' : 'waiting for offer'}</span>
+              </div>
+            </div>
+
+            <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
+              <span className="text-xs font-bold text-slate-400 block">
+                {isArabic ? 'طلبات قيد الشحن' : 'Orders to Ship'}
+              </span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-white">{pendingOrders.length || 3}</span>
+                <span className="text-[11px] font-bold text-indigo-400">{isArabic ? 'جاهزة للتجهيز' : 'ready to dispatch'}</span>
+              </div>
+            </div>
+
+            <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
+              <span className="text-xs font-bold text-slate-400 block">
+                {isArabic ? 'مبيعات اليوم' : "Today's Sales"}
+              </span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-2xl font-black text-emerald-400">$12,450</span>
+                <span className="text-[11px] font-bold text-slate-400">IQD 18.6M</span>
+              </div>
+            </div>
+
+            <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
+              <span className="text-xs font-bold text-slate-400 block">
+                {isArabic ? 'حالة مزامنة المخزون' : 'Inventory Sync'}
+              </span>
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-xl font-bold text-emerald-400 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-5 h-5" />
+                  {isArabic ? 'متصل ومحدث' : 'Connected'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Needs Attention Bar (Section 12) */}
+          <div className="bg-[#0e1424] rounded-2xl border border-amber-500/20 p-4 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  {isArabic ? 'يتطلب انتباهك' : 'Needs Attention'}
+                </h4>
+                <p className="text-xs text-slate-300">
+                  {inboundRequests.length} {isArabic ? 'طلبات بانتظار عرضك' : 'requests waiting'} • {pendingOrders.length || 3} {isArabic ? 'طلبات للتسليم' : 'orders to ship'} • {openErrors.length} {isArabic ? 'ملاحظات مزامنة' : 'sync notes'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('requests')}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-colors cursor-pointer min-h-[40px]"
+              >
+                {isArabic ? 'تسعير الطلبات الآن' : 'Quote Requests'}
+              </button>
+            </div>
+          </div>
+
+          {/* Quick 3 Inventory Actions Preview (Section 14) */}
+          <div className="bg-[#0e1424] rounded-2xl border border-white/10 p-6 shadow-md">
+            <h3 className="text-sm font-bold text-white mb-4">
+              {isArabic ? 'طرق إدارة وربط المخزون' : '3 Simple Inventory Methods'}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div
+                onClick={() => setIsWizardOpen(true)}
+                className="p-5 rounded-2xl bg-black/30 border border-white/5 hover:border-indigo-500/50 transition-all cursor-pointer group"
+              >
+                <Server className="w-6 h-6 text-indigo-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h4 className="font-bold text-sm text-white">{isArabic ? '1. ربط النظام (ERP / DMS)' : '1. Connect ERP / DMS'}</h4>
+                <p className="text-xs text-slate-400 mt-1">{isArabic ? 'مزامنة تلقائية للمخزون والأسعار كل 15 دقيقة.' : 'Auto-sync stock and prices every 15 minutes.'}</p>
+              </div>
+
+              <div
+                onClick={() => setIsCsvModalOpen(true)}
+                className="p-5 rounded-2xl bg-black/30 border border-white/5 hover:border-emerald-500/50 transition-all cursor-pointer group"
+              >
+                <FileSpreadsheet className="w-6 h-6 text-emerald-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h4 className="font-bold text-sm text-white">{isArabic ? '2. رفع ملف إكسل (Excel)' : '2. Upload Excel / CSV'}</h4>
+                <p className="text-xs text-slate-400 mt-1">{isArabic ? 'تحديث وتنزيل ملفات القطع والمخزون بضغطة زر.' : 'Import thousands of parts in seconds.'}</p>
+              </div>
+
+              <div
+                onClick={() => {
+                  setActiveTab('inventory');
+                  setShowAddPart(true);
+                }}
+                className="p-5 rounded-2xl bg-black/30 border border-white/5 hover:border-amber-500/50 transition-all cursor-pointer group"
+              >
+                <Plus className="w-6 h-6 text-amber-400 mb-3 group-hover:scale-110 transition-transform" />
+                <h4 className="font-bold text-sm text-white">{isArabic ? '3. إضافة قطع يدوياً' : '3. Add Parts Manually'}</h4>
+                <p className="text-xs text-slate-400 mt-1">{isArabic ? 'إدخال سريع لقطعة معينة برقمها وسعرها.' : 'Quick single part creation form.'}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: INBOUND REQUESTS */}
+      {activeTab === 'requests' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-white">
+              {isArabic ? 'طلبات قطع السيارات بانتظار تسعيرك' : 'Incoming Part Requests'} ({inboundRequests.length})
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {inboundRequests.map((req) => (
+              <div
+                key={req.id}
+                className="bg-[#0e1424] rounded-2xl border border-white/10 p-5 shadow-md space-y-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] font-mono text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">
+                      #{req.requestNumber}
+                    </span>
+                    <h4 className="font-bold text-base text-white mt-1">{req.partName}</h4>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      🚗 {req.vehicle.make} {req.vehicle.model} ({req.vehicle.year}) • {req.city || 'Erbil'}
+                    </p>
+                  </div>
+                  <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                    {req.offers.length} {isArabic ? 'عروض موجودة' : 'Quotes'}
+                  </span>
+                </div>
+
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between">
+                  <span className="text-xs text-slate-400">
+                    {isArabic ? 'الجودة المطلوبة:' : 'Target:'} <span className="text-white font-bold">{req.qualityPreference || 'Genuine OEM'}</span>
+                  </span>
+                  <button
+                    onClick={() => setSelectedRequestForBid(req)}
+                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer min-h-[40px]"
+                  >
+                    <Gavel className="w-3.5 h-3.5" />
+                    <span>{isArabic ? 'تقديم عرض سعر' : 'Send Offer'}</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: INVENTORY (3 METHODS) */}
+      {activeTab === 'inventory' && (
+        <div className="space-y-6">
+          {/* Status Box (Section 14) */}
+          <div className="bg-[#0e1424] rounded-2xl border border-white/10 p-5 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  {isArabic ? 'المخزون متصل ومحدث ✓' : 'Inventory Connected ✓'}
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  24,820 {isArabic ? 'قطعة معرفة' : 'parts registered'} • 18,420 {isArabic ? 'متوفرة في المخزن' : 'units in stock'} • {isArabic ? 'آخر مزامنة: قبل دقيقتين' : 'Last sync: 2 mins ago'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsWizardOpen(true)}
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl border border-white/10 cursor-pointer min-h-[40px]"
+              >
+                {isArabic ? 'إعدادات المزامنة' : 'Sync Settings'}
+              </button>
+            </div>
+          </div>
+
+          {/* 3 Methods */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              onClick={() => setIsWizardOpen(true)}
+              className="p-5 bg-[#0e1424] rounded-2xl border border-white/10 hover:border-indigo-500 text-left rtl:text-right transition-all cursor-pointer"
+            >
+              <Server className="w-5 h-5 text-indigo-400 mb-2" />
+              <h4 className="font-bold text-white text-sm">{isArabic ? '1. ربط ERP / DMS' : '1. Connect ERP / DMS'}</h4>
+              <p className="text-xs text-slate-400 mt-1">{isArabic ? 'ربط تلقائي مع أنظمة SAP, Odoo, Microline.' : 'Automated API connectors.'}</p>
+            </button>
+
+            <button
+              onClick={() => setIsCsvModalOpen(true)}
+              className="p-5 bg-[#0e1424] rounded-2xl border border-white/10 hover:border-emerald-500 text-left rtl:text-right transition-all cursor-pointer"
+            >
+              <FileSpreadsheet className="w-5 h-5 text-emerald-400 mb-2" />
+              <h4 className="font-bold text-white text-sm">{isArabic ? '2. رفع ملف إكسل' : '2. Upload Excel / CSV'}</h4>
+              <p className="text-xs text-slate-400 mt-1">{isArabic ? 'رفع جدول قطع الغيار دفعة واحدة.' : 'Bulk upload stock sheets.'}</p>
+            </button>
+
+            <button
+              onClick={() => setShowAddPart(!showAddPart)}
+              className="p-5 bg-[#0e1424] rounded-2xl border border-white/10 hover:border-amber-500 text-left rtl:text-right transition-all cursor-pointer"
+            >
+              <Plus className="w-5 h-5 text-amber-400 mb-2" />
+              <h4 className="font-bold text-white text-sm">{isArabic ? '3. إضافة يدوية' : '3. Add Single Part'}</h4>
+              <p className="text-xs text-slate-400 mt-1">{isArabic ? 'إضافة قطعة فردية مباشرة إلى المتجر.' : 'Manual part insertion form.'}</p>
+            </button>
+          </div>
+
+          {/* Manual Add Part Form */}
+          {showAddPart && (
+            <form onSubmit={handleManualAddSubmit} className="bg-[#0e1424] rounded-2xl border border-white/10 p-6 shadow-md space-y-4">
+              <h4 className="text-sm font-bold text-white">{isArabic ? 'إضافة قطعة جديدة يدوياً' : 'Add New Part'}</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <input
+                  type="text"
+                  required
+                  placeholder={isArabic ? 'رقم القطعة (Part Number)' : 'Part Number OEM'}
+                  value={manualPartNumber}
+                  onChange={(e) => setManualPartNumber(e.target.value)}
+                  className="px-3.5 py-2.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white focus:ring-2 focus:ring-indigo-500 focus:outline-hidden min-h-[44px]"
+                />
+                <input
+                  type="text"
+                  required
+                  placeholder={isArabic ? 'اسم القطعة (Part Name)' : 'Part Name'}
+                  value={manualPartName}
+                  onChange={(e) => setManualPartName(e.target.value)}
+                  className="px-3.5 py-2.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white focus:ring-2 focus:ring-indigo-500 focus:outline-hidden min-h-[44px]"
+                />
+                <input
+                  type="number"
+                  required
+                  placeholder={isArabic ? 'السعر ($ USD)' : 'Price ($ USD)'}
+                  value={manualPrice}
+                  onChange={(e) => setManualPrice(Number(e.target.value))}
+                  className="px-3.5 py-2.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white focus:ring-2 focus:ring-indigo-500 focus:outline-hidden min-h-[44px]"
+                />
+                <input
+                  type="number"
+                  required
+                  placeholder={isArabic ? 'الكمية المتوفرة' : 'Stock Quantity'}
+                  value={manualStock}
+                  onChange={(e) => setManualStock(Number(e.target.value))}
+                  className="px-3.5 py-2.5 bg-black/40 border border-white/10 rounded-xl text-xs text-white focus:ring-2 focus:ring-indigo-500 focus:outline-hidden min-h-[44px]"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer min-h-[44px]"
+                >
+                  {isArabic ? 'حفظ وإضافة للمخزون' : 'Save & Add to Stock'}
+                </button>
+                {manualAddedSuccess && (
+                  <span className="text-xs font-bold text-emerald-400">
+                    {isArabic ? 'تمت إضافة القطعة بنجاح!' : 'Part added to inventory successfully!'}
+                  </span>
+                )}
+              </div>
+            </form>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: ORDERS (Timeline Section 17) */}
+      {activeTab === 'orders' && (
+        <div className="space-y-4">
+          <h3 className="text-base font-bold text-white">
+            {isArabic ? 'طلبات الشراء والتجهيز' : 'Customer Orders'} ({supplierOrders.length})
+          </h3>
+
+          {supplierOrders.length === 0 ? (
+            <div className="bg-[#0e1424] rounded-2xl border border-white/10 p-8 text-center text-slate-400 text-xs">
+              {isArabic ? 'لا توجد طلبات شراء مسجلة حالياً.' : 'No orders found.'}
+            </div>
+          ) : (
+            supplierOrders.map((ord) => (
+              <div key={ord.id} className="bg-[#0e1424] rounded-2xl border border-white/10 p-5 shadow-md space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="text-xs font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded">
+                      #{ord.orderNumber}
+                    </span>
+                    <p className="text-sm font-bold text-white mt-1">{ord.customerName} • {ord.customerPhone}</p>
+                    <p className="text-xs text-slate-400">{ord.deliveryAddress}</p>
+                  </div>
+                  <div className="text-right rtl:text-left">
+                    <span className="text-lg font-black text-emerald-400">{formatPrice(ord.totalUSD, ord.totalIQD)}</span>
+                  </div>
+                </div>
+
+                {/* Timeline Visual (Section 17) */}
+                <div className="p-3 bg-black/30 rounded-xl border border-white/5 flex items-center justify-between text-xs font-bold overflow-x-auto gap-2">
+                  {['placed', 'confirmed', 'preparing', 'shipped', 'delivered'].map((step, idx) => {
+                    const stepLabels: Record<string, { en: string; ar: string }> = {
+                      placed: { en: 'Order Placed', ar: 'تم الطلب' },
+                      confirmed: { en: 'Confirmed', ar: 'تم التأكيد' },
+                      preparing: { en: 'Preparing', ar: 'قيد التجهيز' },
+                      shipped: { en: 'Shipped', ar: 'تم الشحن' },
+                      delivered: { en: 'Delivered', ar: 'تم التوصيل' },
+                    };
+                    const isPassed = ['placed', 'confirmed', 'preparing', 'shipped', 'delivered'].indexOf(ord.status) >= idx;
+
+                    return (
+                      <div key={step} className="flex items-center gap-1.5 whitespace-nowrap">
+                        <span className={`w-3 h-3 rounded-full flex items-center justify-center text-[8px] ${
+                          isPassed ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-white/10 text-slate-400'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <span className={isPassed ? 'text-emerald-400 font-bold' : 'text-slate-500'}>
+                          {isArabic ? stepLabels[step].ar : stepLabels[step].en}
+                        </span>
+                        {idx < 4 && <ChevronRight className="w-3.5 h-3.5 text-slate-600" />}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-2 flex items-center justify-between text-xs">
+                  <span className="text-slate-400">{ord.items.length} {isArabic ? 'قطع مطلوبة' : 'items'}</span>
+                  {ord.status !== 'delivered' && (
+                    <button
+                      onClick={() => updateOrderStatus(ord.id, ord.status === 'placed' ? 'confirmed' : ord.status === 'confirmed' ? 'preparing' : 'shipped')}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors cursor-pointer min-h-[40px]"
+                    >
+                      {isArabic ? 'تحديث الحالة للمرحلة التالية' : 'Advance Order Status'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* TAB 5: BRANCHES (Multi-Branch Section 16) */}
+      {activeTab === 'branches' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-white">
+              {isArabic ? 'مخزون الفروع والمستودعات' : 'Multi-Branch Inventory'}
+            </h3>
+            <button
+              onClick={() => setIsBranchManagerOpen(true)}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer min-h-[40px]"
+            >
+              {isArabic ? 'إدارة الفروع' : 'Manage Branches'}
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {[
+              { city: 'Erbil', cityAr: 'أربيل', units: 4820, status: 'Active Dispatch' },
+              { city: 'Baghdad', cityAr: 'بغداد (السنك)', units: 12450, status: 'Main Hub' },
+              { city: 'Sulaymaniyah', cityAr: 'السليمانية', units: 3910, status: 'Active Dispatch' },
+              { city: 'Basra', cityAr: 'البصرة', units: 3640, status: 'Active Dispatch' },
+            ].map((br) => (
+              <div key={br.city} className="bg-[#0e1424] rounded-2xl border border-white/10 p-5 shadow-md">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-sm">{isArabic ? br.cityAr : br.city}</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                </div>
+                <div className="text-2xl font-black text-emerald-400 mt-2">{br.units.toLocaleString()}</div>
+                <span className="text-[11px] text-slate-400 mt-1 block">{br.status}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

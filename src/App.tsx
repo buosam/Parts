@@ -23,6 +23,7 @@ import { AuthModal } from './components/AuthModal';
 import { SupplierStorefrontModal } from './components/SupplierStorefrontModal';
 import { DealerReviewModal } from './components/DealerReviewModal';
 import { CarIdDepartmentBar } from './components/CarIdDepartmentBar';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { MasterPart } from './types';
 import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2, Zap, ArrowRight } from 'lucide-react';
 
@@ -51,14 +52,14 @@ const MarketplaceApp: React.FC = () => {
       <Header />
 
       {/* Main Role-Based Workspace */}
-      <main className="flex-1 pb-16">
+      <main className="flex-1 pb-24 md:pb-16">
         {role === 'customer' && (
           <div>
             <HomeHero />
 
             {/* Buyer Mode View Switcher Bar */}
             <div className="max-w-7xl mx-auto px-4 mt-6">
-              <div className="flex items-center justify-between gap-4 p-1.5 bg-white/[0.04] border border-white/10 rounded-2xl backdrop-blur-md">
+              <div className="flex items-center justify-between gap-4 p-1.5 bg-[#0e1424] border border-white/10 rounded-2xl shadow-md">
                 <div className="flex items-center gap-1.5 w-full sm:w-auto">
                   <button
                     id="buyer-tab-catalog"
@@ -67,28 +68,28 @@ const MarketplaceApp: React.FC = () => {
                         setSelectedCategory('All');
                       }
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${
                       !isBiddingView
-                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/25'
+                        ? 'bg-indigo-600 text-white shadow-md'
                         : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                     }`}
                   >
                     <Layers className="w-4 h-4" />
-                    <span>{isArabic ? 'الكتالوج المباشر ومخزون الوكلاء' : 'Live Parts Catalog & Instant Stock'}</span>
+                    <span>{isArabic ? 'الكتالوج وقطع الغيار' : 'Search & Catalog'}</span>
                   </button>
 
                   <button
                     id="buyer-tab-bidding"
                     onClick={() => setSelectedCategory('requests')}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${
                       isBiddingView
-                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/25 font-black'
-                        : 'text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10'
+                        ? 'bg-amber-500 text-slate-950 shadow-md font-black'
+                        : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
                     }`}
                   >
                     <Gavel className="w-4 h-4" />
-                    <span>{isArabic ? 'ساحة مناقصات ومزايدات الوكلاء' : 'Reverse RFQ & Live Dealer Bids'}</span>
-                    <span className="hidden md:inline text-[10px] font-black uppercase bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded ml-1">
+                    <span>{isArabic ? 'عروض الأسعار والطلبات' : 'Get Offers & Quotes'}</span>
+                    <span className="hidden md:inline text-[10px] font-black uppercase bg-black/20 text-slate-900 px-1.5 py-0.5 rounded ml-1">
                       LIVE
                     </span>
                   </button>
@@ -99,7 +100,7 @@ const MarketplaceApp: React.FC = () => {
                   <span>
                     {isArabic
                       ? 'مخزون حقيقي متزامن مع وكلاء بغداد، أربيل، والبصرة'
-                      : 'Real-time ERP/DMS inventory synced across Iraqi dealer networks'}
+                      : 'Real-time dealer inventory across Baghdad, Erbil & Basra'}
                   </span>
                 </div>
               </div>
@@ -122,6 +123,9 @@ const MarketplaceApp: React.FC = () => {
         {role === 'supplier' && <SupplierPortal />}
         {role === 'admin' && <AdminDashboard />}
       </main>
+
+      {/* Mobile Bottom Navigation Bar (44px+ touch targets) */}
+      <MobileBottomNav />
 
       {/* Global Modals */}
       <MasterPartDetailModal part={selectedPart} onClose={() => setSelectedPart(null)} />
