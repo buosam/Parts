@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
 import { Header } from './components/Header';
 import { HomeHero } from './components/HomeHero';
+import { SearchResults } from './components/SearchResults';
 import { MasterPartDetailModal } from './components/MasterPartDetailModal';
 import { VehicleSelectorModal } from './components/VehicleSelectorModal';
 import { PhotoSearchModal } from './components/PhotoSearchModal';
@@ -22,7 +23,7 @@ import { SupplierStorefrontModal } from './components/SupplierStorefrontModal';
 import { DealerReviewModal } from './components/DealerReviewModal';
 import { CarIdDepartmentBar } from './components/CarIdDepartmentBar';
 import { MasterPart } from './types';
-import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2, Zap, ArrowRight } from 'lucide-react';
 
 const MarketplaceApp: React.FC = () => {
   const {
@@ -30,10 +31,15 @@ const MarketplaceApp: React.FC = () => {
     language,
     selectedRequestForBid,
     setSelectedRequestForBid,
+    selectedCategory,
+    setSelectedCategory,
+    searchQuery,
   } = useMarketplace();
-  const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
 
+  const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
   const isArabic = language === 'ar';
+
+  const isBiddingView = selectedCategory === 'requests';
 
   return (
     <div
@@ -52,7 +58,61 @@ const MarketplaceApp: React.FC = () => {
           <div>
             <HomeHero />
 
-            <RequestsBoard />
+            {/* Buyer Mode View Switcher Bar */}
+            <div className="max-w-7xl mx-auto px-4 mt-6">
+              <div className="flex items-center justify-between gap-4 p-1.5 bg-white/[0.04] border border-white/10 rounded-2xl backdrop-blur-md">
+                <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                  <button
+                    id="buyer-tab-catalog"
+                    onClick={() => {
+                      if (selectedCategory === 'requests') {
+                        setSelectedCategory('All');
+                      }
+                    }}
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      !isBiddingView
+                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-600/25'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>{isArabic ? 'الكتالوج المباشر ومخزون الوكلاء' : 'Live Parts Catalog & Instant Stock'}</span>
+                  </button>
+
+                  <button
+                    id="buyer-tab-bidding"
+                    onClick={() => setSelectedCategory('requests')}
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      isBiddingView
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/25 font-black'
+                        : 'text-amber-400/90 hover:text-amber-300 hover:bg-amber-500/10'
+                    }`}
+                  >
+                    <Gavel className="w-4 h-4" />
+                    <span>{isArabic ? 'ساحة مناقصات ومزايدات الوكلاء' : 'Reverse RFQ & Live Dealer Bids'}</span>
+                    <span className="hidden md:inline text-[10px] font-black uppercase bg-amber-500 text-slate-950 px-1.5 py-0.5 rounded ml-1">
+                      LIVE
+                    </span>
+                  </button>
+                </div>
+
+                <div className="hidden lg:flex items-center gap-2 text-xs text-slate-400 pr-3">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>
+                    {isArabic
+                      ? 'مخزون حقيقي متزامن مع وكلاء بغداد، أربيل، والبصرة'
+                      : 'Real-time ERP/DMS inventory synced across Iraqi dealer networks'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Display Active Customer View */}
+            {isBiddingView ? (
+              <RequestsBoard />
+            ) : (
+              <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
+            )}
           </div>
         )}
 

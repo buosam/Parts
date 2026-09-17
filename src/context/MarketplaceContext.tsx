@@ -58,6 +58,9 @@ interface MarketplaceContextType {
   setRole: (role: UserRole) => void;
   language: 'en' | 'ar';
   setLanguage: (lang: 'en' | 'ar') => void;
+  currency: 'USD' | 'IQD';
+  setCurrency: (curr: 'USD' | 'IQD') => void;
+  formatPrice: (amountUSD?: number, amountIQD?: number) => string;
   activeVehicle: Vehicle | null;
   setActiveVehicle: (v: Vehicle | null) => void;
   userVehicles: Vehicle[];
@@ -147,6 +150,25 @@ const MarketplaceContext = createContext<MarketplaceContextType | undefined>(und
 export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRole] = useState<UserRole>('customer');
   const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const [currency, setCurrencyState] = useState<'USD' | 'IQD'>(() => {
+    const saved = localStorage.getItem('sp_currency');
+    return saved === 'IQD' ? 'IQD' : 'USD';
+  });
+
+  const setCurrency = (curr: 'USD' | 'IQD') => {
+    setCurrencyState(curr);
+    localStorage.setItem('sp_currency', curr);
+  };
+
+  const formatPrice = (amountUSD?: number, amountIQD?: number): string => {
+    const usd = amountUSD ?? 0;
+    const iqd = amountIQD ?? Math.round(usd * 1500);
+
+    if (currency === 'IQD') {
+      return `${iqd.toLocaleString()} ${language === 'ar' ? 'د.ع' : 'IQD'}`;
+    }
+    return `$${usd.toLocaleString()}`;
+  };
 
   // Stored state with localStorage cache
   const [userVehicles, setUserVehicles] = useState<Vehicle[]>(() => {
@@ -1303,6 +1325,9 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         setRole,
         language,
         setLanguage,
+        currency,
+        setCurrency,
+        formatPrice,
         activeVehicle,
         setActiveVehicle,
         userVehicles,

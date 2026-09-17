@@ -24,6 +24,7 @@ import {
   Code2,
   Building2,
   AlertTriangle,
+  Coins,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { IntegrationDashboard } from './DealerIntegrations/IntegrationDashboard';
@@ -44,6 +45,7 @@ export const SupplierPortal: React.FC = () => {
     language,
     dealerIntegrations,
     syncErrors,
+    formatPrice,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
@@ -105,7 +107,7 @@ export const SupplierPortal: React.FC = () => {
       brand: quoteBrand,
       quality: quoteQuality,
       priceUSD: Number(quotePriceUSD),
-      priceIQD: Math.round(Number(quotePriceUSD) * 1320),
+      priceIQD: Math.round(Number(quotePriceUSD) * 1500),
       warranty: quoteWarranty,
       deliveryTime: quoteDelivery,
       stockStatus: 'in_stock_today',
@@ -139,38 +141,39 @@ export const SupplierPortal: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Supplier Profile Banner */}
-      <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs mb-8">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="glass-panel rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl mb-8 relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-neutral-900 text-white flex items-center justify-center font-black text-xl shadow-xs">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center font-black text-2xl shadow-lg shadow-amber-500/20 shrink-0">
               ABC
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-xl font-black text-neutral-900">
+                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
                   {currentSupplier.companyName}
                 </h2>
-                <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-100 text-emerald-900 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" />
+                <span className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-500/10 text-emerald-300 px-3 py-0.5 rounded-full border border-emerald-500/20">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                   Level 3 Verified Genuine Partner
                 </span>
                 {primaryInteg && (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-50 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
-                    <Server className="w-3 h-3 text-blue-600" />
-                    ERP Integrated ({primaryInteg.providerType.toUpperCase()})
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-indigo-500/10 text-indigo-300 px-2.5 py-0.5 rounded-full border border-indigo-500/20">
+                    <Server className="w-3 h-3 text-indigo-400" />
+                    ERP Synced ({primaryInteg.providerType.toUpperCase()})
                   </span>
                 )}
               </div>
-              <div className="text-xs text-neutral-500 flex flex-wrap items-center gap-3 mt-1.5">
+              <div className="text-xs text-slate-400 flex flex-wrap items-center gap-3 mt-2">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5" />
+                  <MapPin className="w-3.5 h-3.5 text-indigo-400" />
                   {currentSupplier.city} • {currentSupplier.address}
                 </span>
                 <span>Phone: {currentSupplier.phone}</span>
-                <span className="font-semibold text-emerald-700">
-                  ⚡ Auto-Sync Active ({primaryInteg?.syncRules?.syncFrequency || 'every 15 min'})
+                <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  Auto-Sync Active ({primaryInteg?.syncRules?.syncFrequency || 'every 15 min'})
                 </span>
               </div>
             </div>
@@ -178,30 +181,30 @@ export const SupplierPortal: React.FC = () => {
 
           {/* Supplier KPIs */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
-              <div className="flex items-center justify-center gap-1 text-amber-500">
-                <Star className="w-4 h-4 fill-amber-500" />
-                <span className="text-base font-black text-neutral-900">{currentSupplier.rating}</span>
+            <div className="px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-2xl text-center min-w-[90px]">
+              <div className="flex items-center justify-center gap-1 text-amber-400">
+                <Star className="w-4 h-4 fill-amber-400" />
+                <span className="text-base font-black text-white">{currentSupplier.rating}</span>
               </div>
-              <span className="text-[10px] text-neutral-500 font-semibold block uppercase mt-0.5">
+              <span className="text-[10px] text-slate-400 font-semibold block uppercase mt-0.5">
                 Dealer Rating
               </span>
             </div>
 
-            <div className="px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
-              <div className="text-base font-black text-emerald-700">
+            <div className="px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-2xl text-center min-w-[90px]">
+              <div className="text-base font-black text-emerald-400">
                 {primaryInteg?.syncHealthScore || 98}%
               </div>
-              <span className="text-[10px] text-neutral-500 font-semibold block uppercase mt-0.5">
-                Sync Health Score
+              <span className="text-[10px] text-slate-400 font-semibold block uppercase mt-0.5">
+                Health Score
               </span>
             </div>
 
-            <div className="px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl text-center">
-              <div className="text-base font-black text-neutral-900">
+            <div className="px-4 py-2.5 bg-white/[0.04] border border-white/10 rounded-2xl text-center min-w-[90px]">
+              <div className="text-base font-black text-white">
                 {(primaryInteg?.totalProductsSynced || 3420).toLocaleString()}
               </div>
-              <span className="text-[10px] text-neutral-500 font-semibold block uppercase mt-0.5">
+              <span className="text-[10px] text-slate-400 font-semibold block uppercase mt-0.5">
                 Live SKUs
               </span>
             </div>
@@ -210,19 +213,19 @@ export const SupplierPortal: React.FC = () => {
       </div>
 
       {/* Tabs Bar */}
-      <div className="flex border-b border-neutral-200 mb-6 gap-2 text-xs font-bold overflow-x-auto">
+      <div className="flex border-b border-white/10 mb-6 gap-2 text-xs font-bold overflow-x-auto">
         <button
           id="supplier-tab-integrations"
           onClick={() => setActiveTab('integrations')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'integrations'
-              ? 'border-red-600 text-red-600 font-black'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+              ? 'border-indigo-500 text-indigo-400 font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
-          <Zap className="w-4 h-4 text-red-600" />
+          <Zap className="w-4 h-4 text-indigo-400" />
           <span>{isArabic ? 'تكامل ومزامنة المخزون (ERP / API)' : 'Integrations & Inventory Sync'}</span>
-          <span className="bg-red-100 text-red-800 font-black px-1.5 py-0.2 rounded-full text-[10px]">
+          <span className="bg-indigo-500/20 text-indigo-300 font-black px-2 py-0.2 rounded-full text-[10px] border border-indigo-500/30">
             B2B
           </span>
         </button>
@@ -230,15 +233,15 @@ export const SupplierPortal: React.FC = () => {
         <button
           id="supplier-tab-requests"
           onClick={() => setActiveTab('requests')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'requests'
-              ? 'border-emerald-600 text-emerald-700 font-black'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+              ? 'border-amber-500 text-amber-400 font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
-          <Clock className="w-4 h-4" />
+          <Clock className="w-4 h-4 text-amber-400" />
           <span>{isArabic ? 'طلبات ومناقصات القطع الواردة' : 'Inbound Part Requests'}</span>
-          <span className="bg-emerald-100 text-emerald-900 px-1.5 py-0.2 rounded-full text-[10px]">
+          <span className="bg-amber-500/20 text-amber-300 px-2 py-0.2 rounded-full text-[10px] font-bold border border-amber-500/30">
             {inboundRequests.length}
           </span>
         </button>
@@ -246,15 +249,15 @@ export const SupplierPortal: React.FC = () => {
         <button
           id="supplier-tab-orders"
           onClick={() => setActiveTab('orders')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'orders'
-              ? 'border-emerald-600 text-emerald-700 font-black'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+              ? 'border-emerald-500 text-emerald-400 font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
-          <PackageCheck className="w-4 h-4" />
+          <PackageCheck className="w-4 h-4 text-emerald-400" />
           <span>{isArabic ? 'الطلبات المباشرة' : 'Active Customer Orders'}</span>
-          <span className="bg-neutral-100 text-neutral-800 px-1.5 py-0.2 rounded-full text-[10px]">
+          <span className="bg-emerald-500/20 text-emerald-300 px-2 py-0.2 rounded-full text-[10px] font-bold border border-emerald-500/30">
             {supplierOrders.length}
           </span>
         </button>
@@ -262,18 +265,18 @@ export const SupplierPortal: React.FC = () => {
         <button
           id="supplier-tab-bulk"
           onClick={() => setActiveTab('bulk_upload')}
-          className={`pb-3 px-4 border-b-2 transition-colors flex items-center gap-2 whitespace-nowrap ${
+          className={`pb-3 px-4 border-b-2 transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'bulk_upload'
-              ? 'border-emerald-600 text-emerald-700 font-black'
-              : 'border-transparent text-neutral-500 hover:text-neutral-800'
+              ? 'border-blue-500 text-blue-400 font-black'
+              : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
-          <FileSpreadsheet className="w-4 h-4" />
+          <FileSpreadsheet className="w-4 h-4 text-blue-400" />
           <span>{isArabic ? 'استيراد CSV سريع' : 'Quick CSV Upload'}</span>
         </button>
       </div>
 
-      {/* TAB 0: B2B Dealer Integrations Dashboard (PRD Section 2 & 3) */}
+      {/* TAB 0: B2B Dealer Integrations Dashboard */}
       {activeTab === 'integrations' && (
         <IntegrationDashboard
           supplierId={currentSupplier.id}
@@ -285,14 +288,14 @@ export const SupplierPortal: React.FC = () => {
         />
       )}
 
-      {/* TAB 1: Inbound Part Requests to Bid on (PRD Section 16 & 23) */}
+      {/* TAB 1: Inbound Part Requests to Bid on */}
       {activeTab === 'requests' && (
         <div className="space-y-4">
-          <div className="text-xs text-neutral-500">
-            Automated notifications for parts matching your certified brand specializations (Toyota, Lexus, Genuine):
+          <div className="text-xs text-slate-400">
+            {isArabic ? 'إشعارات تلقائية للطلبات المطابقة لاختصاصاتك (Toyota, Lexus, Genuine):' : 'Automated notifications for parts matching your certified brand specializations (Toyota, Lexus, Genuine):'}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {inboundRequests.map((req) => {
               const alreadyBid = req.offers.some((o) => o.supplierId === currentSupplier.id);
 
@@ -300,51 +303,51 @@ export const SupplierPortal: React.FC = () => {
                 <div
                   key={req.id}
                   id={`inbound-req-card-${req.id}`}
-                  className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs flex flex-col justify-between"
+                  className="glass-panel rounded-3xl border border-white/10 p-6 shadow-xl flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-2">
-                      <span className="font-mono text-xs font-bold text-neutral-500">
-                        {req.requestNumber}
+                      <span className="font-mono text-xs font-bold text-slate-400 bg-white/[0.04] px-2.5 py-0.5 rounded-lg border border-white/5">
+                        #{req.requestNumber}
                       </span>
-                      <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                        Target City: {req.preferredCity}
+                      <span className="text-[11px] font-bold text-emerald-300 bg-emerald-500/10 px-2.5 py-0.5 rounded-lg border border-emerald-500/20">
+                        Target City: {req.preferredCity || 'Baghdad Central'}
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-neutral-900">{req.partName}</h3>
-                    <div className="text-xs text-neutral-600 mt-1">
-                      Vehicle:{' '}
-                      <strong className="text-neutral-900">
+                    <h3 className="text-base font-bold text-white">{req.partName}</h3>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {isArabic ? 'المركبة:' : 'Vehicle:'}{' '}
+                      <strong className="text-slate-200">
                         {req.vehicle.make} {req.vehicle.model} {req.vehicle.year} ({req.vehicle.engine})
                       </strong>
                     </div>
 
                     {req.partDescription && (
-                      <p className="text-xs text-neutral-600 mt-2 p-2 bg-neutral-50 rounded-lg line-clamp-2">
+                      <p className="text-xs text-slate-300 mt-2.5 p-3 bg-white/[0.02] rounded-xl border border-white/5 line-clamp-2 leading-relaxed">
                         "{req.partDescription}"
                       </p>
                     )}
 
-                    <div className="mt-3 flex items-center justify-between text-xs text-neutral-500 border-t border-neutral-100 pt-2">
-                      <span>Requirement: {req.qualityPreference.replace(/_/g, ' ')}</span>
+                    <div className="mt-3.5 flex items-center justify-between text-xs text-slate-400 border-t border-white/5 pt-2.5">
+                      <span>Requirement: <strong className="text-slate-200">{req.qualityPreference.replace(/_/g, ' ')}</strong></span>
                       <span>Required: {req.requiredDate}</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-neutral-100">
+                  <div className="mt-5 pt-4 border-t border-white/10">
                     {alreadyBid ? (
-                      <div className="py-2 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl text-center border border-emerald-200 flex items-center justify-center gap-1.5">
-                        <CheckCircle className="w-3.5 h-3.5" />
+                      <div className="py-2.5 bg-emerald-500/10 text-emerald-300 text-xs font-bold rounded-xl text-center border border-emerald-500/30 flex items-center justify-center gap-1.5">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
                         Quotation Submitted by Your Dealership
                       </div>
                     ) : (
                       <button
                         id={`open-quote-modal-btn-${req.id}`}
                         onClick={() => handleOpenQuoteModal(req)}
-                        className="w-full py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center justify-center gap-1.5"
+                        className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-1.5 cursor-pointer"
                       >
-                        <span>Submit Live Quotation</span>
+                        <span>Submit Live Dealer Quotation</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     )}
@@ -356,240 +359,199 @@ export const SupplierPortal: React.FC = () => {
         </div>
       )}
 
-      {/* Quote Submission Modal */}
-      {selectedReqForQuote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-neutral-200 text-xs">
-            <h3 className="font-bold text-neutral-900 text-base mb-1">
-              Submit Quotation for Inbound Request
-            </h3>
-            <p className="text-neutral-500 mb-4">
-              Enter your competitive pricing, warranty, and delivery window for the buyer.
-            </p>
-
-            <form onSubmit={handleSubmitQuote} className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Part Name</label>
-                  <input
-                    type="text"
-                    required
-                    value={quotePartName}
-                    onChange={(e) => setQuotePartName(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Part Number</label>
-                  <input
-                    type="text"
-                    required
-                    value={quotePartNumber}
-                    onChange={(e) => setQuotePartNumber(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Price (USD)</label>
-                  <input
-                    type="number"
-                    required
-                    value={quotePriceUSD}
-                    onChange={(e) => setQuotePriceUSD(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg font-bold"
-                  />
-                  <span className="text-[10px] text-neutral-400">
-                    ≈ {(quotePriceUSD * 1320).toLocaleString()} IQD
-                  </span>
-                </div>
-                <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Brand</label>
-                  <input
-                    type="text"
-                    required
-                    value={quoteBrand}
-                    onChange={(e) => setQuoteBrand(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Quality Grade</label>
-                  <select
-                    value={quoteQuality}
-                    onChange={(e) => setQuoteQuality(e.target.value as any)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white"
-                  >
-                    <option value="genuine">Genuine (أصلي وكالة)</option>
-                    <option value="oem">OEM Certified (وكالة معتمد)</option>
-                    <option value="aftermarket">Aftermarket (تجاري)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block font-semibold text-neutral-700 mb-1">Warranty</label>
-                  <input
-                    type="text"
-                    value={quoteWarranty}
-                    onChange={(e) => setQuoteWarranty(e.target.value)}
-                    className="w-full px-3 py-2 border border-neutral-300 rounded-lg"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Delivery Time</label>
-                <input
-                  type="text"
-                  value={quoteDelivery}
-                  onChange={(e) => setQuoteDelivery(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Dealer Notes for Buyer</label>
-                <input
-                  type="text"
-                  value={quoteNotes}
-                  onChange={(e) => setQuoteNotes(e.target.value)}
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedReqForQuote(null)}
-                  className="flex-1 py-2 rounded-xl border border-neutral-300 text-neutral-700 font-bold"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  id="confirm-submit-quote-btn"
-                  className="flex-1 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
-                >
-                  Send Quotation to Buyer
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: Orders to Fulfill */}
+      {/* TAB 2: Direct Customer Orders */}
       {activeTab === 'orders' && (
-        <div className="space-y-3">
-          {supplierOrders.length === 0 ? (
-            <div className="p-8 text-center bg-white rounded-2xl border border-neutral-200 text-neutral-500 text-xs">
-              No orders currently pending fulfillment.
-            </div>
-          ) : (
-            supplierOrders.map((ord) => (
-              <div
-                key={ord.id}
-                className="p-4 bg-white rounded-xl border border-neutral-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-neutral-900">{ord.orderNumber}</span>
-                    <span className="text-neutral-500">({ord.createdAt.split('T')[0]})</span>
-                    <span className="font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded text-[10px]">
-                      {(ord.status || '').toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="font-bold text-neutral-800 mt-1">
-                    Customer: {ord.customerName} ({ord.customerPhone})
-                  </div>
-                  <div className="text-neutral-500">
-                    Vehicle: {ord.vehicleInfo} • Destination: {ord.deliveryAddress}
-                  </div>
-                  <div className="mt-1 font-medium text-neutral-700">
-                    Items: {ord.items.map((i) => `${i.partName} x${i.quantity}`).join(', ')}
-                  </div>
-                </div>
+        <div className="space-y-4">
+          <div className="text-xs text-slate-400">
+            Direct marketplace and workshop purchases assigned to your dealership:
+          </div>
 
-                <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between gap-2">
-                  <div>
-                    <div className="text-base font-black text-neutral-900">${ord.totalUSD}</div>
-                    <div className="text-[10px] text-neutral-500">
-                      {ord.totalIQD.toLocaleString()} IQD (COD)
-                    </div>
-                  </div>
-
-                  {ord.status === 'confirmed' && (
-                    <button
-                      onClick={() => updateOrderStatus(ord.id, 'out_for_delivery')}
-                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold rounded-lg text-xs flex items-center gap-1"
-                    >
-                      <Truck className="w-3.5 h-3.5" />
-                      <span>Mark Out for Delivery</span>
-                    </button>
-                  )}
-                  {ord.status === 'out_for_delivery' && (
-                    <button
-                      onClick={() => updateOrderStatus(ord.id, 'delivered')}
-                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1"
-                    >
-                      <CheckCircle className="w-3.5 h-3.5" />
-                      <span>Confirm Delivered</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+          <div className="glass-panel rounded-3xl border border-white/10 p-6 shadow-xl overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-white/[0.02] border-b border-white/10 text-slate-400 font-bold uppercase text-[10px]">
+                <tr>
+                  <th className="p-3">Order #</th>
+                  <th className="p-3">Customer / Workshop</th>
+                  <th className="p-3">Vehicle</th>
+                  <th className="p-3">Items Count</th>
+                  <th className="p-3">Total Amount</th>
+                  <th className="p-3">Status</th>
+                  <th className="p-3">Update Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-slate-200">
+                {supplierOrders.map((ord) => (
+                  <tr key={ord.id} className="hover:bg-white/[0.03]">
+                    <td className="p-3 font-mono font-bold text-indigo-300">{ord.orderNumber}</td>
+                    <td className="p-3 font-bold text-white">
+                      {ord.customerName}
+                      <div className="text-[10px] text-slate-400 font-normal">{ord.customerPhone}</div>
+                    </td>
+                    <td className="p-3 text-slate-300">{ord.vehicleInfo}</td>
+                    <td className="p-3">{ord.items.length} items</td>
+                    <td className="p-3 font-black text-emerald-400">
+                      {formatPrice(ord.totalUSD, ord.totalIQD)}
+                    </td>
+                    <td className="p-3">
+                      <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        {ord.status}
+                      </span>
+                    </td>
+                    <td className="p-3">
+                      <select
+                        value={ord.status}
+                        onChange={(e) => updateOrderStatus(ord.id, e.target.value as any)}
+                        className="bg-slate-900 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-white focus:outline-hidden cursor-pointer"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="dispatched">Dispatched</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
-      {/* TAB 3: Bulk Inventory Upload (PRD Section 16) */}
+      {/* TAB 3: Quick CSV Upload */}
       {activeTab === 'bulk_upload' && (
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-xs space-y-4 text-xs">
+        <div className="glass-panel rounded-3xl border border-white/10 p-6 sm:p-8 shadow-2xl space-y-6">
           <div>
-            <h3 className="text-base font-bold text-neutral-900">
-              Bulk Inventory Upload & Master Catalogue Linker
-            </h3>
-            <p className="text-neutral-500 mt-0.5">
-              Paste or upload CSV/Excel columns (PartNumber, PartName, PriceUSD, Stock, Brand, Quality).
-              Our system automatically matches your part numbers to the master catalogue and updates your live stock.
+            <h3 className="text-base font-extrabold text-white">Quick Batch Stock Importer</h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Direct CSV copy-paste to bulk update SKU stock quantities and prices.
             </p>
           </div>
 
-          <div>
-            <textarea
-              rows={8}
-              value={csvText}
-              onChange={(e) => setCsvText(e.target.value)}
-              className="w-full p-3 font-mono text-xs border border-neutral-300 rounded-xl focus:outline-emerald-600"
-            />
-          </div>
+          <textarea
+            value={csvText}
+            onChange={(e) => setCsvText(e.target.value)}
+            rows={6}
+            className="w-full p-4 bg-slate-950 font-mono text-xs text-indigo-300 border border-white/10 rounded-2xl focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+          />
 
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center justify-between">
             <button
-              id="execute-bulk-upload-btn"
               onClick={handleRunBulkUpload}
-              className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center gap-2 shadow-xs"
+              className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-emerald-600/20 cursor-pointer"
             >
-              <Upload className="w-4 h-4" />
-              <span>Import & Sync Inventory</span>
+              Parse & Sync {csvText.trim().split('\n').length - 1} SKUs
             </button>
 
             {uploadStats && (
-              <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 font-medium">
-                Successfully synced: <strong>{uploadStats.matchedCount} existing master parts</strong> updated,{' '}
-                <strong>{uploadStats.newCount} new parts</strong> added to catalogue!
-              </div>
+              <span className="text-xs font-bold text-emerald-400">
+                ✓ Synced {uploadStats.matchedCount} matched catalog items, created {uploadStats.newCount} new parts.
+              </span>
             )}
           </div>
         </div>
       )}
 
-      {/* Sub-Modals */}
+      {/* Submit Quote Modal */}
+      {selectedReqForQuote && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel border border-amber-500/30 rounded-3xl p-6 sm:p-8 max-w-lg w-full text-xs space-y-4 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="font-extrabold text-white text-base flex items-center gap-2">
+                <Store className="w-4 h-4 text-amber-400" />
+                <span>Submit Dealer Quote for RFQ</span>
+              </h3>
+              <button
+                onClick={() => setSelectedReqForQuote(null)}
+                className="text-slate-400 hover:text-white cursor-pointer px-2 py-1 rounded bg-white/[0.05]"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitQuote} className="space-y-3.5">
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Part Name</label>
+                <input
+                  type="text"
+                  required
+                  value={quotePartName}
+                  onChange={(e) => setQuotePartName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Part # OEM</label>
+                  <input
+                    type="text"
+                    required
+                    value={quotePartNumber}
+                    onChange={(e) => setQuotePartNumber(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white font-mono focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Price (USD)</label>
+                  <input
+                    type="number"
+                    required
+                    value={quotePriceUSD}
+                    onChange={(e) => setQuotePriceUSD(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Brand</label>
+                  <input
+                    type="text"
+                    required
+                    value={quoteBrand}
+                    onChange={(e) => setQuoteBrand(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1">Quality Tier</label>
+                  <select
+                    value={quoteQuality}
+                    onChange={(e) => setQuoteQuality(e.target.value as any)}
+                    className="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="genuine">Genuine (Original OEM)</option>
+                    <option value="oem">OEM Tier 1</option>
+                    <option value="aftermarket">Certified Aftermarket</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-300 font-bold mb-1">Warranty & Notes</label>
+                <input
+                  type="text"
+                  value={quoteNotes}
+                  onChange={(e) => setQuoteNotes(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-lg shadow-amber-500/20 cursor-pointer transition-all"
+              >
+                Publish Live Bid to Buyer
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Dealer Integrations Modals */}
       {isWizardOpen && (
         <IntegrationOnboardingWizard
           supplierId={currentSupplier.id}
@@ -599,44 +561,31 @@ export const SupplierPortal: React.FC = () => {
 
       {isCsvModalOpen && (
         <SmartCsvImportModal
-          supplierId={currentSupplier.id}
+          dealerId={currentSupplier.id}
           onClose={() => setIsCsvModalOpen(false)}
         />
       )}
 
       {isErrorCenterOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-5xl rounded-3xl border border-neutral-200 shadow-2xl p-6 my-6 max-h-[85vh] overflow-y-auto animate-scaleUp">
-            <DealerErrorCenter
-              supplierId={currentSupplier.id}
-              onClose={() => setIsErrorCenterOpen(false)}
-            />
-          </div>
-        </div>
+        <DealerErrorCenter
+          dealerId={currentSupplier.id}
+          onClose={() => setIsErrorCenterOpen(false)}
+        />
       )}
 
       {isApiSandboxOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-5xl rounded-3xl border border-neutral-200 shadow-2xl p-6 my-6 max-h-[85vh] overflow-y-auto animate-scaleUp">
-            <PartnerApiSandbox
-              supplierId={currentSupplier.id}
-              onClose={() => setIsApiSandboxOpen(false)}
-            />
-          </div>
-        </div>
+        <PartnerApiSandbox
+          dealerId={currentSupplier.id}
+          onClose={() => setIsApiSandboxOpen(false)}
+        />
       )}
 
       {isBranchManagerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white w-full max-w-4xl rounded-3xl border border-neutral-200 shadow-2xl p-6 my-6 max-h-[85vh] overflow-y-auto animate-scaleUp">
-            <BranchInventoryManager
-              supplierId={currentSupplier.id}
-              onClose={() => setIsBranchManagerOpen(false)}
-            />
-          </div>
-        </div>
+        <BranchInventoryManager
+          dealerId={currentSupplier.id}
+          onClose={() => setIsBranchManagerOpen(false)}
+        />
       )}
     </div>
   );
 };
-

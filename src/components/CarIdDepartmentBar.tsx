@@ -10,129 +10,110 @@ import {
   Flame,
   Shield,
   Lightbulb,
-  Armchair,
   Wrench,
-  Radio,
   Layers,
-  ChevronRight,
   Sparkles,
+  Zap,
+  Filter,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 
-interface DepartmentBarProps {
-  activeView?: 'parts' | 'requests';
-  setActiveView?: (view: 'parts' | 'requests') => void;
-}
-
-export const CarIdDepartmentBar: React.FC<DepartmentBarProps> = () => {
+export const CarIdDepartmentBar: React.FC = () => {
   const { selectedCategory, setSelectedCategory, language } = useMarketplace();
   const isArabic = language === 'ar';
 
   const departments = [
     {
-      id: 'requests',
-      label: 'Parts Bidding & Dealer Floor',
-      labelAr: 'مناقصات ومزايدات القطع',
-      icon: Gavel,
-      isSpecial: true,
-      badge: 'LIVE BIDS',
-    },
-    {
       id: 'All',
       label: 'All Auto Parts',
-      labelAr: 'جميع القطع',
+      labelAr: 'جميع قطع الغيار',
       icon: Layers,
-      isCategory: true,
     },
     {
       id: 'Brake',
       label: 'Brakes & Rotors',
       labelAr: 'الفرامل والأقراص',
       icon: Disc,
-      isCategory: true,
     },
     {
       id: 'Suspension',
       label: 'Suspension & Steering',
       labelAr: 'المساعدات والتعليق',
       icon: Wrench,
-      isCategory: true,
     },
     {
       id: 'Engine',
       label: 'Performance & Engine',
       labelAr: 'المحرك والأداء',
       icon: Flame,
-      isCategory: true,
     },
     {
       id: 'Body Parts',
       label: 'Exterior & Body Parts',
       labelAr: 'الهيكل والقطع الخارجية',
       icon: Shield,
-      isCategory: true,
     },
     {
       id: 'Cooling',
       label: 'Cooling & Climate',
       labelAr: 'التبريد والمكيف',
       icon: Lightbulb,
-      isCategory: true,
     },
     {
       id: 'Filters',
       label: 'Filters & Maintenance',
       labelAr: 'الفلاتر والصيانة',
-      icon: Layers,
-      isCategory: true,
+      icon: Filter,
+    },
+    {
+      id: 'requests',
+      label: 'Parts Bidding Floor',
+      labelAr: 'مناقصات ومزايدات القطع',
+      icon: Gavel,
+      isSpecial: true,
+      badge: 'LIVE BIDS',
     },
   ];
 
-  const handleDeptClick = (dept: typeof departments[0]) => {
-    setSelectedCategory(dept.id === 'requests' ? 'All' : dept.id);
-  };
-
   return (
-    <div className="bg-neutral-900 border-b border-neutral-800 text-neutral-200">
+    <div className="bg-[#080c16]/90 border-b border-white/10 text-slate-200 backdrop-blur-md sticky top-[88px] z-30 shadow-md shadow-black/20">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center gap-1 overflow-x-auto py-1.5 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-2 scrollbar-none">
           {departments.map((dept) => {
             const Icon = dept.icon;
-            const isCategoryActive = dept.isCategory && selectedCategory === dept.id;
-            const isRequestsActive = dept.id === 'requests' && selectedCategory === 'All';
-            const isActive = isRequestsActive || isCategoryActive;
+            const isActive = selectedCategory === dept.id;
 
             return (
               <button
                 key={dept.id}
                 id={`dept-tab-${dept.id}`}
-                onClick={() => handleDeptClick(dept)}
-                className={`group shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                onClick={() => setSelectedCategory(dept.id)}
+                className={`group shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   dept.isSpecial
-                    ? isRequestsActive
-                      ? 'bg-amber-500 text-neutral-950 shadow-lg shadow-amber-950/40 font-black'
-                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    ? isActive
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md shadow-amber-500/30 font-black'
+                      : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30'
                     : isActive
-                    ? 'bg-neutral-800 text-white border border-neutral-700'
-                    : 'text-neutral-400 hover:text-white hover:bg-neutral-800/60'
+                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
                 <Icon
                   className={`w-3.5 h-3.5 ${
                     dept.isSpecial
-                      ? isRequestsActive
-                        ? 'text-neutral-950'
+                      ? isActive
+                        ? 'text-slate-950'
                         : 'text-amber-400 animate-pulse'
                       : isActive
-                      ? 'text-red-400'
-                      : 'text-neutral-400 group-hover:text-neutral-200'
+                      ? 'text-white'
+                      : 'text-slate-400 group-hover:text-indigo-400'
                   }`}
                 />
                 <span>{isArabic ? dept.labelAr : dept.label}</span>
                 {dept.badge && (
                   <span
                     className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded tracking-wider ${
-                      isRequestsActive ? 'bg-neutral-950 text-amber-400' : 'bg-amber-500 text-neutral-950'
+                      isActive ? 'bg-slate-950 text-amber-400' : 'bg-amber-500 text-slate-950'
                     }`}
                   >
                     {dept.badge}

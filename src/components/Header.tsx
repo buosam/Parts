@@ -19,6 +19,8 @@ import {
   Sparkles,
   Gavel,
   Layers,
+  DollarSign,
+  Coins,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
@@ -29,6 +31,8 @@ export const Header: React.FC = () => {
     setRole,
     language,
     setLanguage,
+    currency,
+    setCurrency,
     activeVehicle,
     setActiveModal,
     cart,
@@ -67,12 +71,12 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0a0e1a]/90 backdrop-blur-xl border-b border-white/10">
+    <header className="sticky top-0 z-40 bg-[#0a0e1a]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl shadow-black/40">
       {/* Top Banner & Role Navigation */}
-      <div className="bg-black/40 text-slate-300 text-xs px-4 py-2 border-b border-white/5">
+      <div className="bg-black/50 text-slate-300 text-xs px-4 py-2 border-b border-white/5">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-medium text-[11px] border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-semibold text-[11px] border border-emerald-500/20 shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {isArabic ? 'سوق قطع الغيار وتكامل الوكلاء المعتمد' : 'Verified Automotive Spare Parts & Dealer Network'}
             </span>
@@ -81,40 +85,54 @@ export const Header: React.FC = () => {
             </span>
           </div>
 
-          {/* Role selector bar */}
-          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10">
-            <span className="text-[11px] text-slate-400 px-2 font-medium hidden sm:inline">
-              {isArabic ? 'المنظومة:' : 'View Mode:'}
-            </span>
-            {(['customer', 'workshop', 'supplier', 'admin'] as UserRole[]).map((r) => {
-              const active = role === r;
-              return (
-                <button
-                  key={r}
-                  id={`role-btn-${r}`}
-                  onClick={() => setRole(r)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                    active
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
-                  }`}
-                >
-                  {roleLabels[r].icon}
-                  <span>{isArabic ? roleLabels[r].labelAr : roleLabels[r].label}</span>
-                </button>
-              );
-            })}
-          </div>
+          {/* Controls: Role selector, Currency toggle, Language Toggle */}
+          <div className="flex items-center gap-2">
+            {/* Role selector bar */}
+            <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-xl border border-white/10">
+              <span className="text-[11px] text-slate-400 px-1.5 font-medium hidden sm:inline">
+                {isArabic ? 'المنظومة:' : 'View:'}
+              </span>
+              {(['customer', 'workshop', 'supplier', 'admin'] as UserRole[]).map((r) => {
+                const active = role === r;
+                return (
+                  <button
+                    key={r}
+                    id={`role-btn-${r}`}
+                    onClick={() => setRole(r)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      active
+                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-600/30'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    {roleLabels[r].icon}
+                    <span>{isArabic ? roleLabels[r].labelAr : roleLabels[r].label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
-          {/* Language Toggle */}
-          <button
-            id="language-toggle-btn"
-            onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-medium border border-white/10 transition-colors cursor-pointer"
-          >
-            <Globe className="w-3.5 h-3.5 text-indigo-400" />
-            <span>{isArabic ? 'English' : 'العربية'}</span>
-          </button>
+            {/* Currency Switcher */}
+            <button
+              id="currency-toggle-btn"
+              onClick={() => setCurrency(currency === 'USD' ? 'IQD' : 'USD')}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-amber-300 hover:text-amber-200 text-xs font-bold border border-amber-500/20 transition-all cursor-pointer shadow-xs"
+              title={isArabic ? 'تبديل العملة (دولار / دينار عراقي)' : 'Switch Currency (USD / Iraqi Dinar)'}
+            >
+              <Coins className="w-3.5 h-3.5 text-amber-400" />
+              <span>{currency === 'USD' ? '$ USD' : 'د.ع IQD'}</span>
+            </button>
+
+            {/* Language Toggle */}
+            <button
+              id="language-toggle-btn"
+              onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer"
+            >
+              <Globe className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{isArabic ? 'English' : 'العربية'}</span>
+            </button>
+          </div>
         </div>
       </div>
 

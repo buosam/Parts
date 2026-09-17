@@ -17,6 +17,9 @@ import {
   ShieldCheck,
   Building,
   Layers,
+  Zap,
+  Clock,
+  Coins,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { RepairOrder } from '../types';
@@ -29,6 +32,7 @@ export const WorkshopDashboard: React.FC = () => {
     masterParts,
     createOrder,
     setActiveModal,
+    formatPrice,
     language,
   } = useMarketplace();
 
@@ -106,7 +110,7 @@ export const WorkshopDashboard: React.FC = () => {
         quality: (offer?.quality as any) || 'genuine',
         quantity: item.quantity,
         unitPriceUSD: offer?.priceUSD || 95,
-        unitPriceIQD: offer?.priceIQD || 125000,
+        unitPriceIQD: offer?.priceIQD || 142500,
         supplierId: offer?.supplierId || 'sup-1',
         supplierName: offer?.supplierName || 'ABC Genuine Parts',
       };
@@ -137,42 +141,42 @@ export const WorkshopDashboard: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Top Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-neutral-200">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 flex items-center justify-center shadow-lg shadow-blue-500/10">
               <Wrench className="w-4 h-4" />
             </div>
-            <h2 className="text-xl font-black text-neutral-900 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               {isArabic ? 'بوابة الورش والشراء الذكي' : 'Workshop Portal & Smart Procurement'}
             </h2>
-            <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-              PRD Sections 17 & 18
+            <span className="text-xs font-bold text-blue-300 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+              B2B Certified
             </span>
           </div>
-          <p className="text-xs text-neutral-500 mt-0.5">
+          <p className="text-xs text-slate-400 mt-1">
             {isArabic
               ? 'إدارة أوامر التصليح (RO)، تجميع السلة من عدة موردين، وحساب أفضل مسار للتوفير أو السرعة'
               : 'Multi-part smart aggregation, split/single supplier optimization & wholesale procurement'}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             id="workshop-upload-quote-btn"
             onClick={() => setActiveModal('quote_upload')}
-            className="px-3.5 py-2 rounded-xl border border-neutral-300 hover:border-neutral-400 text-neutral-700 text-xs font-bold flex items-center gap-1.5 transition-colors bg-white"
+            className="px-4 py-2.5 rounded-xl border border-white/10 hover:border-white/20 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors bg-white/[0.04] hover:bg-white/[0.08] cursor-pointer"
           >
-            <FileText className="w-3.5 h-3.5 text-blue-600" />
-            <span>{isArabic ? 'استخراج فاتورة (AI)' : 'Upload Quote (AI)'}</span>
+            <FileText className="w-3.5 h-3.5 text-blue-400" />
+            <span>{isArabic ? 'استخراج تسعيرة (AI)' : 'Scan Quote (AI)'}</span>
           </button>
 
           <button
             id="workshop-new-ro-btn"
             onClick={() => setIsCreatingRo(true)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>{isArabic ? 'أمر تصليح جديد (RO)' : 'New Repair Order'}</span>
@@ -182,93 +186,96 @@ export const WorkshopDashboard: React.FC = () => {
 
       {/* New RO Modal / Form Drawer */}
       {isCreatingRo && (
-        <div className="my-6 p-5 rounded-2xl bg-blue-50/50 border border-blue-200 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-blue-950 text-sm">Create New Repair Order (RO)</h3>
+        <div className="my-6 p-6 rounded-3xl glass-panel border border-blue-500/30 space-y-4 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h3 className="font-extrabold text-white text-base flex items-center gap-2">
+              <Wrench className="w-4 h-4 text-blue-400" />
+              <span>{isArabic ? 'إنشاء أمر تصليح جديد' : 'Create New Repair Order (RO)'}</span>
+            </h3>
             <button
               onClick={() => setIsCreatingRo(false)}
-              className="text-xs text-neutral-500 hover:text-neutral-800"
+              className="text-xs text-slate-400 hover:text-white cursor-pointer px-2 py-1 rounded bg-white/[0.05]"
             >
-              Cancel
+              {isArabic ? 'إلغاء' : 'Cancel'}
             </button>
           </div>
 
-          <form onSubmit={handleCreateROSubmit} className="space-y-3 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <form onSubmit={handleCreateROSubmit} className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Client Name / Reference</label>
+                <label className="block font-bold text-slate-300 mb-1.5">{isArabic ? 'اسم العميل / المرجع' : 'Client Name / Reference'}</label>
                 <input
                   type="text"
                   required
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
                   placeholder="e.g. Tariq Al-Jubouri (Prado Service)"
-                  className="w-full px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                  className="w-full px-3.5 py-2.5 border border-white/10 rounded-xl bg-white/[0.04] text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
               <div>
-                <label className="block font-semibold text-neutral-700 mb-1">Target Vehicle</label>
-                <div className="px-3 py-2 border border-neutral-300 rounded-lg bg-white font-medium flex justify-between items-center">
+                <label className="block font-bold text-slate-300 mb-1.5">{isArabic ? 'المركبة المستهدفة' : 'Target Vehicle'}</label>
+                <div className="px-3.5 py-2.5 border border-white/10 rounded-xl bg-white/[0.04] font-medium flex justify-between items-center text-white">
                   <span>{activeVehicle ? `${activeVehicle.make} ${activeVehicle.model} ${activeVehicle.year}` : 'Select in header'}</span>
                   <button
                     type="button"
                     onClick={() => setActiveModal('vehicle_picker')}
-                    className="text-blue-600 font-bold"
+                    className="text-blue-400 hover:text-blue-300 font-bold cursor-pointer"
                   >
-                    Change
+                    {isArabic ? 'تغيير' : 'Change'}
                   </button>
                 </div>
               </div>
             </div>
 
             {/* Add Part to RO */}
-            <div className="p-3 bg-white rounded-xl border border-neutral-200 space-y-2">
-              <span className="font-bold text-neutral-800 block">Add Required Parts for Job</span>
+            <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/10 space-y-3">
+              <span className="font-bold text-slate-200 block">{isArabic ? 'إضافة قطع الغيار المطلوبة للعمل' : 'Add Required Parts for Job'}</span>
               <div className="flex flex-wrap gap-2">
                 <input
                   type="text"
-                  placeholder="Part Name (e.g. Brake Disc)"
+                  placeholder={isArabic ? 'اسم القطعة (مثل سفايف أمامية)' : 'Part Name (e.g. Brake Disc)'}
                   value={newPartName}
                   onChange={(e) => setNewPartName(e.target.value)}
-                  className="flex-1 min-w-[140px] px-3 py-1.5 border border-neutral-300 rounded-lg text-xs"
+                  className="flex-1 min-w-[140px] px-3.5 py-2 border border-white/10 rounded-xl bg-white/[0.04] text-white text-xs placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <input
                   type="text"
-                  placeholder="Part # (Optional)"
+                  placeholder="OEM Part #"
                   value={newPartNumber}
                   onChange={(e) => setNewPartNumber(e.target.value)}
-                  className="w-36 px-3 py-1.5 border border-neutral-300 rounded-lg text-xs font-mono"
+                  className="w-36 px-3.5 py-2 border border-white/10 rounded-xl bg-white/[0.04] text-white text-xs font-mono placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <input
                   type="number"
                   min={1}
                   value={newQty}
                   onChange={(e) => setNewQty(Number(e.target.value))}
-                  className="w-16 px-2 py-1.5 border border-neutral-300 rounded-lg text-xs"
+                  className="w-16 px-3 py-2 border border-white/10 rounded-xl bg-white/[0.04] text-white text-xs text-center focus:outline-hidden focus:ring-2 focus:ring-blue-500"
                 />
                 <button
                   type="button"
                   onClick={handleAddItemToForm}
-                  className="px-3 py-1.5 bg-neutral-900 text-white rounded-lg font-bold text-xs"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs cursor-pointer shadow-sm"
                 >
-                  Add Part
+                  {isArabic ? 'إضافة' : 'Add Part'}
                 </button>
               </div>
 
               {/* Items in form */}
-              <div className="divide-y divide-neutral-100 pt-1">
+              <div className="divide-y divide-white/5 pt-1">
                 {itemsList.map((item, idx) => (
-                  <div key={idx} className="py-1.5 flex justify-between items-center text-xs">
-                    <span className="font-semibold text-neutral-800">
-                      {item.partName} {item.partNumber && `(${item.partNumber})`} x{item.quantity}
+                  <div key={idx} className="py-2 flex justify-between items-center text-xs">
+                    <span className="font-semibold text-slate-200">
+                      {item.partName} {item.partNumber && <span className="font-mono text-indigo-300">({item.partNumber})</span>} x{item.quantity}
                     </span>
                     <button
                       type="button"
                       onClick={() => setItemsList(itemsList.filter((_, i) => i !== idx))}
-                      className="text-red-600 font-bold text-[11px]"
+                      className="text-rose-400 hover:text-rose-300 font-bold text-[11px] cursor-pointer"
                     >
-                      Remove
+                      {isArabic ? 'حذف' : 'Remove'}
                     </button>
                   </div>
                 ))}
@@ -277,9 +284,9 @@ export const WorkshopDashboard: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs"
+              className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs cursor-pointer shadow-lg shadow-blue-600/20"
             >
-              Save Repair Order & Calculate Smart Procurement
+              {isArabic ? 'حفظ أمر التصليح وتشغيل خوارزمية التوريد الذكي' : 'Save Repair Order & Run Smart Procurement Solver'}
             </button>
           </form>
         </div>
@@ -289,8 +296,8 @@ export const WorkshopDashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
         {/* RO Sidebar */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="text-xs font-bold text-neutral-500 uppercase tracking-wider px-1">
-            Active Repair Orders ({repairOrders.length})
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
+            {isArabic ? 'أوامر التصليح النشطة' : 'Active Repair Orders'} ({repairOrders.length})
           </div>
 
           {repairOrders.map((ro) => {
@@ -301,32 +308,32 @@ export const WorkshopDashboard: React.FC = () => {
                 key={ro.id}
                 id={`ro-card-${ro.id}`}
                 onClick={() => setSelectedRoId(ro.id)}
-                className={`p-4 rounded-xl border transition-all cursor-pointer ${
+                className={`p-4 rounded-2xl border transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-blue-600 bg-blue-50/40 shadow-xs'
-                    : 'border-neutral-200 bg-white hover:border-neutral-300'
+                    ? 'border-blue-500/80 bg-slate-900/90 shadow-xl shadow-blue-500/10 ring-1 ring-blue-500/40'
+                    : 'border-white/10 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]'
                 }`}
               >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="font-mono text-xs font-bold text-neutral-900 bg-white px-2 py-0.5 rounded border border-neutral-200">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="font-mono text-xs font-bold text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
                     {ro.orderNumber}
                   </span>
-                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-100 text-blue-900">
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">
                     {ro.status}
                   </span>
                 </div>
 
-                <div className="font-bold text-neutral-900 text-sm mt-1">{ro.clientName}</div>
+                <div className="font-extrabold text-white text-sm mt-1">{ro.clientName}</div>
 
-                <div className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5">
-                  <Car className="w-3.5 h-3.5 text-neutral-400" />
+                <div className="text-xs text-slate-400 flex items-center gap-1.5 mt-1">
+                  <Car className="w-3.5 h-3.5 text-indigo-400" />
                   <span>
                     {ro.vehicle.make} {ro.vehicle.model} ({ro.vehicle.year})
                   </span>
                 </div>
 
-                <div className="text-[11px] text-neutral-500 mt-2 pt-2 border-t border-neutral-100 flex justify-between">
-                  <span>{ro.items.length} Required Parts</span>
+                <div className="text-[11px] text-slate-400 mt-3 pt-2.5 border-t border-white/5 flex justify-between">
+                  <span>{ro.items.length} {isArabic ? 'قطع مطلوبة' : 'Required Parts'}</span>
                   <span>{ro.date}</span>
                 </div>
               </div>
@@ -337,51 +344,51 @@ export const WorkshopDashboard: React.FC = () => {
         {/* Selected RO Procurement Engine */}
         <div className="lg:col-span-8">
           {selectedRo ? (
-            <div className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-xs space-y-6">
+            <div className="glass-panel rounded-3xl border border-white/10 p-6 shadow-2xl space-y-6">
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-neutral-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold bg-neutral-100 px-2 py-0.5 rounded">
+                    <span className="font-mono text-xs font-bold bg-white/[0.05] px-2.5 py-1 rounded-lg border border-white/10 text-blue-300">
                       {selectedRo.orderNumber}
                     </span>
-                    <span className="text-xs text-neutral-400">Date: {selectedRo.date}</span>
+                    <span className="text-xs text-slate-400">Date: {selectedRo.date}</span>
                   </div>
-                  <h3 className="text-lg font-black text-neutral-900 mt-1">
+                  <h3 className="text-xl font-black text-white mt-1.5">
                     {selectedRo.clientName}
                   </h3>
-                  <div className="text-xs text-neutral-600 mt-0.5">
-                    Vehicle:{' '}
-                    <strong className="text-neutral-900">
+                  <div className="text-xs text-slate-300 mt-1">
+                    {isArabic ? 'المركبة:' : 'Vehicle:'}{' '}
+                    <strong className="text-white">
                       {selectedRo.vehicle.make} {selectedRo.vehicle.model} {selectedRo.vehicle.year} ({selectedRo.vehicle.engine})
                     </strong>
                   </div>
                 </div>
 
                 <div className="sm:text-right">
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5" />
-                    All Fitments Verified
+                  <span className="text-xs font-bold text-emerald-300 bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5 shadow-sm">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{isArabic ? 'توافق القطع موثق 100%' : 'All Fitments Verified'}</span>
                   </span>
                 </div>
               </div>
 
               {/* Items Breakdown */}
               <div>
-                <h4 className="font-bold text-neutral-900 text-sm mb-2.5">
-                  Parts Required for this Repair Job ({selectedRo.items.length})
+                <h4 className="font-bold text-white text-sm mb-3">
+                  {isArabic ? 'القطع المطلوبة لأمر التصليح' : 'Parts Required for this Repair Job'} ({selectedRo.items.length})
                 </h4>
-                <div className="border border-neutral-200 rounded-xl overflow-hidden divide-y divide-neutral-200 text-xs">
+                <div className="border border-white/10 rounded-2xl overflow-hidden divide-y divide-white/5 text-xs bg-white/[0.02]">
                   {selectedRo.items.map((item, idx) => (
-                    <div key={idx} className="p-3 bg-neutral-50/50 flex items-center justify-between gap-2">
+                    <div key={idx} className="p-3.5 flex items-center justify-between gap-2">
                       <div>
-                        <div className="font-bold text-neutral-900">{item.partName}</div>
-                        <div className="text-[11px] text-neutral-500 font-mono">
-                          Ref: {item.partNumber || 'Auto-matched'} • Spec: {item.preferredQuality}
+                        <div className="font-bold text-white">{item.partName}</div>
+                        <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                          Ref: <span className="text-indigo-300">{item.partNumber || 'Auto-matched'}</span> • Spec: {item.preferredQuality}
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="font-bold bg-white px-2 py-1 rounded border border-neutral-200">
+                        <span className="font-bold bg-white/[0.05] px-2.5 py-1 rounded-lg border border-white/10 text-slate-200">
                           Qty: {item.quantity}
                         </span>
                       </div>
@@ -390,36 +397,38 @@ export const WorkshopDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* Smart Procurement Strategies (PRD Section 18) */}
+              {/* Smart Procurement Strategies */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4 text-blue-600" />
-                    <h4 className="font-bold text-neutral-900 text-sm">
-                      Smart Procurement Optimization Engine
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-blue-400" />
+                    <h4 className="font-bold text-white text-sm">
+                      {isArabic ? 'محرك التوريد وحساب أفضل مسار للشراء' : 'Smart Procurement Optimization Engine'}
                     </h4>
                   </div>
-                  <span className="text-xs text-neutral-400">Select Procurement Strategy</span>
+                  <span className="text-xs text-slate-400">{isArabic ? 'اختر الإستراتيجية' : 'Select Strategy'}</span>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                   {/* Strategy 1: Lowest Total Price */}
                   <div
                     onClick={() => setProcurementStrategy('lowest_cost')}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                       procurementStrategy === 'lowest_cost'
-                        ? 'border-emerald-600 bg-emerald-50/60 shadow-xs'
-                        : 'border-neutral-200 hover:border-neutral-300'
+                        ? 'border-emerald-500/80 bg-emerald-500/10 shadow-lg shadow-emerald-500/10'
+                        : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'
                     }`}
                   >
-                    <div className="font-bold text-emerald-900 text-xs mb-1">
-                      Option A: Lowest Total Cost
+                    <div className="font-bold text-emerald-300 text-xs mb-1">
+                      {isArabic ? 'الخيار أ: أقل تكلفة إجمالية' : 'Option A: Lowest Total Cost'}
                     </div>
-                    <div className="text-base font-black text-neutral-900">$238 USD</div>
-                    <p className="text-[11px] text-neutral-600 mt-1">
-                      Splits order between ABC Genuine Parts + Al-Rafidain OEM. Saves $45.
+                    <div className="text-lg font-black text-emerald-400">{formatPrice(238)}</div>
+                    <p className="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                      {isArabic
+                        ? 'تقسيم الطلب بين ABC Genuine + الرافدين. يوفر $45.'
+                        : 'Splits order between ABC Genuine Parts + Al-Rafidain OEM. Saves $45.'}
                     </p>
-                    <div className="mt-2 text-[10px] font-semibold text-emerald-800 bg-emerald-100/70 px-2 py-0.5 rounded inline-block">
+                    <div className="mt-2 text-[10px] font-bold text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md inline-block border border-emerald-500/30">
                       Max Margin Savings
                     </div>
                   </div>
@@ -427,20 +436,22 @@ export const WorkshopDashboard: React.FC = () => {
                   {/* Strategy 2: Single Supplier */}
                   <div
                     onClick={() => setProcurementStrategy('single_supplier')}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                       procurementStrategy === 'single_supplier'
-                        ? 'border-blue-600 bg-blue-50/60 shadow-xs'
-                        : 'border-neutral-200 hover:border-neutral-300'
+                        ? 'border-blue-500/80 bg-blue-500/10 shadow-lg shadow-blue-500/10'
+                        : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'
                     }`}
                   >
-                    <div className="font-bold text-blue-900 text-xs mb-1">
-                      Option B: Single Supplier
+                    <div className="font-bold text-blue-300 text-xs mb-1">
+                      {isArabic ? 'الخيار ب: مورد واحد مجمع' : 'Option B: Single Supplier'}
                     </div>
-                    <div className="text-base font-black text-neutral-900">$265 USD</div>
-                    <p className="text-[11px] text-neutral-600 mt-1">
-                      All parts bundled from ABC Genuine Parts. Single invoice, 1 delivery box.
+                    <div className="text-lg font-black text-blue-400">{formatPrice(265)}</div>
+                    <p className="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                      {isArabic
+                        ? 'تجميع الشحنة من ABC Genuine. فاتورة واحدة وشحنة واحدة.'
+                        : 'All parts bundled from ABC Genuine Parts. Single invoice, 1 box.'}
                     </p>
-                    <div className="mt-2 text-[10px] font-semibold text-blue-800 bg-blue-100/70 px-2 py-0.5 rounded inline-block">
+                    <div className="mt-2 text-[10px] font-bold text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded-md inline-block border border-blue-500/30">
                       Simplified Logistics
                     </div>
                   </div>
@@ -448,20 +459,22 @@ export const WorkshopDashboard: React.FC = () => {
                   {/* Strategy 3: Fastest Arrival */}
                   <div
                     onClick={() => setProcurementStrategy('fastest')}
-                    className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
+                    className={`p-4 rounded-2xl border cursor-pointer transition-all ${
                       procurementStrategy === 'fastest'
-                        ? 'border-amber-600 bg-amber-50/60 shadow-xs'
-                        : 'border-neutral-200 hover:border-neutral-300'
+                        ? 'border-amber-500/80 bg-amber-500/10 shadow-lg shadow-amber-500/10'
+                        : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'
                     }`}
                   >
-                    <div className="font-bold text-amber-900 text-xs mb-1">
-                      Option C: Fastest Delivery
+                    <div className="font-bold text-amber-300 text-xs mb-1">
+                      {isArabic ? 'الخيار ج: التوصيل الأسرع' : 'Option C: Fastest Delivery'}
                     </div>
-                    <div className="text-base font-black text-neutral-900">$255 USD</div>
-                    <p className="text-[11px] text-neutral-600 mt-1">
-                      Immediate courier dispatch within 90 minutes to workshop bay.
+                    <div className="text-lg font-black text-amber-400">{formatPrice(255)}</div>
+                    <p className="text-[11px] text-slate-300 mt-1.5 leading-relaxed">
+                      {isArabic
+                        ? 'توصيل كوريير فوري خلال 90 دقيقة مباشرة لكراج الصيانة.'
+                        : 'Immediate courier dispatch within 90 minutes directly to bay.'}
                     </p>
-                    <div className="mt-2 text-[10px] font-semibold text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded inline-block">
+                    <div className="mt-2 text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-md inline-block border border-amber-500/30">
                       Rapid Bay Turnaround
                     </div>
                   </div>
@@ -474,20 +487,20 @@ export const WorkshopDashboard: React.FC = () => {
                   id="execute-smart-procurement-btn"
                   onClick={handleExecuteSmartProcurement}
                   disabled={procurementSuccess}
-                  className="w-full py-3 bg-neutral-900 hover:bg-neutral-800 text-white font-bold rounded-xl text-xs transition-colors shadow-md flex items-center justify-center gap-2"
+                  className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-xs sm:text-sm transition-all shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <ShoppingBag className="w-4 h-4 text-emerald-400" />
+                  <ShoppingBag className="w-4 h-4" />
                   <span>
                     {procurementSuccess
-                      ? 'Dispatched to Wholesale Checkout!'
-                      : 'Procure All Parts for Repair Order (1-Click PO)'}
+                      ? (isArabic ? 'تم التحويل إلى صفحة الدفع وتأكيد الطلب!' : 'Dispatched to Wholesale Checkout!')
+                      : (isArabic ? 'شراء كافة قطع أمر التصليح بنقرة واحدة (1-Click PO)' : 'Procure All Parts for Repair Order (1-Click PO)')}
                   </span>
                 </button>
               </div>
             </div>
           ) : (
-            <div className="p-8 text-center bg-white rounded-2xl border border-neutral-200 text-neutral-500 text-xs">
-              Select or create a repair order to run smart procurement optimization.
+            <div className="glass-panel rounded-3xl border border-white/10 p-12 text-center text-slate-400 text-xs">
+              {isArabic ? 'اختر أمر تصليح من القائمة لتشغيل محرك التوريد الذكي.' : 'Select or create a repair order to run smart procurement optimization.'}
             </div>
           )}
         </div>

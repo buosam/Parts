@@ -10,13 +10,11 @@ import {
   ShieldCheck,
   CheckCircle2,
   DollarSign,
-  Clock,
   Truck,
   Store,
-  Sparkles,
-  Award,
-  AlertCircle,
   Tag,
+  Building2,
+  Sparkles,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { PartRequest, QualityClassification } from '../types';
@@ -27,7 +25,7 @@ interface SubmitPartBidModalProps {
 }
 
 export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request, onClose }) => {
-  const { suppliers, submitSupplierOffer, language } = useMarketplace();
+  const { suppliers, submitSupplierOffer, language, formatPrice, currency } = useMarketplace();
   const isArabic = language === 'ar';
 
   const [selectedSupplierId, setSelectedSupplierId] = useState<string>(suppliers[0]?.id || 'sup-1');
@@ -92,7 +90,7 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
   const finalInteractionsCount = selectedSupplierObj?.verifiedTransactions || 500;
 
   const numericPrice = typeof priceUSD === 'number' ? priceUSD : 0;
-  const calculatedIQD = Math.round(numericPrice * 1320);
+  const calculatedIQD = Math.round(numericPrice * 1500);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,23 +137,23 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/80 backdrop-blur-xs overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
       <div
-        className="bg-white rounded-2xl max-w-2xl w-full border border-neutral-200 shadow-2xl overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-200"
+        className="glass-panel border border-white/10 bg-slate-900/95 text-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-200"
         dir={isArabic ? 'rtl' : 'ltr'}
       >
         {/* Header */}
-        <div className="bg-neutral-900 text-white p-5 flex items-center justify-between border-b border-neutral-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold">
+        <div className="bg-slate-950/80 p-5 flex items-center justify-between border-b border-white/10">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center font-bold shadow-inner">
               <Gavel className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase font-black tracking-widest text-amber-400 px-2 py-0.5 rounded-sm bg-amber-500/10 border border-amber-500/20">
+                <span className="text-[10px] uppercase font-black tracking-widest text-amber-400 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
                   {isArabic ? 'تقديم عرض سعر متجر' : 'Store Dealer Bidding'}
                 </span>
-                <span className="text-xs text-neutral-400 font-mono">#{request.requestNumber}</span>
+                <span className="text-xs text-slate-400 font-mono">#{request.requestNumber}</span>
               </div>
               <h2 className="text-base font-bold text-white mt-0.5">
                 {isArabic ? 'تقديم عرض أسعار ومنافسة على القطعة' : 'Place Competitive Bid to Supply Part'}
@@ -164,44 +162,44 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white rounded-xl hover:bg-neutral-800 transition-colors"
+            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Target Request Info Summary Card */}
-        <div className="bg-neutral-50 p-4 border-b border-neutral-200 text-xs">
+        <div className="bg-slate-800/40 p-4 border-b border-white/10 text-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                 {isArabic ? 'المركبة المستهدفة:' : 'Target Vehicle:'}
               </span>
-              <p className="text-sm font-black text-neutral-900">
+              <p className="text-sm font-black text-white">
                 {request.vehicle.year} {request.vehicle.make} {request.vehicle.model}
                 {request.vehicle.engine && ` (${request.vehicle.engine})`}
               </p>
             </div>
-            <div className="text-right">
-              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wide">
+            <div className={isArabic ? 'text-left' : 'text-right'}>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                 {isArabic ? 'القطعة المطلوبة:' : 'Requested Part:'}
               </span>
-              <p className="text-xs font-bold text-neutral-800">{request.partName}</p>
+              <p className="text-xs font-bold text-emerald-400">{request.partName}</p>
             </div>
           </div>
 
-          <div className="mt-2.5 pt-2.5 border-t border-neutral-200/80 flex flex-wrap items-center justify-between text-[11px] text-neutral-600 gap-3">
+          <div className="mt-2.5 pt-2.5 border-t border-white/5 flex flex-wrap items-center justify-between text-[11px] text-slate-300 gap-3">
             <div>
-              <span className="font-semibold text-neutral-700">{isArabic ? 'المدينة:' : 'City:'}</span> {request.preferredCity}
-              <span className="mx-1.5">•</span>
-              <span className="font-semibold text-neutral-700">{isArabic ? 'الوقت المطلوب:' : 'Urgency:'}</span> {request.requiredDate}
+              <span className="font-semibold text-slate-400">{isArabic ? 'المدينة:' : 'City:'}</span> {request.preferredCity}
+              <span className="mx-1.5 opacity-40">•</span>
+              <span className="font-semibold text-slate-400">{isArabic ? 'الوقت المطلوب:' : 'Urgency:'}</span> {request.requiredDate}
             </div>
 
             {currentLowestBid !== null && (
-              <div className="bg-emerald-100 text-emerald-900 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 border border-emerald-300/60">
-                <Tag className="w-3 h-3 text-emerald-700" />
+              <div className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1.5 border border-emerald-500/30">
+                <Tag className="w-3.5 h-3.5 text-emerald-400" />
                 <span>
-                  {isArabic ? 'أقل سعر حالي:' : 'Current Lowest Bid:'} ${currentLowestBid} USD
+                  {isArabic ? 'أقل سعر حالي:' : 'Current Lowest Bid:'} {formatPrice(currentLowestBid)}
                 </span>
               </div>
             )}
@@ -211,37 +209,37 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
         {/* Success Alert */}
         {isSuccess ? (
           <div className="p-8 text-center space-y-3">
-            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto animate-bounce">
+            <div className="w-14 h-14 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto animate-bounce shadow-lg shadow-emerald-500/20">
               <CheckCircle2 className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold text-neutral-900">
+            <h3 className="text-lg font-bold text-white">
               {isArabic ? 'تم تقديم عرضك بنجاح!' : 'Your Bid Was Placed Successfully!'}
             </h3>
-            <p className="text-xs text-neutral-600 max-w-md mx-auto">
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
               {isArabic
-                ? `تم إرسال عرضك بقيمة $${numericPrice} للعميل مباشرة. سيتم إشعارك فور قبول العرض لترتيب التسليم.`
-                : `Your bid of $${numericPrice} USD has been delivered to the customer. You will be notified instantly when accepted.`}
+                ? `تم إرسال عرضك بقيمة ${formatPrice(numericPrice)} للعميل مباشرة. سيتم إشعارك فور قبول العرض لترتيب التسليم.`
+                : `Your bid of ${formatPrice(numericPrice)} has been delivered to the customer. You will be notified instantly when accepted.`}
             </p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="p-5 space-y-4 text-xs">
             {/* Store Identification */}
             <div>
-              <label className="block text-xs font-bold text-neutral-800 mb-1.5 flex items-center gap-1.5">
-                <Store className="w-3.5 h-3.5 text-neutral-500" />
+              <label className="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <Store className="w-3.5 h-3.5 text-amber-400" />
                 <span>{isArabic ? 'المتجر / الحساب العارض' : 'Select Bidding Store / Dealer Profile'}</span>
               </label>
               <select
                 value={selectedSupplierId}
                 onChange={(e) => setSelectedSupplierId(e.target.value)}
-                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
               >
                 {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>
+                  <option key={s.id} value={s.id} className="bg-slate-900 text-white">
                     {s.name} ({s.city}) — Rating {s.rating} ★ ({s.verifiedTransactions} sales)
                   </option>
                 ))}
-                <option value="custom">+ {isArabic ? 'إدخال اسم متجر آخر...' : 'Enter Another Store / Custom Dealer...'}</option>
+                <option value="custom" className="bg-slate-900 text-white">+ {isArabic ? 'إدخال اسم متجر آخر...' : 'Enter Another Store / Custom Dealer...'}</option>
               </select>
 
               {selectedSupplierId === 'custom' && (
@@ -250,22 +248,22 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
                   placeholder={isArabic ? 'اسم متجرك أو ورشتك...' : 'Enter your auto store or dealership name...'}
                   value={customStoreName}
                   onChange={(e) => setCustomStoreName(e.target.value)}
-                  className="mt-2 w-full px-3 py-2 bg-white border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="mt-2 w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                   required
                 />
               )}
             </div>
 
             {/* Price & Currency */}
-            <div className="bg-amber-50/50 border border-amber-200/80 rounded-xl p-3.5">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                 <div>
-                  <label className="block text-xs font-bold text-neutral-900 mb-1 flex items-center gap-1">
-                    <DollarSign className="w-3.5 h-3.5 text-amber-600" />
+                  <label className="block text-xs font-bold text-amber-300 mb-1 flex items-center gap-1">
+                    <DollarSign className="w-3.5 h-3.5 text-amber-400" />
                     <span>{isArabic ? 'سعر العرض ($ USD) *' : 'Offered Price ($ USD) *'}</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 font-bold text-neutral-500">$</span>
+                    <span className="absolute left-3.5 top-2.5 font-bold text-slate-400">$</span>
                     <input
                       type="number"
                       required
@@ -274,20 +272,20 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
                       placeholder="e.g. 175"
                       value={priceUSD}
                       onChange={(e) => setPriceUSD(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full pl-7 pr-3 py-2 bg-white border border-neutral-300 rounded-xl font-black text-neutral-900 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                      className="w-full pl-8 pr-3 py-2 bg-slate-950/80 border border-amber-500/30 rounded-xl font-black text-amber-300 text-sm focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                     />
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl p-2.5 border border-amber-200">
-                  <span className="text-[10px] font-bold text-neutral-500 uppercase">
+                <div className="bg-slate-900/80 rounded-xl p-3 border border-amber-500/20">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">
                     {isArabic ? 'المقابل بالدينار العراقي (IQD تقريبي):' : 'Equivalent in Iraqi Dinars:'}
                   </span>
-                  <p className="text-base font-black text-amber-900 font-mono">
+                  <p className="text-base font-black text-amber-400 font-mono">
                     {calculatedIQD.toLocaleString()} <span className="text-xs font-bold">IQD</span>
                   </p>
-                  <span className="text-[10px] text-neutral-500">
-                    {isArabic ? 'بسعر صرف المنصة الموحد' : 'Standard 1,320 IQD platform rate'}
+                  <span className="text-[10px] text-slate-500">
+                    {isArabic ? 'بسعر صرف المنصة الموحد' : 'Standard 1,500 IQD platform rate'}
                   </span>
                 </div>
               </div>
@@ -296,7 +294,7 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
             {/* Part Offered & Brand */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
                   {isArabic ? 'القطعة والوصف' : 'Part Title / Scope'}
                 </label>
                 <input
@@ -304,12 +302,12 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
                   required
                   value={partNameOffered}
                   onChange={(e) => setPartNameOffered(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
                   {isArabic ? 'رقم القطعة الدقيق (OEM Part #)' : 'Exact Part Number (OEM)'}
                 </label>
                 <input
@@ -317,7 +315,7 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
                   value={partNumberOffered}
                   onChange={(e) => setPartNumberOffered(e.target.value)}
                   placeholder="e.g. 04465-60290"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-mono text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-mono text-emerald-400 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                 />
               </div>
             </div>
@@ -325,7 +323,7 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
             {/* Quality & Brand */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
                   {isArabic ? 'الشركة المصنعة / الماركة' : 'Brand / Manufacturer'}
                 </label>
                 <input
@@ -334,23 +332,23 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
                   value={brandOffered}
                   onChange={(e) => setBrandOffered(e.target.value)}
                   placeholder="e.g. Toyota Genuine, Denso, Brembo, Motorcraft"
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1">
+                <label className="block text-xs font-bold text-slate-300 mb-1">
                   {isArabic ? 'مستوى جودة القطعة' : 'Quality Classification'}
                 </label>
                 <select
                   value={quality}
                   onChange={(e) => setQuality(e.target.value as QualityClassification)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                 >
-                  <option value="genuine">{isArabic ? 'أصلي وكالة (Genuine OEM Japan/USA)' : 'Genuine OEM (Agency Factory Packaging)'}</option>
-                  <option value="oem">{isArabic ? 'معتمد خط تجميع (OEM Tier-1 / Aisin, Denso)' : 'OEM Tier-1 Direct (Factory Supplier)'}</option>
-                  <option value="aftermarket">{isArabic ? 'تجاري عالي الجودة (Certified Aftermarket)' : 'Certified Premium Aftermarket'}</option>
-                  <option value="used">{isArabic ? 'مستعمل فحص وضمان (Inspected Clean Tested)' : 'Tested Clean Dismantled'}</option>
+                  <option value="genuine" className="bg-slate-900 text-white">{isArabic ? 'أصلي وكالة (Genuine OEM Japan/USA)' : 'Genuine OEM (Agency Factory Packaging)'}</option>
+                  <option value="oem" className="bg-slate-900 text-white">{isArabic ? 'معتمد خط تجميع (OEM Tier-1 / Aisin, Denso)' : 'OEM Tier-1 Direct (Factory Supplier)'}</option>
+                  <option value="aftermarket" className="bg-slate-900 text-white">{isArabic ? 'تجاري عالي الجودة (Certified Aftermarket)' : 'Certified Premium Aftermarket'}</option>
+                  <option value="used" className="bg-slate-900 text-white">{isArabic ? 'مستعمل فحص وضمان (Inspected Clean Tested)' : 'Tested Clean Dismantled'}</option>
                 </select>
               </div>
             </div>
@@ -358,44 +356,44 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
             {/* Delivery Time & Warranty */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1 flex items-center gap-1">
-                  <Truck className="w-3.5 h-3.5 text-neutral-500" />
+                <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1">
+                  <Truck className="w-3.5 h-3.5 text-blue-400" />
                   <span>{isArabic ? 'سرعة التوصيل / الجاهزية' : 'Availability & Delivery Time'}</span>
                 </label>
                 <select
                   value={deliveryTime}
                   onChange={(e) => setDeliveryTime(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                 >
-                  <option value="Immediate Counter Pickup">{isArabic ? 'جاهز للاستلام الفوري من المعرض' : 'Ready for Counter Pickup Now'}</option>
-                  <option value="Same Day within 1-2 Hours">{isArabic ? 'توصيل فوري خلال 1-2 ساعة' : 'Same Day Express (Within 1-2 Hours)'}</option>
-                  <option value="Today within 3-4 Hours">{isArabic ? 'اليوم خلال 3-4 ساعات' : 'Today within 3-4 Hours'}</option>
-                  <option value="Tomorrow Morning by 9:00 AM">{isArabic ? 'صباح الغد الساعة 9:00 ص' : 'Tomorrow Morning (Next-day dispatch)'}</option>
-                  <option value="Within 2-3 Days (Inter-city Express)">{isArabic ? 'خلال 2-3 أيام (شحن بين المحافظات)' : 'Within 2-3 Days'}</option>
+                  <option value="Immediate Counter Pickup" className="bg-slate-900 text-white">{isArabic ? 'جاهز للاستلام الفوري من المعرض' : 'Ready for Counter Pickup Now'}</option>
+                  <option value="Same Day within 1-2 Hours" className="bg-slate-900 text-white">{isArabic ? 'توصيل فوري خلال 1-2 ساعة' : 'Same Day Express (Within 1-2 Hours)'}</option>
+                  <option value="Today within 3-4 Hours" className="bg-slate-900 text-white">{isArabic ? 'اليوم خلال 3-4 ساعات' : 'Today within 3-4 Hours'}</option>
+                  <option value="Tomorrow Morning by 9:00 AM" className="bg-slate-900 text-white">{isArabic ? 'صباح الغد الساعة 9:00 ص' : 'Tomorrow Morning (Next-day dispatch)'}</option>
+                  <option value="Within 2-3 Days (Inter-city Express)" className="bg-slate-900 text-white">{isArabic ? 'خلال 2-3 أيام (شحن بين المحافظات)' : 'Within 2-3 Days'}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-neutral-800 mb-1 flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-neutral-500" />
+                <label className="block text-xs font-bold text-slate-300 mb-1 flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{isArabic ? 'فترة الضمان' : 'Warranty Coverage'}</span>
                 </label>
                 <select
                   value={warranty}
                   onChange={(e) => setWarranty(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                 >
-                  <option value="12-Month Official Agency Warranty">{isArabic ? 'ضمان رسمي 12 شهر (سنة كاملة)' : '12-Month Official Agency Warranty'}</option>
-                  <option value="6-Month Store Warranty">{isArabic ? 'ضمان المتجر 6 أشهر' : '6-Month Store Warranty'}</option>
-                  <option value="3-Month Replacement Guarantee">{isArabic ? 'ضمان استبدال 3 أشهر' : '3-Month Replacement Guarantee'}</option>
-                  <option value="30-Day Testing Period">{isArabic ? 'ضمان تجربة وفحص 30 يوماً' : '30-Day Testing Period'}</option>
+                  <option value="12-Month Official Agency Warranty" className="bg-slate-900 text-white">{isArabic ? 'ضمان رسمي 12 شهر (سنة كاملة)' : '12-Month Official Agency Warranty'}</option>
+                  <option value="6-Month Store Warranty" className="bg-slate-900 text-white">{isArabic ? 'ضمان المتجر 6 أشهر' : '6-Month Store Warranty'}</option>
+                  <option value="3-Month Replacement Guarantee" className="bg-slate-900 text-white">{isArabic ? 'ضمان استبدال 3 أشهر' : '3-Month Replacement Guarantee'}</option>
+                  <option value="30-Day Testing Period" className="bg-slate-900 text-white">{isArabic ? 'ضمان تجربة وفحص 30 يوماً' : '30-Day Testing Period'}</option>
                 </select>
               </div>
             </div>
 
             {/* Note to customer */}
             <div>
-              <label className="block text-xs font-bold text-neutral-800 mb-1">
+              <label className="block text-xs font-bold text-slate-300 mb-1">
                 {isArabic ? 'ملاحظة أو تفاصيل خاصة للعميل' : 'Dealer Note / Vehicle Fitment Confirmation'}
               </label>
               <textarea
@@ -407,7 +405,7 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
                     ? 'مثال: القطعة جديدة بالكرتون الأصلي مع سيل الوكالة. متوفر التوصيل لورشتك مباشرة مع فحص الفيتنس.'
                     : 'e.g. Brand new in sealed factory carton with hologram seal. Fast delivery straight to your garage or home.'
                 }
-                className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 rounded-xl font-medium text-neutral-900 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
+                className="w-full px-3.5 py-2 bg-slate-950/70 border border-white/10 rounded-xl font-medium text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
               />
             </div>
 
@@ -416,18 +414,18 @@ export const SubmitPartBidModal: React.FC<SubmitPartBidModalProps> = ({ request,
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-xs font-bold text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-xl transition-colors"
+                className="px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
               >
                 {isArabic ? 'إلغاء' : 'Cancel'}
               </button>
 
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                className="px-6 py-2.5 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2"
               >
-                <Gavel className="w-4 h-4 text-amber-400" />
+                <Gavel className="w-4 h-4 text-slate-950" />
                 <span>
-                  {isArabic ? `تقديم العرض ($${numericPrice || 0})` : `Submit Dealer Bid ($${numericPrice || 0} USD)`}
+                  {isArabic ? `تقديم العرض (${formatPrice(numericPrice || 0)})` : `Submit Dealer Bid (${formatPrice(numericPrice || 0)})`}
                 </span>
               </button>
             </div>
