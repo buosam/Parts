@@ -40,34 +40,34 @@ export const CarIdDepartmentBar: React.FC = () => {
     },
     {
       id: 'Engine',
-      label: 'Performance & Engine',
-      labelAr: 'المحرك والأداء',
+      label: 'Engine & Drivetrain',
+      labelAr: 'المحرك وناقل الحركة',
       icon: Flame,
     },
     {
       id: 'Body Parts',
-      label: 'Exterior & Body Parts',
+      label: 'Exterior & Body',
       labelAr: 'الهيكل والقطع الخارجية',
       icon: Shield,
     },
     {
       id: 'Cooling',
-      label: 'Cooling & Climate',
+      label: 'Cooling & AC',
       labelAr: 'التبريد والمكيف',
       icon: Lightbulb,
     },
     {
       id: 'Filters',
-      label: 'Filters & Maintenance',
-      labelAr: 'الفلاتر والصيانة',
+      label: 'Oil & Air Filters',
+      labelAr: 'فلاتر وزيوت الصيانة',
       icon: Filter,
     },
   ];
 
   return (
-    <div className="bg-[#080c16]/90 border-b border-white/10 text-slate-200 backdrop-blur-md sticky top-[88px] z-30 shadow-md shadow-black/20">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center gap-1.5 overflow-x-auto py-2 scrollbar-none">
+    <div className="max-w-7xl mx-auto px-4 mt-6">
+      <div className="bg-white/[0.03] border border-white/10 text-slate-200 backdrop-blur-md rounded-2xl p-1.5 shadow-lg shadow-black/20">
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {departments.map((dept) => {
             const Icon = dept.icon;
             const isActive = selectedCategory === dept.id;
@@ -77,9 +77,9 @@ export const CarIdDepartmentBar: React.FC = () => {
                 key={dept.id}
                 id={`dept-tab-${dept.id}`}
                 onClick={() => setSelectedCategory(dept.id)}
-                className={`group shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`group shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                    ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-600/30 font-extrabold'
                     : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
                 }`}
               >
@@ -97,3 +97,4 @@ export const CarIdDepartmentBar: React.FC = () => {
     </div>
   );
 };
+

@@ -50,9 +50,6 @@ const MarketplaceApp: React.FC = () => {
       {/* Universal Header */}
       <Header />
 
-      {/* Automotive Departments Mega-Bar */}
-      {role === 'customer' && <CarIdDepartmentBar />}
-
       {/* Main Role-Based Workspace */}
       <main className="flex-1 pb-16">
         {role === 'customer' && (
@@ -112,7 +109,11 @@ const MarketplaceApp: React.FC = () => {
             {isBiddingView ? (
               <RequestsBoard />
             ) : (
-              <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
+              <>
+                {/* Automotive Departments Filter Bar */}
+                <CarIdDepartmentBar />
+                <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
+              </>
             )}
           </div>
         )}
