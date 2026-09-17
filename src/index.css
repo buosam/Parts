@@ -23,6 +23,12 @@
 
   [dir="rtl"], .font-arabic {
     font-family: var(--font-arabic), var(--font-primary);
+    letter-spacing: normal;
+  }
+
+  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] .font-heading {
+    letter-spacing: normal;
+    font-family: var(--font-arabic), var(--font-heading);
   }
 }
 

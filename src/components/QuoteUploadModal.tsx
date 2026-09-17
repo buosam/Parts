@@ -240,7 +240,7 @@ Total Estimated Labour & Parts: $380 USD`;
                         {item.qualityRequired}
                       </div>
                     </div>
-                    <div className="text-right font-bold text-slate-200">
+                    <div className="text-right rtl:text-left font-bold text-slate-200">
                       x{item.quantity} ({formatPrice(item.estimatedUnitPrice)})
                     </div>
                   </div>

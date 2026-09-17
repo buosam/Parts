@@ -177,7 +177,7 @@ export const Header: React.FC = () => {
           <button
             id="header-active-vehicle-btn"
             onClick={() => setActiveModal('vehicle_picker')}
-            className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 hover:border-indigo-500/40 hover:bg-white/[0.08] transition-all text-left group cursor-pointer"
+            className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 hover:border-indigo-500/40 hover:bg-white/[0.08] transition-all text-left rtl:text-right group cursor-pointer"
           >
             <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-300 group-hover:scale-105 transition-transform">
               <Car className="w-4 h-4" />
@@ -268,7 +268,7 @@ export const Header: React.FC = () => {
                   alt={currentUser.name}
                   className="w-6 h-6 rounded-lg object-cover border border-white/20"
                 />
-                <div className="text-left hidden md:block">
+                <div className="text-left rtl:text-right hidden md:block">
                   <div className="text-xs font-bold text-white flex items-center gap-1.5 leading-tight">
                     <span className="truncate max-w-[100px]">{currentUser.name.split(' ')[0]}</span>
                     <span className="text-[9px] font-black uppercase text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1 py-0.2 rounded">

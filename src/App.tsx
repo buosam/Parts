@@ -154,73 +154,69 @@ const MarketplaceApp: React.FC = () => {
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed">
-              Iraq’s unified automotive spare-parts ecosystem. Seamlessly connects car owners and repair workshops with verified dealers and real-time ERP/DMS inventory synchronization.
+              {isArabic
+                ? 'سوق قطع الغيار المعتمد في العراق. ربط مباشر بين المشترين والورش والوكلاء مع المزامنة اللحظية للمخزون.'
+                : 'Iraq’s unified automotive spare-parts ecosystem. Seamlessly connects car owners and workshops with verified dealers.'}
             </p>
           </div>
 
           <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-200">
-              Core Capabilities
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
+              {isArabic ? 'الخدمات الرئيسية' : 'Core Capabilities'}
             </h4>
             <ul className="space-y-2 text-slate-400 text-xs">
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Direct Marketplace Purchases</span>
+                <span>{isArabic ? 'شراء مباشر من الكتالوج المعتمد' : 'Direct Marketplace Purchases'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Reverse RFQ Dealer Bidding</span>
+                <span>{isArabic ? 'صالة مناقصات ومزايدات المتاجر' : 'Reverse RFQ Dealer Bidding'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>B2B ERP / DMS & REST API Sync</span>
+                <span>{isArabic ? 'ربط وتكامل أنظمة ERP / DMS' : 'B2B ERP / DMS & REST API Sync'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Multi-Branch Stock Allocation</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>AI Photo Vision Search</span>
+                <span>{isArabic ? 'فحص الصور بالذكاء الاصطناعي' : 'AI Photo Vision Search'}</span>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-200">
-              Regional Hubs
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
+              {isArabic ? 'المراكز والمستودعات' : 'Regional Hubs'}
             </h4>
             <ul className="space-y-2 text-slate-400 text-xs">
               <li className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Baghdad (Al-Sinak & Sheikh Omar Hubs)</span>
+                <span>{isArabic ? 'بغداد (السنك والشيخ عمر)' : 'Baghdad (Al-Sinak & Sheikh Omar)'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Erbil (Central Warehouse & 60m Ring)</span>
+                <span>{isArabic ? 'أربيل (المستودع المركزي وشارع 60)' : 'Erbil (Central Warehouse & 60m Ring)'}</span>
               </li>
               <li className="flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Basra (Southern Auto District)</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Sulaymaniyah & Duhok Depots</span>
+                <span>{isArabic ? 'البصرة والسليمانية ودهوك' : 'Basra, Sulaymaniyah & Duhok'}</span>
               </li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider text-slate-200">
-              Trust & Guarantee
+            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
+              {isArabic ? 'الضمان والموثوقية' : 'Trust & Guarantee'}
             </h4>
             <div className="p-3.5 bg-white/[0.03] rounded-2xl border border-white/10 space-y-2 text-[11px] text-slate-300">
               <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
                 <ShieldCheck className="w-4 h-4" />
-                <span>100% Genuine Part Fitment</span>
+                <span>{isArabic ? 'ضمان مطابقة 100% للقطعة' : '100% Guaranteed Fitment'}</span>
               </div>
               <p className="text-slate-400 leading-relaxed">
-                Verified genuine and OEM-spec components with physical inspection on pickup or doorstep courier delivery.
+                {isArabic
+                  ? 'قطع أصلية ومعتمدة مع فحص فيزيائي عند الاستلام أو التوصيل السريع لعنوانك.'
+                  : 'Verified genuine and OEM-spec components with physical inspection on pickup or doorstep courier.'}
               </p>
             </div>
           </div>

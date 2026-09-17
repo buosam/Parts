@@ -414,7 +414,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                         </div>
                       </div>
 
-                      <div className="text-right">
+                      <div className="text-right rtl:text-left">
                         <div className="text-[10px] text-slate-400 uppercase font-semibold">
                           {isArabic ? 'يبدأ من' : 'From'}
                         </div>

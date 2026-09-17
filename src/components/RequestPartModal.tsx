@@ -190,10 +190,10 @@ export const RequestPartModal: React.FC = () => {
                     onChange={(e) => setQualityPreference(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white focus:outline-hidden cursor-pointer"
                   >
-                    <option value="genuine_or_oem">Genuine or Tier-1 OEM</option>
-                    <option value="genuine_only">Genuine (Original Only)</option>
-                    <option value="any_new">Any Quality Brand New</option>
-                    <option value="used_acceptable">Used / Scrap Acceptable</option>
+                    <option value="genuine_or_oem" className="bg-slate-900 text-white">{isArabic ? 'أصلي أو خط تجميع OEM' : 'Genuine or Tier-1 OEM'}</option>
+                    <option value="genuine_only" className="bg-slate-900 text-white">{isArabic ? 'أصلي وكالة فقط' : 'Genuine (Original Only)'}</option>
+                    <option value="any_new" className="bg-slate-900 text-white">{isArabic ? 'أي نوع جديد معتمد' : 'Any Quality Brand New'}</option>
+                    <option value="used_acceptable" className="bg-slate-900 text-white">{isArabic ? 'مستعمل فحص وضمان' : 'Used / Clean Tested'}</option>
                   </select>
                 </div>
               </div>
@@ -207,13 +207,13 @@ export const RequestPartModal: React.FC = () => {
                     onChange={(e) => setPreferredCity(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white focus:outline-hidden cursor-pointer"
                   >
-                    <option value="Baghdad">Baghdad (بغداد)</option>
-                    <option value="Erbil">Erbil (أربيل)</option>
-                    <option value="Sulaymaniyah">Sulaymaniyah (السليمانية)</option>
-                    <option value="Basra">Basra (البصرة)</option>
-                    <option value="Duhok">Duhok (دهوك)</option>
-                    <option value="Kirkuk">Kirkuk (كركوك)</option>
-                    <option value="Mosul">Mosul (الموصل)</option>
+                    <option value="Baghdad" className="bg-slate-900 text-white">Baghdad (بغداد)</option>
+                    <option value="Erbil" className="bg-slate-900 text-white">Erbil (أربيل)</option>
+                    <option value="Sulaymaniyah" className="bg-slate-900 text-white">Sulaymaniyah (السليمانية)</option>
+                    <option value="Basra" className="bg-slate-900 text-white">Basra (البصرة)</option>
+                    <option value="Duhok" className="bg-slate-900 text-white">Duhok (دهوك)</option>
+                    <option value="Kirkuk" className="bg-slate-900 text-white">Kirkuk (كركوك)</option>
+                    <option value="Mosul" className="bg-slate-900 text-white">Mosul (الموصل)</option>
                   </select>
                 </div>
 
@@ -224,9 +224,9 @@ export const RequestPartModal: React.FC = () => {
                     onChange={(e) => setRequiredDate(e.target.value)}
                     className="w-full px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white focus:outline-hidden cursor-pointer"
                   >
-                    <option value="Within 24 Hours / Urgent">Within 24 Hours (Urgent)</option>
-                    <option value="Within 2-3 Days">Within 2-3 Days</option>
-                    <option value="Within a Week">Within a Week</option>
+                    <option value="Within 24 Hours / Urgent" className="bg-slate-900 text-white">{isArabic ? 'خلال 24 ساعة (عاجل)' : 'Within 24 Hours (Urgent)'}</option>
+                    <option value="Within 2-3 Days" className="bg-slate-900 text-white">{isArabic ? 'خلال 2-3 أيام' : 'Within 2-3 Days'}</option>
+                    <option value="Within a Week" className="bg-slate-900 text-white">{isArabic ? 'خلال أسبوع' : 'Within a Week'}</option>
                   </select>
                 </div>
               </div>

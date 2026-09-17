@@ -270,13 +270,13 @@ export const RequestsBoard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Search */}
             <div className="relative flex-1 sm:w-56">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+              <Search className="w-3.5 h-3.5 absolute start-3 top-2.5 text-slate-400" />
               <input
                 type="text"
                 placeholder={isArabic ? 'بحث باسم القطعة أو المركبة...' : 'Search part or vehicle...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
+                className="w-full ps-8 pe-3 py-1.5 bg-white/[0.04] border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
               />
             </div>
 
@@ -341,7 +341,7 @@ export const RequestsBoard: React.FC = () => {
                     key={cat.id}
                     id={`side-cat-btn-${cat.id}`}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left rtl:text-right ${
                       isSelected
                         ? 'bg-indigo-600 text-white shadow-md font-bold'
                         : 'text-slate-300 hover:bg-white/[0.05] hover:text-white'
@@ -492,8 +492,8 @@ export const RequestsBoard: React.FC = () => {
                     </div>
 
                     {lowestOfferPriceUSD !== null ? (
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-400 uppercase mr-1">
+                      <div className="text-right rtl:text-left">
+                        <span className="text-[10px] text-slate-400 uppercase me-1">
                           {isArabic ? 'أقل عرض:' : 'Lowest:'}
                         </span>
                         <span className="font-black text-emerald-400 text-sm">

@@ -202,7 +202,7 @@ export const PhotoSearchModal: React.FC = () => {
                     setSelectedImage(s.url);
                     handleRunAnalysis(s.url);
                   }}
-                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-left transition-all cursor-pointer group flex items-center gap-2"
+                  className="p-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-left rtl:text-right transition-all cursor-pointer group flex items-center gap-2"
                 >
                   <img src={s.url} alt={s.label} className="w-8 h-8 rounded-lg object-cover" />
                   <span className="text-[11px] font-semibold text-slate-200 truncate">{s.label}</span>
