@@ -5,15 +5,12 @@
 
 import React from 'react';
 import {
-  Gavel,
   Disc,
   Flame,
   Shield,
   Lightbulb,
   Wrench,
   Layers,
-  Sparkles,
-  Zap,
   Filter,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
@@ -64,14 +61,6 @@ export const CarIdDepartmentBar: React.FC = () => {
       label: 'Filters & Maintenance',
       labelAr: 'الفلاتر والصيانة',
       icon: Filter,
-    },
-    {
-      id: 'requests',
-      label: 'Parts Bidding Floor',
-      labelAr: 'مناقصات ومزايدات القطع',
-      icon: Gavel,
-      isSpecial: true,
-      badge: 'LIVE BIDS',
     },
   ];
 
