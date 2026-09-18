@@ -5,11 +5,53 @@ import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 import { initDatabase, isDbConnected } from './src/server/db';
+import authRoutes from './src/server/routes/authRoutes';
+import buyerRoutes from './src/server/routes/buyerRoutes';
+import dealerRoutes from './src/server/routes/dealerRoutes';
+import adminRoutes from './src/server/routes/adminRoutes';
+import documentRoutes from './src/server/routes/documentRoutes';
+import { requireAuth, AuthenticatedRequest } from './src/server/security/rbac';
+import { logAuditEvent } from './src/server/security/audit';
+import { usersStore } from './src/server/security/auth';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+// Security Headers (Defense in Depth)
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  next();
+});
+
+// Basic Rate Limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+app.use('/api/', (req, res, next) => {
+  const ip = req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1';
+  const now = Date.now();
+  let clientLimit = rateLimitMap.get(ip);
+
+  if (!clientLimit || clientLimit.resetAt < now) {
+    clientLimit = { count: 1, resetAt: now + 60000 };
+    rateLimitMap.set(ip, clientLimit);
+  } else {
+    clientLimit.count++;
+  }
+
+  // Max 200 requests per minute per IP
+  if (clientLimit.count > 200) {
+    return res.status(429).json({
+      error: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many requests. Please slow down.',
+    });
+  }
+
+  next();
+});
 
 app.use(express.json({ limit: '15mb' }));
 
@@ -775,6 +817,146 @@ app.post('/api/v1/partner/test-connection', (req, res) => {
     message: `Connection successful to ${endpointUrl || 'IQAutoMarket Gateway'}. Authenticated with method [${method || 'API_KEY'}].`,
   });
 });
+
+// ========================================================
+// IQAutoMarket Modular Routers (RBAC, Portals & Privacy)
+// ========================================================
+app.use('/api/auth', authRoutes);
+app.use('/api/buyer', buyerRoutes);
+app.use('/api/dealer', dealerRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/vehicle-documents', documentRoutes);
+
+// Cross-Organization Scoped Dealer Endpoints (Section 67 Security Acceptance Tests)
+app.get('/api/dealers/:targetDealerId/inventory', requireAuth, (req: AuthenticatedRequest, res) => {
+  const { targetDealerId } = req.params;
+  const user = req.user!;
+
+  if (user.role !== 'admin' && user.dealerId !== targetDealerId) {
+    logAuditEvent({
+      actorId: user.id,
+      actorRole: user.role,
+      action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+      resourceType: 'cross_dealer_inventory',
+      resourceId: targetDealerId,
+      ipAddress: req.ip || '127.0.0.1',
+      status: 'DENIED',
+      metadata: { targetDealer: targetDealerId, actualDealer: user.dealerId },
+    });
+
+    return res.status(403).json({
+      error: 'CROSS_ORGANIZATION_ACCESS_DENIED',
+      message: 'Access denied: You cannot view inventory belonging to another dealer.',
+    });
+  }
+
+  res.json({ success: true, targetDealerId, inventory: [] });
+});
+
+app.get('/api/dealers/:targetDealerId/orders', requireAuth, (req: AuthenticatedRequest, res) => {
+  const { targetDealerId } = req.params;
+  const user = req.user!;
+
+  if (user.role !== 'admin' && user.dealerId !== targetDealerId) {
+    logAuditEvent({
+      actorId: user.id,
+      actorRole: user.role,
+      action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+      resourceType: 'cross_dealer_orders',
+      resourceId: targetDealerId,
+      ipAddress: req.ip || '127.0.0.1',
+      status: 'DENIED',
+      metadata: { targetDealer: targetDealerId, actualDealer: user.dealerId },
+    });
+
+    return res.status(403).json({
+      error: 'CROSS_ORGANIZATION_ACCESS_DENIED',
+      message: 'Access denied: You cannot view orders belonging to another dealer.',
+    });
+  }
+
+  res.json({ success: true, targetDealerId, orders: [] });
+});
+
+app.get('/api/dealers/:targetDealerId/customers', requireAuth, (req: AuthenticatedRequest, res) => {
+  const { targetDealerId } = req.params;
+  const user = req.user!;
+
+  if (user.role !== 'admin' && user.dealerId !== targetDealerId) {
+    logAuditEvent({
+      actorId: user.id,
+      actorRole: user.role,
+      action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+      resourceType: 'cross_dealer_customers',
+      resourceId: targetDealerId,
+      ipAddress: req.ip || '127.0.0.1',
+      status: 'DENIED',
+      metadata: { targetDealer: targetDealerId, actualDealer: user.dealerId },
+    });
+
+    return res.status(403).json({
+      error: 'CROSS_ORGANIZATION_ACCESS_DENIED',
+      message: 'Access denied: You cannot view customer data belonging to another dealer.',
+    });
+  }
+
+  res.json({ success: true, targetDealerId, customers: [] });
+});
+
+// User Profile IDOR & Privilege Escalation Protection (Section 44 & 67)
+app.patch('/api/users/:userId', requireAuth, (req: AuthenticatedRequest, res) => {
+  const { userId } = req.params;
+  const user = req.user!;
+
+  // 1. IDOR Check: Cannot patch another user's profile unless Admin
+  if (user.id !== userId && user.role !== 'admin') {
+    logAuditEvent({
+      actorId: user.id,
+      actorRole: user.role,
+      action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+      resourceType: 'user_profile_idor',
+      resourceId: userId,
+      ipAddress: req.ip || '127.0.0.1',
+      status: 'DENIED',
+      metadata: { targetUser: userId, attemptedBy: user.id },
+    });
+
+    return res.status(403).json({
+      error: 'IDOR_ACCESS_DENIED',
+      message: 'Access denied: You cannot modify another user profile.',
+    });
+  }
+
+  // 2. Privilege Escalation Protection: User cannot change their own role to 'admin'
+  if (req.body.role || req.body.adminSubRole) {
+    if (user.role !== 'admin') {
+      logAuditEvent({
+        actorId: user.id,
+        actorRole: user.role,
+        action: 'PRIVILEGE_ESCALATION_BLOCKED',
+        resourceType: 'user_role',
+        resourceId: userId,
+        ipAddress: req.ip || '127.0.0.1',
+        status: 'DENIED',
+        metadata: { attemptedRoleChange: req.body.role },
+      });
+
+      return res.status(403).json({
+        error: 'ROLE_ESCALATION_DENIED',
+        message: 'Forbidden: You are not authorized to modify user roles.',
+      });
+    }
+  }
+
+  const target = usersStore.get(userId);
+  if (!target) return res.status(404).json({ error: 'USER_NOT_FOUND' });
+
+  if (req.body.name) target.name = req.body.name;
+  if (req.body.phone) target.phone = req.body.phone;
+
+  res.json({ success: true, message: 'User updated successfully.', user: { id: target.id, name: target.name, email: target.email } });
+});
+
 async function startServer() {
   await initDatabase();
 

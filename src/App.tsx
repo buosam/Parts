@@ -5,7 +5,8 @@
 
 import React, { useState } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
-import { Header } from './components/Header';
+import { AppNavbar } from './components/Navigation/AppNavbar';
+import { SanawiaDocOcrModal } from './components/Buyer/SanawiaDocOcrModal';
 import { HomeHero } from './components/HomeHero';
 import { SearchResults } from './components/SearchResults';
 import { MasterPartDetailModal } from './components/MasterPartDetailModal';
@@ -25,7 +26,7 @@ import { DealerReviewModal } from './components/DealerReviewModal';
 import { CarIdDepartmentBar } from './components/CarIdDepartmentBar';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { MasterPart } from './types';
-import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2, Zap, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2, Zap, ArrowRight, Lock, AlertOctagon } from 'lucide-react';
 
 const MarketplaceApp: React.FC = () => {
   const {
@@ -36,9 +37,12 @@ const MarketplaceApp: React.FC = () => {
     selectedCategory,
     setSelectedCategory,
     searchQuery,
+    currentUser,
+    setRole,
   } = useMarketplace();
 
   const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
+  const [isSanawiaModalOpen, setIsSanawiaModalOpen] = useState(false);
   const isArabic = language === 'ar';
 
   const isBiddingView = selectedCategory === 'requests';
@@ -48,8 +52,8 @@ const MarketplaceApp: React.FC = () => {
       dir={isArabic ? 'rtl' : 'ltr'}
       className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans flex flex-col selection:bg-indigo-500 selection:text-white"
     >
-      {/* Universal Header */}
-      <Header />
+      {/* Role-Conscious Navigation Bar */}
+      <AppNavbar onOpenSanawiaScan={() => setIsSanawiaModalOpen(true)} />
 
       {/* Main Role-Based Workspace */}
       <main className="flex-1 pb-24 md:pb-16">
@@ -120,8 +124,60 @@ const MarketplaceApp: React.FC = () => {
         )}
 
         {role === 'workshop' && <WorkshopDashboard />}
-        {role === 'supplier' && <SupplierPortal />}
-        {role === 'admin' && <AdminDashboard />}
+
+        {/* Dealer Portal Boundary Guard */}
+        {role === 'supplier' && (
+          currentUser && currentUser.role !== 'supplier' && currentUser.role !== 'admin' ? (
+            <div className="max-w-xl mx-auto my-16 p-8 bg-[#0e1424] rounded-3xl border border-red-500/30 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+                <AlertOctagon className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-black text-white">
+                {isArabic ? 'غير مصرح: بوابة الوكلاء المعتمدين' : '403 Forbidden: Dealer Business Portal'}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {isArabic
+                  ? 'حسابك الحالي مسجل كمشتري. للوصول لبوابة إدارة المخزون وتوريد القطع، يرجى تسجيل الدخول بحساب وكيل تجاري معتمد.'
+                  : 'Your current session is a Buyer account. Authorized business credentials are required to access dealer inventory.'}
+              </p>
+              <button
+                onClick={() => setRole('customer')}
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer"
+              >
+                {isArabic ? 'العودة لسوق المشتري' : 'Return to Marketplace'}
+              </button>
+            </div>
+          ) : (
+            <SupplierPortal />
+          )
+        )}
+
+        {/* Admin Console Boundary Guard */}
+        {role === 'admin' && (
+          currentUser?.role !== 'admin' ? (
+            <div className="max-w-xl mx-auto my-16 p-8 bg-[#0e1424] rounded-3xl border border-red-500/30 text-center space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+                <Lock className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-black text-white">
+                {isArabic ? '403 محظور: منطقة إدارية مقيدة' : '403 Forbidden: Restricted Administration'}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {isArabic
+                  ? 'تم تسجيل محاولة وصول غير مصرح بها إلى مسارات الإدارة (/admin/*) وتوثيقها في سجل الأمان.'
+                  : 'Unauthorized access attempt to /admin/* has been logged in the security audit trail.'}
+              </p>
+              <button
+                onClick={() => setRole('customer')}
+                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer"
+              >
+                {isArabic ? 'العودة للمنصة العامة' : 'Return to Public Marketplace'}
+              </button>
+            </div>
+          ) : (
+            <AdminDashboard />
+          )
+        )}
       </main>
 
       {/* Mobile Bottom Navigation Bar (44px+ touch targets) */}
@@ -130,6 +186,7 @@ const MarketplaceApp: React.FC = () => {
       {/* Global Modals */}
       <MasterPartDetailModal part={selectedPart} onClose={() => setSelectedPart(null)} />
       <VehicleSelectorModal />
+      <SanawiaDocOcrModal isOpen={isSanawiaModalOpen} onClose={() => setIsSanawiaModalOpen(false)} />
       <PhotoSearchModal />
       <QuoteUploadModal />
       <RequestPartModal />

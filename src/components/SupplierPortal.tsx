@@ -29,6 +29,7 @@ import {
   Layers,
   ChevronRight,
   RefreshCw,
+  Lock,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { IntegrationDashboard } from './DealerIntegrations/IntegrationDashboard';
@@ -57,6 +58,7 @@ export const SupplierPortal: React.FC = () => {
   const currentSupplier = suppliers.find((s) => s.id === 'sup-1') || suppliers[0];
 
   const [activeTab, setActiveTab] = useState<'overview' | 'requests' | 'inventory' | 'orders' | 'branches'>('overview');
+  const [staffRole, setStaffRole] = useState<'owner' | 'manager' | 'sales' | 'inventory' | 'finance'>('owner');
 
   // Integration modals
   const [isWizardOpen, setIsWizardOpen] = useState<boolean>(false);
@@ -199,6 +201,26 @@ export const SupplierPortal: React.FC = () => {
                   {isArabic ? 'متصل بنظام المخزون' : 'ERP Connected'}
                 </span>
               </div>
+
+              {/* Staff Granular Permissions Switcher (Section 13) */}
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                <span className="text-[11px] text-slate-400 font-semibold">{isArabic ? 'صلاحية الموظف:' : 'Staff Role:'}</span>
+                <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10 text-[10px]">
+                  {(['owner', 'manager', 'sales', 'inventory', 'finance'] as const).map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setStaffRole(r)}
+                      className={`px-2 py-0.5 rounded-lg font-bold transition-all capitalize cursor-pointer ${
+                        staffRole === r
+                          ? 'bg-indigo-600 text-white shadow-xs'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -284,10 +306,17 @@ export const SupplierPortal: React.FC = () => {
               <span className="text-xs font-bold text-slate-400 block">
                 {isArabic ? 'مبيعات اليوم' : "Today's Sales"}
               </span>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-2xl font-black text-emerald-400">$12,450</span>
-                <span className="text-[11px] font-bold text-slate-400">IQD 18.6M</span>
-              </div>
+              {staffRole === 'inventory' ? (
+                <div className="flex items-center gap-1.5 mt-3 text-xs text-slate-400">
+                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="font-semibold">{isArabic ? 'محجوب (مالك/مالية فقط)' : 'Restricted (Owner/Finance)'}</span>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="text-2xl font-black text-emerald-400">$12,450</span>
+                  <span className="text-[11px] font-bold text-slate-400">IQD 18.6M</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
