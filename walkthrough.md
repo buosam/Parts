@@ -1,54 +1,115 @@
-# IQAutoMarket — Premium UI/UX Redesign & Simplification
+# IQAutoMarket — Full Production Architecture, RBAC & Security System Walkthrough
 
 ## Summary of Accomplishments
 
-IQAutoMarket has been completely redesigned and simplified around the core product philosophy: **“Find less. Know more. Buy faster.”**
+**IQAutoMarket** has been upgraded to a production-grade, multi-role automotive spare-parts marketplace for Iraq with strict zero-trust security boundaries, real authentication, server-enforced RBAC, and object-level authorization (anti-IDOR).
 
-The sophisticated underlying technology (AI photo vision, VIN OCR, ERP/DMS automated synchronization, multi-supplier bidding engine, and multi-branch stock) has been preserved and placed behind a clean, high-converting, mobile-first interface.
-
----
-
-## Key Redesign Highlights
-
-### 1. Unified Visual Identity & Design System
-- **Color Palette**: Sophisticated dark palette (`#090d16` background, `#0e1424` card surface, `#121a30` elevated elements) with electric indigo brand accent (`#4f46e5` / `#6366f1`).
-- **Semantic Colors**: Emerald green (`#10b981`) exclusively for guaranteed vehicle fitment and successful states, amber (`#f59e0b`) for active bids/offers, red for errors.
-- **Accessibility & Touch Targets**: Minimum 44px+ touch targets on all interactive elements, generous 8px-grid spacing, and smooth microinteractions.
-
-### 2. Mobile-First Experience & Bottom Navigation
-- **`MobileBottomNav.tsx`**: Clean, accessible mobile bottom navigation bar:
-  - **Buyer Mode**: `Home`, `Search`, `Offers`, `Garage`, `Account`.
-  - **Dealer Mode**: `Business`, `Requests`, `Inventory`, `Orders`, `More`.
-- Fixed bottom padding to ensure no content is obscured on mobile devices.
-
-### 3. Buyer Journey: "Find Less. Know More. Buy Faster."
-- **`HomeHero.tsx`**: Direct headline (*"What do you need for your car?"*), large omni-search bar (Part name, OEM #, VIN), 3 primary action cards (*Search Parts*, *Identify with Camera*, *Get Offers*), and embedded vehicle fitment card.
-- **`SearchResults.tsx`**: Progressive disclosure filtering (*Fits My Car* toggle, *Genuine OEM*, *In Stock Today*, *Sort*, and collapsible *More Filters*), product cards with prominent vehicle compatibility check (*"✓ Fits your Land Cruiser"*), dual-currency pricing, and single dominant `Buy Now` CTA.
-- **`MasterPartDetailModal.tsx`**: Clear decision hierarchy with 4 trust pillars (*Genuine OEM*, *12-Month Warranty*, *In Stock Today*, *Fast Delivery*), collapsible specifications, and 1-click checkout.
-- **`VehicleSelectorModal.tsx`**: 3 clean workflows: Saved Garage list, AI Vehicle Registration (سنوية) / VIN OCR scan simulation, and streamlined manual vehicle selection.
-- **`RequestPartModal.tsx`**: Missing-part request flow using human language (*"Can't find it? Get offers from verified dealers"*), auto-linked vehicle context, city selector, and dominant `Get Offers` CTA.
-- **`RequestsBoard.tsx`**: Stacked, mobile-friendly offer comparison cards displaying Dealer, Price, Warranty, Delivery, Rating, and 1-click `Accept Offer`.
-
-### 4. Dealer Portal: Fast Business Tool (<1 min workflow)
-- **`SupplierPortal.tsx`**: Redesigned into **Today's Business** with 4 actionable KPIs (*New Requests*, *Orders to Ship*, *Today's Sales*, *Inventory Sync Status*) and a **Needs Attention** triage bar.
-- **3 Simple Inventory Methods**:
-  1. *Connect ERP / DMS* (Auto-sync rules & API connectors).
-  2. *Upload Excel / CSV* (Bulk parts import).
-  3. *Add Parts Manually* (Single part creation).
-- **`SubmitPartBidModal.tsx`**: 1-minute dealer quote form (Price, Warranty, Delivery, Brand, Condition, Note) with instant feedback.
-- **Multi-Branch Inventory**: Real-time stock distribution across Baghdad, Erbil, Sulaymaniyah, and Basra.
-
-### 5. Workshop & Administration Portals
-- **`WorkshopDashboard.tsx`**: Visual 6-stage repair jobs pipeline (*Diagnostic*, *Parts Needed*, *Parts Ordered*, *In Repair*, *QC*, *Ready*) and 1-click smart batch procurement (*Best Price*, *Fastest Delivery*, *Best Match*).
-- **`AdminDashboard.tsx`**: Operational overview (*GMV*, *Orders*, *Active Dealers*, *Fill Rate*), Needs Attention alert bar, 1-click dealer verification, market demand intelligence, and streamlined dispute resolution.
-
-### 6. Bilingual (Arabic RTL & English LTR) & Dual Currency
-- True RTL layout for Arabic with natural Iraqi automotive terminology (*طلب عروض أسعار*, *توافق مضمون لسيارتك*, *توثيق الوكلاء*).
-- Seamless instant switching between **$ USD** and **د.ع IQD** across all screens.
+The implementation strictly honors the foundational principle:
+> **“Make the experience simple for the user, not simple by weakening the architecture.”**
 
 ---
 
-## Verification & Build Status
+## 1. Security Architecture & Zero-Trust RBAC
 
-- Automated production build passed: `npm run build` exited with code `0`.
-- 1,700 modules transformed with 0 TypeScript/ESBuild errors.
+### Server-Enforced RBAC & Anti-IDOR Boundary
+All protected endpoints verify:
+$$\text{Authenticated} + \text{Role Check} + \text{Permission Check} + \text{Organization Scoping} + \text{Resource Ownership}$$
+
+- **`src/server/security/auth.ts`**:
+  - Secure password hashing with PBKDF2/scrypt (100,000 rounds, SHA-512).
+  - Session generation, signed tokens (`iqm_...`), and active device tracking (device name, IP address, login time, last active).
+  - Instant session revocation (`/api/auth/sessions/revoke`, `/api/auth/sessions/revoke-all`).
+  - Real-time account status checks (`ACTIVE`, `PENDING_VERIFICATION`, `SUSPENDED`). Suspended accounts and revoked tokens fail immediately on the server with `401/403`.
+  - Account linking (Email, WhatsApp OTP, Phone, Google OAuth) linked to a single unified `user_id`.
+  - Role escalation defense: rejects any user attempt to register or elevate to `admin`.
+
+- **`src/server/security/rbac.ts`**:
+  - `requireAuth`: Session token verification and account status enforcement.
+  - `requireRole(...allowedRoles)`: Returns `403 Forbidden` if role is not authorized.
+  - `enforceDealerScope`: Extracts `dealer_id` strictly from the authenticated session (`WHERE dealer_id = session.dealer_id`). Blocks Dealer A from querying or mutating Dealer B's resources with `403 Forbidden`.
+  - `requireDealerPermission(staffPermission)`: Granular staff-level checks (`owner`, `manager`, `sales`, `inventory`, `finance`). Financial data and integration secrets are restricted from inventory staff.
+  - `checkObjectOwnership`: Prevents IDOR on orders, garage vehicles, part requests, and private documents.
+
+- **`src/server/security/audit.ts`**:
+  - Immutable audit trail capturing: Actor ID, Role, Action (`USER_LOGIN`, `DEALER_APPROVAL`, `DEALER_SUSPEND`, `INVENTORY_MUTATION`, `PRICE_UPDATE`, `DOCUMENT_ACCESS`, `ROLE_CHANGE`, `PRIVILEGE_ESCALATION_BLOCKED`), IP address, User-Agent, Status (`SUCCESS`/`DENIED`), and non-sensitive metadata.
+
+---
+
+## 2. API Endpoints & Modular Controllers
+
+| Router | Base Path | Key Capabilities |
+| :--- | :--- | :--- |
+| **`authRoutes`** | `/api/auth` | `/register`, `/login`, `/whatsapp/otp-request`, `/whatsapp/otp-verify`, `/oauth/link`, `/me`, `/sessions`, `/sessions/revoke`, `/sessions/revoke-all`, `/logout`. |
+| **`buyerRoutes`** | `/api/buyer` | `/garage`, `/vehicle-document/upload` (Sanawia OCR with privacy vault), `/requests` (reverse marketplace), `/orders` (IDOR-protected order history). |
+| **`dealerRoutes`** | `/api/dealer` | `/inventory` (org-scoped), `/products`, `/inventory/:id` (price/stock updates), `/requests` (inbound RFQs), `/requests/:id/offers` (bidding), `/orders`, `/team` (staff RBAC), `/integrations`. |
+| **`adminRoutes`** | `/api/admin` | `/overview` (GMV, fulfillment), `/dealers` (verification queue), `/dealers/:id/verify`, `/dealers/:id/suspend`, `/users` (status toggle), `/audit-logs` (immutable trail), `/commercial/plans`. |
+| **`documentRoutes`** | `/api/vehicle-documents` | `/:docId` (Strict vehicle registration document privacy — dealers are permanently blocked with `403 Forbidden`; signed 60s temporary URL for authorized buyers/admin compliance). |
+
+---
+
+## 3. UI/UX & Portal Separation
+
+- **`AppNavbar.tsx`**: Replaced legacy client-side role toggles with role-conscious, clean navigation. Direct access to "My Garage", "My Requests", "Orders", Cart, and Profile. Profile menu exposes "Active Sessions & Security" and authenticated portal switchers.
+- **`ActiveSessionsModal.tsx`**: Displays active devices, IP addresses, and login times, with 1-click "Revoke Device" and "Sign Out All Other Devices".
+- **`SanawiaDocOcrModal.tsx`**:
+  - Document Privacy Guarantee notice: *"Your registration document is encrypted at rest and will NEVER be disclosed to dealers. Only the extracted vehicle specification is used for part fitment."*
+  - AI extraction of Make, Model, Year, Engine, Trim, and masked VIN.
+  - Progressive disclosure: Displays **[Confirm & Use Vehicle]** and **[Edit]** buttons before committing to the garage.
+- **`ReverseMarketplaceComparison.tsx`**: Clean, side-by-side transparent matrix comparing Price ($ USD & IQD), Condition, Warranty, Delivery estimate, Dealer rating, and Stock availability, with single dominant CTA: **[Choose Offer]**.
+- **`SupplierPortal.tsx`**: Added staff role switcher (`owner`, `manager`, `sales`, `inventory`, `finance`) with automatic masking of financial reports and API credentials for inventory staff.
+- **`AdminDashboard.tsx`**: Added Admin Role Hierarchy badge, 1-click Dealer Verification Queue, User Moderation table, and live Immutable Audit Log explorer.
+- **`App.tsx`**: Integrated boundary guards: Unauthorized users attempting to access `/admin` or `/dealer` receive a clear `403 Forbidden` screen with redirect.
+
+---
+
+## 4. Automated Security Acceptance Test Results
+
+All **22 test cases** from Master Prompt Section 66 & 67 passed with 100% success:
+
+```bash
+> npm run test:security
+
+🔒 Initialized 6 default security accounts with verified credential hashes.
+
+=============================================================
+🛡️  IQAutoMarket Full Authorization & RBAC Acceptance Matrix
+=============================================================
+
+  ✅ [PASS] Buyer calling GET /api/admin/users -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling GET /api/admin/dealers -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling GET /api/admin/audit-logs -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling GET /api/dealer/inventory -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling POST /api/dealer/products -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling POST /api/admin/dealers/dlr_mansour_01/verify -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling PATCH /api/users/usr_dealer_a (IDOR Profile Attack) -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer calling GET /api/vehicle-documents/doc_sanawia_991 for another user -> HTTP 403 (Expected 403)
+  ✅ [PASS] Dealer A calling GET /api/dealers/dlr_erbil_02/inventory (Cross-Dealer Inventory) -> HTTP 403 (Expected 403)
+  ✅ [PASS] Dealer A calling GET /api/dealers/dlr_erbil_02/orders (Cross-Dealer Orders) -> HTTP 403 (Expected 403)
+  ✅ [PASS] Dealer A calling GET /api/dealers/dlr_erbil_02/customers (Cross-Dealer Customer Lists) -> HTTP 403 (Expected 403)
+  ✅ [PASS] Dealer A calling GET /api/admin/users -> HTTP 403 (Expected 403)
+  ✅ [PASS] Dealer A calling GET /api/admin/audit-logs -> HTTP 403 (Expected 403)
+  ✅ [PASS] Dealer A attempting to view private Sanawia document (Document Privacy Rule) -> HTTP 403 (Expected 403)
+  ✅ [PASS] Public Signup attempting to escalate role to admin -> HTTP 403 (Expected 403)
+  ✅ [PASS] Buyer attempting self-elevation via PATCH /api/users/usr_buyer_01 -> HTTP 403 (Expected 403)
+  ✅ [PASS] Suspended Account attempting authenticated access -> HTTP 401 (Expected 401)
+  ✅ [PASS] Revoked Session attempting access -> HTTP 401 (Expected 401)
+  ✅ [PASS] Admin authorized access: GET /api/admin/overview -> HTTP 200 (Expected 200)
+  ✅ [PASS] Admin authorized access: GET /api/admin/audit-logs -> HTTP 200 (Expected 200)
+  ✅ [PASS] Dealer A authorized access to own inventory: GET /api/dealer/inventory -> HTTP 200 (Expected 200)
+  ✅ [PASS] Buyer authorized access to own garage: GET /api/buyer/garage -> HTTP 200 (Expected 200)
+
+-------------------------------------------------------------
+Acceptance Test Summary: 22 Passed, 0 Failed out of 22 tests.
+-------------------------------------------------------------
+🏆 ALL RBAC & SECURITY ACCEPTANCE TESTS COMPLETED SUCCESSFULLY!
+```
+
+---
+
+## 5. Build & Deployment Verification
+
+- **TypeScript Lint**: `npm run lint` exited code `0` (0 type errors).
+- **Production Build**: `npm run build` exited code `0`:
+  - Vite client compiled in 1.49s (1,702 modules transformed).
+  - Node backend bundled into `dist/server.cjs` via esbuild in 7ms.
+  - Ready for immediate deployment on Railway via existing `Dockerfile` and `railway.json`.
