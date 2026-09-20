@@ -26,9 +26,10 @@ import { ActiveSessionsModal } from '../Security/ActiveSessionsModal';
 
 interface AppNavbarProps {
   onOpenSanawiaScan: () => void;
+  onOpenPartlineConsole?: () => void;
 }
 
-export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan }) => {
+export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenPartlineConsole }) => {
   const {
     role,
     setRole,
@@ -157,6 +158,22 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan }) => {
           {/* Right Action Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Sanawia AI Registration Recognition Trigger */}
+            {/* Partline Ops Console Quick Switcher */}
+            {onOpenPartlineConsole && (
+              <button
+                id="btn-open-partline"
+                onClick={onOpenPartlineConsole}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer shadow-sm"
+                title="Open Partline Operations Console (Linear SaaS Ops)"
+              >
+                <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                <span>{isArabic ? 'كونسول Partline' : 'Partline Ops'}</span>
+                <span className="text-[9px] font-black uppercase px-1 rounded bg-indigo-500/30 text-indigo-200">
+                  B2B
+                </span>
+              </button>
+            )}
+
             <button
               id="btn-scan-sanawia"
               onClick={onOpenSanawiaScan}
@@ -274,6 +291,24 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan }) => {
                           >
                             <ShieldCheck className="w-4 h-4 text-indigo-400" />
                             <span>{isArabic ? 'لوحة تحكم الإدارة' : 'Admin Console'}</span>
+                          </button>
+                        )}
+
+                        {onOpenPartlineConsole && (
+                          <button
+                            onClick={() => {
+                              setIsProfileOpen(false);
+                              onOpenPartlineConsole();
+                            }}
+                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/[0.04] transition-colors cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Layers className="w-4 h-4 text-indigo-400" />
+                              <span>{isArabic ? 'كونسول Partline للعمليات' : 'Partline Ops Console'}</span>
+                            </div>
+                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                              OPS
+                            </span>
                           </button>
                         )}
                       </div>

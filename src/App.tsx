@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
 import { AppNavbar } from './components/Navigation/AppNavbar';
+import { PartlineConsole } from './components/Partline/PartlineConsole';
 import { SanawiaDocOcrModal } from './components/Buyer/SanawiaDocOcrModal';
 import { HomeHero } from './components/HomeHero';
 import { SearchResults } from './components/SearchResults';
@@ -43,9 +44,30 @@ const MarketplaceApp: React.FC = () => {
 
   const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
   const [isSanawiaModalOpen, setIsSanawiaModalOpen] = useState(false);
+  const [isPartlineConsoleOpen, setIsPartlineConsoleOpen] = useState(false);
   const isArabic = language === 'ar';
 
   const isBiddingView = selectedCategory === 'requests';
+
+  // Global ⌘K / Ctrl+K listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsPartlineConsoleOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  if (isPartlineConsoleOpen) {
+    return (
+      <PartlineConsole
+        onExitToMarketplace={() => setIsPartlineConsoleOpen(false)}
+      />
+    );
+  }
 
   return (
     <div
@@ -53,7 +75,10 @@ const MarketplaceApp: React.FC = () => {
       className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans flex flex-col selection:bg-indigo-500 selection:text-white"
     >
       {/* Role-Conscious Navigation Bar */}
-      <AppNavbar onOpenSanawiaScan={() => setIsSanawiaModalOpen(true)} />
+      <AppNavbar
+        onOpenSanawiaScan={() => setIsSanawiaModalOpen(true)}
+        onOpenPartlineConsole={() => setIsPartlineConsoleOpen(true)}
+      />
 
       {/* Main Role-Based Workspace */}
       <main className="flex-1 pb-24 md:pb-16">
@@ -97,13 +122,27 @@ const MarketplaceApp: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-2 text-xs text-slate-400 pr-3">
-                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>
-                    {isArabic
-                      ? 'مخزون حقيقي متزامن مع وكلاء بغداد، أربيل، والبصرة'
-                      : 'Real-time dealer inventory across Baghdad, Erbil & Basra'}
-                  </span>
+                <div className="hidden lg:flex items-center gap-3 pr-2">
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>
+                      {isArabic
+                        ? 'مخزون حقيقي متزامن مع وكلاء بغداد، أربيل، والبصرة'
+                        : 'Real-time dealer inventory across Baghdad, Erbil & Basra'}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => setIsPartlineConsoleOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer shadow-xs"
+                    title="Switch to Partline Operations Console"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+                    <span>{isArabic ? 'كونسول Partline' : 'Partline Console'}</span>
+                    <kbd className="hidden xl:inline text-[9px] font-mono px-1 py-0.2 rounded bg-black/40 text-indigo-200">
+                      ⌘K
+                    </kbd>
+                  </button>
                 </div>
               </div>
             </div>

@@ -962,8 +962,6 @@ async function startServer() {
 
   const possibleDistPaths = [
     path.join(process.cwd(), 'dist'),
-    path.join(__dirname, 'dist'),
-    path.join(__dirname, '../dist'),
     path.resolve('dist'),
   ];
 
