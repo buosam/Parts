@@ -72,11 +72,10 @@ const MarketplaceApp: React.FC = () => {
                         setSelectedCategory('All');
                       }
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${
-                      !isBiddingView
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${!isBiddingView
                         ? 'bg-indigo-600 text-white shadow-md'
                         : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-                    }`}
+                      }`}
                   >
                     <Layers className="w-4 h-4" />
                     <span>{isArabic ? 'الكتالوج وقطع الغيار' : 'Search & Catalog'}</span>
@@ -85,11 +84,10 @@ const MarketplaceApp: React.FC = () => {
                   <button
                     id="buyer-tab-bidding"
                     onClick={() => setSelectedCategory('requests')}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${
-                      isBiddingView
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${isBiddingView
                         ? 'bg-amber-500 text-slate-950 shadow-md font-black'
                         : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
-                    }`}
+                      }`}
                   >
                     <Gavel className="w-4 h-4" />
                     <span>{isArabic ? 'عروض الأسعار والطلبات' : 'Get Offers & Quotes'}</span>
@@ -238,6 +236,7 @@ const MarketplaceApp: React.FC = () => {
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>{isArabic ? 'ربط وتكامل أنظمة ERP / DMS' : 'B2B ERP / DMS & REST API Sync'}</span>
+
               </li>
               <li className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />

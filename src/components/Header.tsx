@@ -104,16 +104,7 @@ export const Header: React.FC = () => {
     <header className="sticky top-0 z-40 bg-[#0a0e1a]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl shadow-black/40">
       {/* Top Banner: Verification Status & Localization Controls */}
       <div className="bg-black/50 text-slate-300 text-xs px-4 py-2 border-b border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 font-semibold text-[11px] border border-emerald-500/20 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              {isArabic ? 'سوق قطع الغيار وتكامل الوكلاء المعتمد' : 'Verified Automotive Spare Parts & Dealer Network'}
-            </span>
-            <span className="hidden md:inline text-slate-400 text-[11px]">
-              {isArabic ? 'بغداد • أربيل • السليمانية • البصرة' : 'Baghdad • Erbil • Sulaymaniyah • Basra'}
-            </span>
-          </div>
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-end gap-3">
 
           {/* Currency Switcher & Language Toggle */}
           <div className="flex items-center gap-2">
