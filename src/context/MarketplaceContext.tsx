@@ -191,8 +191,13 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   });
 
   const [masterParts, setMasterParts] = useState<MasterPart[]>(() => {
-    const saved = localStorage.getItem('sp_master_parts');
-    return saved ? JSON.parse(saved) : MASTER_PARTS;
+    const saved = localStorage.getItem('sp_master_parts_v3');
+    if (!saved) return MASTER_PARTS;
+    try {
+      return JSON.parse(saved);
+    } catch {
+      return MASTER_PARTS;
+    }
   });
 
   const [suppliers, setSuppliers] = useState<Supplier[]>(() => {
@@ -429,7 +434,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [activeVehicle]);
 
   useEffect(() => {
-    localStorage.setItem('sp_master_parts', JSON.stringify(masterParts));
+    localStorage.setItem('sp_master_parts_v3', JSON.stringify(masterParts));
   }, [masterParts]);
 
   useEffect(() => {
