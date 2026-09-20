@@ -201,7 +201,7 @@ export const MASTER_PARTS: MasterPart[] = [
       'Material': 'Ceramic Friction Matrix with Multi-Layer Shim',
       'Wear Indicator': 'Acoustic Wear Sensor Included',
     },
-    imageUrl: 'https://images.unsplash.com/photo-1558441719-8b489c63f7d1?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=800&q=80',
     compatibleVehicles: [
       {
         make: 'Toyota',
@@ -407,7 +407,7 @@ export const MASTER_PARTS: MasterPart[] = [
       'Bolt Hole Count': '6 Holes',
       'Type': 'Internally Vented High-Carbon Cast',
     },
-    imageUrl: 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=600&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=800&q=80',
     compatibleVehicles: [
       {
         make: 'Toyota',

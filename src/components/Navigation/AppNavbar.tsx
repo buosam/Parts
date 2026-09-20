@@ -65,33 +65,6 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
   return (
     <>
       <header className="sticky top-0 z-40 bg-[#0a0e1a]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl shadow-black/40">
-        {/* Top Slim Trust Bar */}
-        <div className="bg-black/50 text-slate-300 text-xs px-4 py-1.5 border-b border-white/5">
-          <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-end gap-3">
-
-            {/* Currency & Language Controls */}
-            <div className="flex items-center gap-2">
-              <button
-                id="navbar-currency-toggle"
-                onClick={() => setCurrency(currency === 'USD' ? 'IQD' : 'USD')}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-amber-300 hover:text-amber-200 text-xs font-bold border border-amber-500/20 transition-all cursor-pointer"
-                title="Switch Currency"
-              >
-                <Coins className="w-3.5 h-3.5 text-amber-400" />
-                <span>{currency === 'USD' ? '$ USD' : 'د.ع IQD'}</span>
-              </button>
-
-              <button
-                id="navbar-language-toggle"
-                onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer"
-              >
-                <Globe className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{isArabic ? 'English' : 'العربية'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
 
         {/* Main Nav Bar */}
         <div className="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4">
@@ -156,7 +129,28 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
           </div>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            {/* Currency Switcher */}
+            <button
+              id="navbar-currency-toggle"
+              onClick={() => setCurrency(currency === 'USD' ? 'IQD' : 'USD')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-amber-300 hover:text-amber-200 text-xs font-bold border border-amber-500/20 transition-all cursor-pointer shadow-xs"
+              title="Switch Currency (USD / IQD)"
+            >
+              <Coins className="w-3.5 h-3.5 text-amber-400" />
+              <span>{currency === 'USD' ? '$ USD' : 'د.ع IQD'}</span>
+            </button>
+
+            {/* Language Toggle */}
+            <button
+              id="navbar-language-toggle"
+              onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer shadow-xs"
+              title="Switch Language"
+            >
+              <Globe className="w-3.5 h-3.5 text-indigo-400" />
+              <span>{isArabic ? 'English' : 'العربية'}</span>
+            </button>
             {/* Sanawia AI Registration Recognition Trigger */}
             {/* Partline Ops Console Quick Switcher */}
             {onOpenPartlineConsole && (

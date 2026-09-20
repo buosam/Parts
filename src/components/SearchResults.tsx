@@ -20,6 +20,7 @@ import {
   Filter,
   SlidersHorizontal,
   ChevronDown,
+  Wrench,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { MasterPart } from '../types';
@@ -186,70 +187,46 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
           )}
         </div>
 
-        {/* Primary Filters (Progressive Disclosure) */}
+        {/* Primary Filters */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
           {/* Fits My Car Toggle */}
           {activeVehicle && (
             <button
               id="filter-fits-car-btn"
               onClick={() => setOnlyFitsMyCar(!onlyFitsMyCar)}
-              className={`px-3 py-2 rounded-xl border font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 onlyFitsMyCar
-                  ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-md shadow-emerald-500/10'
-                  : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-white'
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+                  : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
               }`}
             >
-              <CheckCircle className={`w-3.5 h-3.5 ${onlyFitsMyCar ? 'text-emerald-400' : 'text-slate-400'}`} />
-              <span>{isArabic ? `يناسب ${activeVehicle.make}` : `Fits ${activeVehicle.make}`}</span>
+              <CheckCircle className={`w-3.5 h-3.5 ${onlyFitsMyCar ? 'text-emerald-400' : 'text-slate-500'}`} />
+              <span>{isArabic ? `يناسب ${activeVehicle.model}` : `Fits ${activeVehicle.model}`}</span>
             </button>
           )}
-
-          {/* Quality Quick Filter */}
-          <div className="flex items-center bg-white/[0.04] p-1 rounded-xl border border-white/10">
-            <button
-              onClick={() => setQualityFilter('all')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                qualityFilter === 'all'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              {isArabic ? 'الكل' : 'All'}
-            </button>
-            <button
-              onClick={() => setQualityFilter(qualityFilter === 'genuine' ? 'all' : 'genuine')}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer ${
-                qualityFilter === 'genuine'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              {isArabic ? 'أصلي Genuine' : 'Genuine OEM'}
-            </button>
-          </div>
 
           {/* In Stock Today */}
           <button
             id="filter-in-stock-btn"
             onClick={() => setAvailabilityFilter(availabilityFilter === 'all' ? 'in_stock_today' : 'all')}
-            className={`px-3 py-2 rounded-xl border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
               availabilityFilter === 'in_stock_today'
-                ? 'bg-blue-500/20 border-blue-500/40 text-blue-300'
-                : 'bg-white/[0.04] border-white/10 text-slate-300 hover:bg-white/[0.08]'
+                ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
+                : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
             }`}
           >
-            <Truck className="w-3.5 h-3.5 text-blue-400" />
+            <Truck className="w-3.5 h-3.5 text-slate-400" />
             <span>{isArabic ? 'متوفر اليوم' : 'In Stock'}</span>
           </button>
 
           {/* Sort Selector */}
-          <div className="flex items-center gap-1.5 bg-white/[0.04] border border-white/10 rounded-xl px-2.5 py-2">
-            <ArrowUpDown className="w-3.5 h-3.5 text-indigo-400" />
+          <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/10 rounded-lg px-2.5 py-1.5">
+            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
             <select
               id="sort-parts-select"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-slate-200 font-semibold focus:outline-hidden cursor-pointer"
+              className="bg-transparent text-slate-300 text-xs font-semibold focus:outline-hidden cursor-pointer"
             >
               <option value="compatibility" className="bg-slate-900 text-white">
                 {isArabic ? 'الأولوية: التوافق والتقييم' : 'Rank: Fitment & Trust'}
@@ -269,14 +246,17 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
           {/* More Filters Toggle */}
           <button
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`px-3 py-2 rounded-xl border flex items-center gap-1.5 transition-all cursor-pointer ${
-              showAdvancedFilters || selectedBrand !== 'all'
+            className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
+              showAdvancedFilters || selectedBrand !== 'all' || qualityFilter !== 'all'
                 ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300'
-                : 'bg-white/[0.04] border-white/10 text-slate-400 hover:text-white'
+                : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
             }`}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>{isArabic ? 'تصفية إضافية' : 'More Filters'}</span>
+            <span>{isArabic ? 'تصفية إضافية' : 'Filters'}</span>
+            {(selectedBrand !== 'all' || qualityFilter !== 'all') && (
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+            )}
             <ChevronDown className={`w-3 h-3 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
           </button>
         </div>
@@ -391,42 +371,41 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                 isOutOfStock ? 'border-amber-500/20' : 'border-white/10'
               } hover:border-indigo-500/40 hover:shadow-xl transition-all flex flex-col overflow-hidden group`}
             >
-              {/* Card Image & Fitment Status */}
-              <div className="relative h-44 bg-slate-950/70 overflow-hidden cursor-pointer" onClick={() => onSelectPart(part)}>
+              {/* Card Image */}
+              <div
+                className="relative h-44 sm:h-48 bg-slate-900 overflow-hidden cursor-pointer"
+                onClick={() => onSelectPart(part)}
+              >
+                {/* Fallback graphic if image is missing or loading */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-800">
+                  <Wrench className="w-10 h-10 opacity-30" />
+                </div>
+
                 <img
                   src={part.imageUrl}
-                  alt={part.partName}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  alt=""
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.opacity = '0';
+                  }}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
                 />
 
                 {/* Subtle dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-black/20 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent pointer-events-none z-2" />
 
-                {/* Top badges */}
-                <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 flex items-center gap-1.5 z-10">
-                  <span className="bg-black/75 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-md border border-white/10">
-                    {part.category}
-                  </span>
-                  {part.offers.some((o) => o.quality === 'genuine') && (
-                    <span className="bg-emerald-500/90 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-md shadow-xs">
-                      Genuine
-                    </span>
-                  )}
-                </div>
-
-                {/* Fitment Banner */}
+                {/* Subtle Fitment Tag */}
                 {activeVehicle && (
-                  <div className="absolute bottom-2 left-2 right-2 z-10">
+                  <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 z-10">
                     {isFit ? (
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/90 text-slate-950 text-[11px] font-extrabold shadow-md backdrop-blur-md">
-                        <CheckCircle className="w-3.5 h-3.5 text-slate-950" />
-                        <span>{isArabic ? 'توافق مضمون لسيارتك' : `Fits ${activeVehicle.make} ${activeVehicle.model}`}</span>
-                      </div>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/90 text-slate-950 text-[10px] font-black shadow-xs backdrop-blur-xs">
+                        <CheckCircle className="w-3 h-3 text-slate-950" />
+                        <span>{isArabic ? `يناسب ${activeVehicle.model}` : `Fits ${activeVehicle.model}`}</span>
+                      </span>
                     ) : (
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-slate-900/90 text-slate-300 border border-white/10 text-[10px] font-medium">
-                        <AlertTriangle className="w-3 h-3 text-amber-400" />
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/90 text-slate-950 text-[10px] font-black shadow-xs backdrop-blur-xs">
+                        <AlertTriangle className="w-3 h-3 text-slate-950" />
                         <span>{isArabic ? 'تحقق من التوافق' : 'Check Fitment'}</span>
-                      </div>
+                      </span>
                     )}
                   </div>
                 )}
@@ -434,70 +413,64 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
 
               {/* Card Body */}
               <div className="p-4 flex-1 flex flex-col justify-between">
-                <div>
-                  {/* Brand & OEM */}
-                  <div className="flex items-center justify-between gap-2 text-xs mb-1">
-                    <span className="font-bold text-slate-300">{part.brand}</span>
-                    <span className="font-mono text-[11px] text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded">
-                      {part.partNumber}
-                    </span>
+                <div className="cursor-pointer" onClick={() => onSelectPart(part)}>
+                  {/* Brand & Part Number */}
+                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                    <span className="font-semibold text-slate-300">{part.brand}</span>
+                    <span className="font-mono text-[11px] text-slate-400">{part.partNumber}</span>
                   </div>
 
                   {/* Part Title */}
                   <h3
-                    onClick={() => onSelectPart(part)}
-                    className="font-bold text-white text-sm sm:text-base hover:text-indigo-300 cursor-pointer line-clamp-2 leading-snug transition-colors"
+                    className="font-bold text-white text-sm sm:text-base hover:text-indigo-400 transition-colors line-clamp-1 leading-snug"
+                    title={isArabic && part.partNameArabic ? part.partNameArabic : part.partName}
                   >
                     {isArabic && part.partNameArabic ? part.partNameArabic : part.partName}
                   </h3>
 
-                  {/* Price & Dealer Info */}
-                  <div className="mt-3 p-2.5 bg-white/[0.02] rounded-xl border border-white/5 flex items-center justify-between">
-                    <div>
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">
-                        {isArabic ? 'السعر' : 'Price'}
-                      </div>
-                      <div className="font-black text-white text-base">
-                        {formatPrice(lowestPriceUSD, lowestPriceIQD)}
-                      </div>
+                  {/* Price & Supplier */}
+                  <div className="mt-3.5 flex items-baseline justify-between">
+                    <div className="font-black text-white text-base sm:text-lg tracking-tight">
+                      {formatPrice(lowestPriceUSD, lowestPriceIQD)}
                     </div>
 
                     {bestOffer && (
-                      <div className="text-right rtl:text-left text-xs">
-                        <div
-                          onClick={() => {
-                            setSelectedSupplierIdForStore(bestOffer.supplierId);
-                            setActiveModal('supplier_store');
-                          }}
-                          className="font-semibold text-slate-300 hover:text-indigo-300 cursor-pointer flex items-center justify-end rtl:justify-start gap-1 transition-colors"
-                        >
-                          <Store className="w-3 h-3 text-indigo-400" />
-                          <span className="truncate max-w-[110px]">{bestOffer.supplierName}</span>
-                        </div>
-                        <div className="flex items-center justify-end rtl:justify-start gap-1 text-[11px] text-slate-400 mt-0.5">
-                          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                          <span className="font-bold text-slate-200">{bestOffer.supplierRating}</span>
-                        </div>
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedSupplierIdForStore(bestOffer.supplierId);
+                          setActiveModal('supplier_store');
+                        }}
+                        className="text-xs text-slate-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5"
+                      >
+                        <span className="truncate max-w-[110px]">{bestOffer.supplierName}</span>
+                        <span className="text-amber-400 font-bold text-[11px] flex items-center gap-0.5">
+                          ★ {bestOffer.supplierRating}
+                        </span>
                       </div>
                     )}
                   </div>
                 </div>
 
                 {/* Single Dominant CTA */}
-                <div className="pt-3 mt-3 border-t border-white/10 flex items-center gap-2">
+                <div className="mt-3 pt-3 border-t border-white/[0.07]">
                   {bestOffer && !isOutOfStock ? (
                     <button
                       id={`buy-btn-${part.id}`}
-                      onClick={() => addToCart(part, bestOffer)}
-                      className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(part, bestOffer);
+                      }}
+                      className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>{isArabic ? 'شراء / إضافة للسلة' : 'Buy Now'}</span>
+                      <span>{isArabic ? 'شراء الآن' : 'Buy Now'}</span>
                     </button>
                   ) : (
                     <button
                       id={`get-offers-btn-${part.id}`}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setPrefilledPartRequest({
                           partName: part.partName,
                           partNumberHint: part.partNumber,
@@ -506,21 +479,12 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                         });
                         setActiveModal('request_part');
                       }}
-                      className="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
+                      className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
                     >
                       <Gavel className="w-3.5 h-3.5 text-slate-950" />
                       <span>{isArabic ? 'طلب عروض أسعار' : 'Get Offers'}</span>
                     </button>
                   )}
-
-                  <button
-                    id={`view-details-btn-${part.id}`}
-                    onClick={() => onSelectPart(part)}
-                    className="p-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                    title={isArabic ? 'عرض التفاصيل الكاملة' : 'View Details'}
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             </div>
