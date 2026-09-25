@@ -103,12 +103,10 @@ export const CartModal: React.FC = () => {
             </div>
             <div>
               <h2 className="font-extrabold text-white text-base sm:text-lg">
-                {isArabic ? 'سلة الطلبات وإدارة المشتريات' : 'Order Basket & Active Deliveries'}
+                {isArabic ? 'سلة الطلبات' : 'Cart'}
               </h2>
               <p className="text-xs text-slate-400">
-                {isArabic
-                  ? 'الدفع عند الاستلام أو عند المحل، وتتبع التوصيل'
-                  : 'Cash on delivery, warehouse pickup & order tracking'}
+                {cart.length} {isArabic ? 'قطع محددة' : 'items selected'} • {isArabic ? 'الدفع عند الاستلام أو الاستلام من الفرع' : 'Cash on delivery or counter pickup'}
               </p>
             </div>
           </div>

@@ -173,7 +173,7 @@ export const MasterPartDetailModal: React.FC<MasterPartDetailModalProps> = ({ pa
                     <span className="w-2 h-2 rounded-full bg-emerald-400" />
                     <span>
                       {isArabic
-                        ? 'متوفر بالمخزن المركزي (شحن خلال 24 ساعة)'
+                        ? 'متوفر بالمخزن • شحن خلال 24 ساعة'
                         : 'In Stock • Dispatched within 24h'}
                     </span>
                   </div>
@@ -182,7 +182,7 @@ export const MasterPartDetailModal: React.FC<MasterPartDetailModalProps> = ({ pa
                     <Truck className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span>
                       {isArabic
-                        ? 'توصيل لبغداد وأربيل والبصرة مع فحص فيزيائي'
+                        ? 'توصيل مباشر لبغداد وأربيل والبصرة'
                         : 'Direct delivery across Baghdad, Erbil & Basra'}
                     </span>
                   </div>
@@ -191,8 +191,8 @@ export const MasterPartDetailModal: React.FC<MasterPartDetailModalProps> = ({ pa
                     <ShieldCheck className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                     <span>
                       {isArabic
-                        ? 'ضمان سنة أو 20,000 كم ضد عيوب الصناعة'
-                        : '12-Month / 20,000 KM Warranty'}
+                        ? 'ضمان سنة كاملة ضد عيوب الصناعة'
+                        : '12-Month Official Warranty'}
                     </span>
                   </div>
                 </div>
@@ -216,7 +216,7 @@ export const MasterPartDetailModal: React.FC<MasterPartDetailModalProps> = ({ pa
                         <Star className="w-3.5 h-3.5 fill-amber-400" />
                         <span>{bestOffer.supplierRating}</span>
                       </div>
-                      <div className="text-[10px] text-slate-400">{bestOffer.locationCity}</div>
+                      <div className="text-[10px] text-slate-400">{bestOffer.supplierCity}</div>
                     </div>
                   </div>
                 )}
@@ -341,10 +341,14 @@ export const MasterPartDetailModal: React.FC<MasterPartDetailModalProps> = ({ pa
                           <Star className="w-3 h-3 fill-amber-400" />
                           {offer.supplierRating}
                         </span>
-                        <span className="text-[10px] text-slate-400">{offer.locationCity}</span>
+                        <span className="text-[10px] text-slate-400">{offer.supplierCity}</span>
                       </div>
                       <div className="text-[11px] text-slate-400 mt-0.5">
-                        {offer.quality === 'genuine' ? 'OEM Genuine' : 'OEM Tier-1'} • Warranty: {offer.warrantyPeriod} • Delivery: {offer.deliveryEstimate}
+                        <span className="font-semibold text-slate-300">
+                          {offer.quality === 'genuine' ? (isArabic ? 'أصلي وكالة' : 'OEM Genuine') : (isArabic ? 'مواصفة وكالة' : 'OEM Tier-1')}
+                        </span>
+                        {offer.warranty && <span> • {offer.warranty}</span>}
+                        {offer.deliveryTime && <span> • {offer.deliveryTime}</span>}
                       </div>
                     </div>
 

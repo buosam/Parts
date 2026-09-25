@@ -20,9 +20,8 @@ async function run() {
   // Arabic Desktop
   const pAr = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await pAr.goto('http://localhost:3000', { waitUntil: 'networkidle' });
-  await pAr.evaluate(() => localStorage.setItem('sp_language', 'ar'));
-  await pAr.reload({ waitUntil: 'networkidle' });
-  await pAr.waitForTimeout(800);
+  await pAr.click('#navbar-language-toggle');
+  await pAr.waitForTimeout(600);
   await pAr.screenshot({ path: 'C:/Users/masou/.gemini/antigravity-ide/brain/443c4fe3-c732-49e1-89ef-0571657763a5/screenshots/simplified-arabic-1440.png' });
   await pAr.close();
 

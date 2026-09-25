@@ -158,7 +158,16 @@ const MarketplaceContext = createContext<MarketplaceContextType | undefined>(und
 
 export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [role, setRole] = useState<UserRole>('customer');
-  const [language, setLanguage] = useState<'en' | 'ar'>('en');
+  const [language, setLanguageState] = useState<'en' | 'ar'>(() => {
+    const saved = localStorage.getItem('sp_language');
+    return saved === 'ar' ? 'ar' : 'en';
+  });
+
+  const setLanguage = (lang: 'en' | 'ar') => {
+    setLanguageState(lang);
+    localStorage.setItem('sp_language', lang);
+  };
+
   const [currency, setCurrencyState] = useState<'USD' | 'IQD'>(() => {
     const saved = localStorage.getItem('sp_currency');
     return saved === 'IQD' ? 'IQD' : 'USD';
