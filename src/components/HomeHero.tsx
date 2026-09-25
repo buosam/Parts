@@ -101,24 +101,24 @@ export const HomeHero: React.FC = () => {
   }, [localInput, masterParts, isArabic]);
 
   return (
-    <section className="relative overflow-hidden bg-[#090d16] text-white border-b border-white/[0.08] pt-10 pb-12 sm:pt-14 sm:pb-16">
+    <section className="relative overflow-hidden bg-[#090d16] text-white border-b border-white/[0.08] pt-8 pb-10 sm:pt-12 sm:pb-12">
       {/* Subtle Restrained Ambient Glow */}
-      <div className="mesh-glow mesh-glow-blue w-[500px] h-[350px] -top-24 -left-20" />
-      <div className="mesh-glow mesh-glow-orange w-[400px] h-[300px] -bottom-20 -right-20" />
+      <div className="mesh-glow mesh-glow-blue w-[400px] h-[250px] -top-24 -left-20" />
+      <div className="mesh-glow mesh-glow-orange w-[300px] h-[200px] -bottom-20 -right-20" />
 
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
         {/* Confident Human Headline (Section 6) */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
           {isArabic ? 'اعثر على القطعة المطابقة لسيارتك' : 'Find the right part for your car.'}
         </h1>
-        <p className="mt-2 text-sm sm:text-base text-slate-400 max-w-lg mx-auto font-normal">
+        <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto font-normal">
           {isArabic
-            ? 'توافق فيزيائي مضمون 100% مباشرة من الوكلاء المعتمدين في العراق'
-            : 'Guaranteed fitment with direct stock from verified dealers across Iraq.'}
+            ? 'مخزون حقيقي متزامن مباشرة من الوكلاء المعتمدين في العراق'
+            : 'Guaranteed fitment from verified dealers across Iraq.'}
         </p>
 
         {/* Unified Search & Vehicle Selection Console */}
-        <div className="mt-8 max-w-2xl mx-auto" ref={searchContainerRef}>
+        <div className="mt-7 max-w-2xl mx-auto" ref={searchContainerRef}>
           <div className="relative bg-[#0e1424] rounded-2xl border border-white/[0.12] shadow-2xl focus-within:border-[#335aff] focus-within:ring-2 focus-within:ring-[#335aff]/25 transition-all">
             <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row items-stretch divide-y sm:divide-y-0 sm:divide-x sm:rtl:divide-x-reverse divide-white/[0.08]">
               
@@ -252,71 +252,29 @@ export const HomeHero: React.FC = () => {
             )}
           </div>
 
-          {/* Quick Actions & Popular Search Chips */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1 text-xs">
-            {/* Secondary Actions */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                id="hero-scan-sanawia-btn"
-                onClick={() => setActiveModal('sanawia_ocr')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 text-emerald-300 text-xs font-semibold transition-all cursor-pointer micro-press"
-              >
-                <Camera className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isArabic ? 'مسح السنوية (AI)' : 'Upload Registration'}</span>
-              </button>
+          {/* Quick Actions (Quiet, Refined) */}
+          <div className="flex items-center justify-center gap-4 mt-3.5 text-xs">
+            <button
+              type="button"
+              id="hero-scan-sanawia-btn"
+              onClick={() => setActiveModal('sanawia_ocr')}
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-emerald-400 transition-colors cursor-pointer text-xs"
+            >
+              <Camera className="w-3.5 h-3.5 text-emerald-400" />
+              <span>{isArabic ? 'مسح السنوية (AI)' : 'Upload Registration'}</span>
+            </button>
 
-              <button
-                type="button"
-                id="hero-cant-find-part-btn"
-                onClick={() => setActiveModal('request_part')}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] border border-white/10 text-slate-300 hover:text-white text-xs font-medium transition-all cursor-pointer micro-press"
-              >
-                <Gavel className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isArabic ? 'لم تجد القطعة؟ اطلبها' : 'Can\'t find it? Request Quote'}</span>
-              </button>
-            </div>
+            <span className="text-slate-600">•</span>
 
-            {/* Popular Search Chips */}
-            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-400">
-              <span className="text-slate-500">{isArabic ? 'شائع:' : 'Popular:'}</span>
-              {[
-                { label: 'Brake Pads', query: 'Brake' },
-                { label: 'Oil Filter', query: '04152-YZZA1' },
-                { label: 'Control Arm', query: 'Control Arm' },
-              ].map((chip) => (
-                <button
-                  key={chip.query}
-                  type="button"
-                  onClick={() => handleSelectSuggestion(chip.query)}
-                  className="hover:text-white hover:underline transition-colors cursor-pointer text-slate-300"
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 3 Core Trust Pillars (Quiet & Credible) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto mt-8 pt-6 border-t border-white/[0.06] text-slate-400 text-xs text-left rtl:text-right">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="text-slate-300">
-              {isArabic ? 'ضمان مطابقة 100% مع السيارة' : '100% Guaranteed Fitment'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0" />
-            <span className="text-slate-300">
-              {isArabic ? 'وكلاء ومتاجر معتمدة ومفحوصة' : 'Verified Genuine & OEM Dealers'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Truck className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="text-slate-300">
-              {isArabic ? 'توصيل لبغداد وأربيل والبصرة' : 'Fast Delivery Across Iraq'}
-            </span>
+            <button
+              type="button"
+              id="hero-cant-find-part-btn"
+              onClick={() => setActiveModal('request_part')}
+              className="inline-flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer text-xs"
+            >
+              <Gavel className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isArabic ? 'لم تجد القطعة؟ اطلبها' : "Can't find a part? Request Quote"}</span>
+            </button>
           </div>
         </div>
       </div>

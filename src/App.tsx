@@ -88,67 +88,11 @@ const MarketplaceApp: React.FC = () => {
         {role === 'customer' && (
           <div>
             <HomeHero />
-
-            {/* Buyer Mode View Switcher Bar */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-1.5 bg-[#0e1424] border border-white/[0.08] rounded-2xl shadow-sm">
-                <div className="flex items-center gap-1.5 w-full sm:w-auto p-0.5 bg-black/30 rounded-xl">
-                  <button
-                    id="buyer-tab-catalog"
-                    type="button"
-                    onClick={() => {
-                      if (selectedCategory === 'requests') {
-                        setSelectedCategory('All');
-                      }
-                    }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer micro-press ${
-                      !isBiddingView
-                        ? 'bg-[#335aff] text-white shadow-xs'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <Layers className="w-4 h-4" />
-                    <span>{isArabic ? 'كتالوج قطع الغيار' : 'Browse Parts Catalog'}</span>
-                  </button>
-
-                  <button
-                    id="buyer-tab-bidding"
-                    type="button"
-                    onClick={() => setSelectedCategory('requests')}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer micro-press ${
-                      isBiddingView
-                        ? 'bg-[#335aff] text-white shadow-xs'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
-                    }`}
-                  >
-                    <Gavel className="w-4 h-4" />
-                    <span>{isArabic ? 'طلبات وعروض الأسعار' : 'Dealer Quotes & RFQ'}</span>
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
-                  </button>
-                </div>
-
-                <div className="hidden lg:flex items-center gap-3 pr-2 rtl:pr-0 rtl:pl-2 text-xs text-slate-400">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>
-                      {isArabic
-                        ? 'مخزون حقيقي متزامن مع وكلاء بغداد وأربيل والبصرة'
-                        : 'Live inventory synced across verified Iraqi dealers'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Display Active Customer View */}
+            <CarIdDepartmentBar />
             {isBiddingView ? (
               <RequestsBoard />
             ) : (
-              <>
-                {/* Automotive Departments Filter Bar */}
-                <CarIdDepartmentBar />
-                <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
-              </>
+              <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
             )}
           </div>
         )}
@@ -239,92 +183,36 @@ const MarketplaceApp: React.FC = () => {
         />
       )}
 
-      {/* Sleek Footer */}
-      <footer className="bg-[#070a12] text-slate-300 border-t border-white/10 text-xs py-12">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div>
-            <div className="mb-3.5">
-              <Logo
-                variant="dark"
-                size="sm"
-                showBadge={true}
-                showSubtitle={false}
-                isArabic={isArabic}
-              />
-            </div>
-            <p className="text-slate-400 text-xs leading-relaxed">
-              {isArabic
-                ? 'سوق قطع الغيار المعتمد في العراق. ربط مباشر بين المشترين والورش والوكلاء مع المزامنة اللحظية للمخزون.'
-                : 'Iraq’s unified automotive spare-parts ecosystem. Seamlessly connects car owners and workshops with verified dealers.'}
-            </p>
+      {/* Sleek Minimalist Footer */}
+      <footer className="bg-[#070a12] text-slate-400 border-t border-white/[0.08] text-xs py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Logo
+              variant="dark"
+              size="sm"
+              showBadge={true}
+              showSubtitle={false}
+              isArabic={isArabic}
+            />
+            <span className="text-slate-600 hidden sm:inline">•</span>
+            <span className="text-slate-400 text-xs hidden sm:inline">
+              {isArabic ? 'سوق قطع الغيار المعتمد في العراق' : "Iraq's automotive spare-parts marketplace."}
+            </span>
           </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
-              {isArabic ? 'الخدمات الرئيسية' : 'Core Capabilities'}
-            </h4>
-            <ul className="space-y-2 text-slate-400 text-xs">
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isArabic ? 'شراء مباشر من الكتالوج المعتمد' : 'Direct Marketplace Purchases'}</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isArabic ? 'صالة مناقصات ومزايدات المتاجر' : 'Reverse RFQ Dealer Bidding'}</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isArabic ? 'ربط وتكامل أنظمة ERP / DMS' : 'B2B ERP / DMS & REST API Sync'}</span>
-
-              </li>
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isArabic ? 'فحص الصور بالذكاء الاصطناعي' : 'AI Photo Vision Search'}</span>
-              </li>
-            </ul>
+          <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-slate-500">
+            <span>Baghdad</span>
+            <span>•</span>
+            <span>Erbil</span>
+            <span>•</span>
+            <span>Basra</span>
+            <span>•</span>
+            <span>Sulaymaniyah</span>
           </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
-              {isArabic ? 'المراكز والمستودعات' : 'Regional Hubs'}
-            </h4>
-            <ul className="space-y-2 text-slate-400 text-xs">
-              <li className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{isArabic ? 'بغداد (السنك والشيخ عمر)' : 'Baghdad (Al-Sinak & Sheikh Omar)'}</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{isArabic ? 'أربيل (المستودع المركزي وشارع 60)' : 'Erbil (Central Warehouse & 60m Ring)'}</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{isArabic ? 'البصرة والسليمانية ودهوك' : 'Basra, Sulaymaniyah & Duhok'}</span>
-              </li>
-            </ul>
+          <div className="text-slate-500 text-[11px]">
+            © 2026 IQAutoMarket
           </div>
-
-          <div>
-            <h4 className="font-bold text-white mb-3 text-xs uppercase tracking-wider">
-              {isArabic ? 'الضمان والموثوقية' : 'Trust & Guarantee'}
-            </h4>
-            <div className="p-3.5 bg-white/[0.03] rounded-2xl border border-white/10 space-y-2 text-[11px] text-slate-300">
-              <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>{isArabic ? 'ضمان مطابقة 100% للقطعة' : '100% Guaranteed Fitment'}</span>
-              </div>
-              <p className="text-slate-400 leading-relaxed">
-                {isArabic
-                  ? 'قطع أصلية ومعتمدة مع فحص فيزيائي عند الاستلام أو التوصيل السريع لعنوانك.'
-                  : 'Verified genuine and OEM-spec components with physical inspection on pickup or doorstep courier.'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 mt-10 pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-slate-500 text-[11px] gap-3">
-          <span>© 2026 IQAutoMarket</span>
-          <span>Part of IQAuto Community</span>
         </div>
       </footer>
     </div>

@@ -154,26 +154,22 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
   }, [masterParts, searchQuery, selectedCategory, activeVehicle, onlyFitsMyCar, selectedBrand, qualityFilter, sortBy]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-8" dir={isArabic ? 'rtl' : 'ltr'}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Search Header & Filter Controls Strip */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
-        <div>
-          <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <span>{isArabic ? 'قطع الغيار المتوفرة' : 'Available Parts'}</span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-400">
-              {filteredAndRankedParts.length}
-            </span>
-          </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+        <div className="text-xs text-slate-400 font-medium">
+          <span className="font-bold text-white">{filteredAndRankedParts.length}</span>{' '}
+          <span>{isArabic ? 'قطعة متوفرة' : 'parts available'}</span>
           {searchQuery && (
-            <p className="text-xs text-slate-400 mt-0.5">
-              {isArabic ? 'نتائج البحث عن:' : 'Results for:'}{' '}
-              <span className="text-white font-semibold">"{searchQuery}"</span>
-            </p>
+            <span>
+              {' '}• {isArabic ? 'للبحث:' : 'for'}{' '}
+              <strong className="text-white">"{searchQuery}"</strong>
+            </span>
           )}
         </div>
 
         {/* Filter Controls */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 text-xs">
           {/* Fitment Toggle */}
           {activeVehicle && (
             <button
@@ -198,9 +194,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
             onChange={(e) => setQualityFilter(e.target.value as any)}
             className="bg-[#0e1424] border border-white/10 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
           >
-            <option value="all">{isArabic ? 'جميع الجودات' : 'All Quality Tiers'}</option>
-            <option value="genuine">{isArabic ? 'أصلي وكالة (OEM)' : 'Genuine OEM'}</option>
-            <option value="oem">{isArabic ? 'مواصفة وكالة (Tier-1)' : 'OEM Spec'}</option>
+            <option value="all">{isArabic ? 'جميع الجودات' : 'All Quality'}</option>
+            <option value="genuine">{isArabic ? 'أصلي (OEM)' : 'Genuine OEM'}</option>
+            <option value="oem">{isArabic ? 'مواصفة وكالة' : 'OEM Spec'}</option>
             <option value="aftermarket">{isArabic ? 'تجاري معتمد' : 'Aftermarket'}</option>
           </select>
 
@@ -211,9 +207,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
             className="bg-[#0e1424] border border-white/10 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
           >
             <option value="compatibility">{isArabic ? 'الأكثر توافقاً' : 'Best Match'}</option>
-            <option value="price_asc">{isArabic ? 'السعر: من الأقل للأعلى' : 'Price: Low to High'}</option>
-            <option value="price_desc">{isArabic ? 'السعر: من الأعلى للأقل' : 'Price: High to Low'}</option>
-            <option value="trust">{isArabic ? 'أعلى تقييم للوكيل' : 'Highest Dealer Rating'}</option>
+            <option value="price_asc">{isArabic ? 'الأقل سعراً' : 'Price: Low to High'}</option>
+            <option value="price_desc">{isArabic ? 'الأعلى سعراً' : 'Price: High to Low'}</option>
+            <option value="trust">{isArabic ? 'أعلى تقييم' : 'Highest Rating'}</option>
           </select>
 
           {/* Reset Filters */}
@@ -388,13 +384,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
 
                 {/* Bottom Price & Single Dominant CTA */}
                 <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[10px] text-slate-500 uppercase font-semibold">
-                      {isArabic ? 'السعر يبدأ من' : 'Starting from'}
-                    </div>
-                    <div className="text-base font-black text-white tracking-tight">
-                      {formatPrice(lowestPriceUSD, lowestPriceIQD)}
-                    </div>
+                  <div className="text-base font-black text-white tracking-tight">
+                    {formatPrice(lowestPriceUSD, lowestPriceIQD)}
                   </div>
 
                   {bestOffer && !isOutOfStock ? (
@@ -405,10 +396,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                         e.stopPropagation();
                         addToCart(part, bestOffer);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-[#335aff] hover:text-white text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer micro-press border border-white/10 hover:border-transparent"
+                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-[#335aff] hover:text-white text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer micro-press border border-white/10 hover:border-transparent"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>{isArabic ? 'شراء' : 'Buy Now'}</span>
+                      <span>{isArabic ? 'شراء' : 'Order'}</span>
                     </button>
                   ) : (
                     <button

@@ -13,6 +13,7 @@ import {
   Wrench,
   Layers,
   Filter,
+  Gavel,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 
@@ -29,39 +30,46 @@ export const CarIdDepartmentBar: React.FC = () => {
     },
     {
       id: 'Brake',
-      label: 'Brakes & Rotors',
-      labelAr: 'الفرامل والأقراص',
+      label: 'Brakes',
+      labelAr: 'الفرامل',
       icon: Disc,
     },
     {
       id: 'Suspension',
-      label: 'Suspension & Steering',
-      labelAr: 'المساعدات والتعليق',
+      label: 'Suspension',
+      labelAr: 'التعليق',
       icon: Wrench,
     },
     {
       id: 'Engine',
-      label: 'Engine & Drivetrain',
-      labelAr: 'المحرك وناقل الحركة',
+      label: 'Engine',
+      labelAr: 'المحرك',
       icon: Flame,
     },
     {
       id: 'Body Parts',
-      label: 'Exterior & Body',
-      labelAr: 'الهيكل والقطع الخارجية',
+      label: 'Body',
+      labelAr: 'الهيكل',
       icon: Shield,
     },
     {
       id: 'Cooling',
       label: 'Cooling & AC',
-      labelAr: 'التبريد والمكيف',
+      labelAr: 'التبريد',
       icon: Lightbulb,
     },
     {
       id: 'Filters',
-      label: 'Oil & Air Filters',
-      labelAr: 'فلاتر وزيوت الصيانة',
+      label: 'Filters',
+      labelAr: 'الفلاتر',
       icon: Filter,
+    },
+    {
+      id: 'requests',
+      label: 'Dealer Quotes & RFQ',
+      labelAr: 'عروض الأسعار',
+      icon: Gavel,
+      isLive: true,
     },
   ];
 
@@ -80,16 +88,15 @@ export const CarIdDepartmentBar: React.FC = () => {
               onClick={() => setSelectedCategory(dept.id)}
               className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer micro-press ${
                 isActive
-                  ? 'bg-white/[0.12] text-white border border-white/20 shadow-xs font-bold'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
+                  ? 'bg-[#335aff] text-white shadow-xs font-bold'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Icon
-                className={`w-3.5 h-3.5 ${
-                  isActive ? 'text-[#335aff]' : 'text-slate-500'
-                }`}
-              />
+              <Icon className="w-3.5 h-3.5" />
               <span>{isArabic ? dept.labelAr : dept.label}</span>
+              {(dept as any).isLive && (
+                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-emerald-400'} animate-pulse`} />
+              )}
             </button>
           );
         })}
