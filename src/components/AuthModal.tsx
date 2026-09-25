@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
+import { Logo } from './Logo';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -190,8 +191,8 @@ export const AuthModal: React.FC = () => {
         {/* Header Bar */}
         <div className="bg-slate-950/90 p-5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white flex items-center justify-center font-black text-sm shadow-lg shadow-indigo-600/30 border border-indigo-400/30">
-              IQ
+            <div className="w-11 h-11 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-2 shadow-lg shadow-blue-900/30 shrink-0">
+              <Logo variant="mark" size="sm" showBadge={false} showSubtitle={false} />
             </div>
             <div>
               <h2 className="text-base font-black text-white">

@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
 import { AppNavbar } from './components/Navigation/AppNavbar';
+import { Logo } from './components/Logo';
 import { PartlineConsole } from './components/Partline/PartlineConsole';
 import { SanawiaDocOcrModal } from './components/Buyer/SanawiaDocOcrModal';
 import { HomeHero } from './components/HomeHero';
@@ -244,13 +245,14 @@ const MarketplaceApp: React.FC = () => {
       <footer className="bg-[#070a12] text-slate-300 border-t border-white/10 text-xs py-12">
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="flex items-center gap-2.5 mb-3">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-blue-600 text-white flex items-center justify-center font-black text-sm shadow-md">
-                IQ
-              </div>
-              <span className="font-extrabold text-white text-base tracking-tight">
-                IQAuto<span className="text-indigo-400">Market</span>
-              </span>
+            <div className="mb-3.5">
+              <Logo
+                variant="dark"
+                size="sm"
+                showBadge={true}
+                showSubtitle={false}
+                isArabic={isArabic}
+              />
             </div>
             <p className="text-slate-400 text-xs leading-relaxed">
               {isArabic

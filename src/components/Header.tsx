@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
+import { Logo } from './Logo';
 
 export const Header: React.FC = () => {
   const {
@@ -106,33 +107,14 @@ export const Header: React.FC = () => {
       {/* Main Header Bar */}
       <div className="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4">
         {/* Brand & Tagline - IQAutoMarket */}
-        <div className="flex items-center gap-3">
-          <div
-            onClick={() => {
-              setSelectedCategory('All');
-            }}
-            className="cursor-pointer flex items-center gap-3 group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 via-blue-600 to-indigo-700 text-white flex items-center justify-center font-black tracking-tighter text-sm shadow-lg shadow-indigo-600/30 group-hover:scale-105 transition-all border border-indigo-400/30">
-              IQ
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black tracking-tight text-white text-base sm:text-lg">
-                  IQAuto<span className="text-indigo-400">Market</span>
-                </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded border border-indigo-500/20">
-                  {isArabic ? 'العراق' : 'IRAQ'}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block font-medium">
-                {isArabic
-                  ? 'سوق قطع الغيار المعتمد وتكامل أنظمة الوكلاء'
-                  : 'Genuine Parts & Integrated Dealer Network'}
-              </p>
-            </div>
-          </div>
-        </div>
+        <Logo
+          variant="dark"
+          size="md"
+          showBadge={true}
+          showSubtitle={true}
+          isArabic={isArabic}
+          onClick={() => setSelectedCategory('All')}
+        />
 
         {/* Center: Active Vehicle Selector Pill */}
         <div className="hidden lg:flex items-center">
