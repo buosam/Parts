@@ -7,19 +7,18 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   Car,
-  Search,
   ShoppingBag,
-  ShieldCheck,
   Globe,
   Coins,
   User,
   LogOut,
   Shield,
   Layers,
-  Gavel,
   ChevronDown,
   Sparkles,
-  ExternalLink,
+  ShieldCheck,
+  Check,
+  Plus,
 } from 'lucide-react';
 import { useMarketplace } from '../../context/MarketplaceContext';
 import { ActiveSessionsModal } from '../Security/ActiveSessionsModal';
@@ -44,7 +43,6 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
     activeVehicle,
     setActiveModal,
     cart,
-    orders,
     setSelectedCategory,
   } = useMarketplace();
 
@@ -65,154 +63,133 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#0a0e1a]/95 backdrop-blur-xl border-b border-white/10 shadow-2xl shadow-black/40">
+      <header className="sticky top-0 z-40 glass-nav border-b border-white/[0.08] shadow-lg shadow-black/25">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-4">
+          {/* Brand Logo */}
+          <div className="shrink-0">
+            <Logo
+              variant="dark"
+              size="sm"
+              showBadge={true}
+              showSubtitle={false}
+              isArabic={isArabic}
+              onClick={() => {
+                setRole('customer');
+                setSelectedCategory('All');
+              }}
+            />
+          </div>
 
-        {/* Main Nav Bar */}
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 flex items-center justify-between gap-4">
-          {/* Brand */}
-          <Logo
-            variant="dark"
-            size="md"
-            showBadge={true}
-            showSubtitle={true}
-            isArabic={isArabic}
-            onClick={() => {
-              setRole('customer');
-              setSelectedCategory('All');
-            }}
-          />
-
-          {/* Center: Active Vehicle Guaranteed Fitment Pill */}
-          <div className="hidden lg:flex items-center">
+          {/* Center: Persistent Vehicle Fitment Context Pill */}
+          <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-2">
             <button
               id="navbar-active-vehicle-pill"
               onClick={() => setActiveModal('vehicle_picker')}
-              className="flex items-center gap-3 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/10 hover:border-indigo-500/40 hover:bg-white/[0.08] transition-all text-left rtl:text-right group cursor-pointer"
+              className={`w-full flex items-center justify-between gap-2.5 px-3.5 py-1.5 rounded-full border text-left rtl:text-right transition-all cursor-pointer group micro-press ${
+                activeVehicle
+                  ? 'bg-emerald-500/[0.08] border-emerald-500/25 hover:border-emerald-500/40 text-white'
+                  : 'bg-white/[0.03] border-white/10 hover:border-white/20 text-slate-300'
+              }`}
+              title={isArabic ? 'تأكيد توافق القطع مع سيارتك' : 'Guarantee part fitment for your vehicle'}
             >
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-300 group-hover:scale-105 transition-transform">
-                <Car className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <span>{isArabic ? 'السيارة المحددة' : 'MY ACTIVE VEHICLE'}</span>
-                  <span className="text-[9px] bg-emerald-500/20 text-emerald-300 font-bold px-1 rounded">
-                    ✓ FITMENT
-                  </span>
+              <div className="flex items-center gap-2 min-w-0">
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                    activeVehicle
+                      ? 'bg-emerald-500/20 text-emerald-400'
+                      : 'bg-white/10 text-slate-400 group-hover:text-white'
+                  }`}
+                >
+                  <Car className="w-3.5 h-3.5" />
                 </div>
-                <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                <div className="truncate">
                   {activeVehicle ? (
-                    <>
-                      <span>{activeVehicle.make} {activeVehicle.model} {activeVehicle.year}</span>
-                      <span className="text-[11px] text-slate-400 font-normal">({activeVehicle.engine})</span>
-                    </>
+                    <div className="flex items-center gap-1.5 truncate">
+                      <span className="text-xs font-bold text-white truncate">
+                        {activeVehicle.make} {activeVehicle.model} {activeVehicle.year}
+                      </span>
+                      <span className="text-[10px] text-emerald-400 font-semibold px-1.5 py-0.2 rounded-full bg-emerald-500/15 shrink-0 flex items-center gap-0.5">
+                        <Check className="w-2.5 h-2.5" />
+                        <span>{isArabic ? 'مطابق' : 'Fits'}</span>
+                      </span>
+                    </div>
                   ) : (
-                    <span className="text-amber-300 font-semibold">
-                      {isArabic ? 'حدد سيارتك لتأكيد التوافق' : 'Select vehicle to guarantee fit'}
-                    </span>
+                    <div className="text-xs font-medium text-slate-400 group-hover:text-slate-200 truncate flex items-center gap-1.5">
+                      <Plus className="w-3 h-3 text-indigo-400" />
+                      <span>{isArabic ? 'اختر سيارتك لتأكيد التوافق' : 'Select vehicle to guarantee fit'}</span>
+                    </div>
                   )}
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white" />
                 </div>
               </div>
+
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-white shrink-0" />
             </button>
           </div>
 
           {/* Right Action Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Currency Switcher */}
             <button
               id="navbar-currency-toggle"
               onClick={() => setCurrency(currency === 'USD' ? 'IQD' : 'USD')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-amber-300 hover:text-amber-200 text-xs font-bold border border-amber-500/20 transition-all cursor-pointer shadow-xs"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.05] border border-transparent hover:border-white/10 transition-all cursor-pointer micro-press"
               title="Switch Currency (USD / IQD)"
             >
               <Coins className="w-3.5 h-3.5 text-amber-400" />
               <span>{currency === 'USD' ? '$ USD' : 'د.ع IQD'}</span>
             </button>
 
-            {/* Language Toggle */}
+            {/* Language Switcher */}
             <button
               id="navbar-language-toggle"
               onClick={() => setLanguage(isArabic ? 'en' : 'ar')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 hover:text-white text-xs font-semibold border border-white/10 transition-colors cursor-pointer shadow-xs"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.05] border border-transparent hover:border-white/10 transition-all cursor-pointer micro-press"
               title="Switch Language"
             >
               <Globe className="w-3.5 h-3.5 text-indigo-400" />
               <span>{isArabic ? 'English' : 'العربية'}</span>
             </button>
-            {/* Sanawia AI Registration Recognition Trigger */}
-            {/* Partline Ops Console Quick Switcher */}
-            {onOpenPartlineConsole && (
-              <button
-                id="btn-open-partline"
-                onClick={onOpenPartlineConsole}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-indigo-300 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/30 transition-all cursor-pointer shadow-sm"
-                title="Open Partline Operations Console (Linear SaaS Ops)"
-              >
-                <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-                <span>{isArabic ? 'كونسول Partline' : 'Partline Ops'}</span>
-                <span className="text-[9px] font-black uppercase px-1 rounded bg-indigo-500/30 text-indigo-200">
-                  B2B
-                </span>
-              </button>
-            )}
 
-            <button
-              id="btn-scan-sanawia"
-              onClick={onOpenSanawiaScan}
-              className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 transition-all cursor-pointer"
-              title="Recognize vehicle from registration document"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{isArabic ? 'مسح السنوية (AI)' : 'Sanawia OCR'}</span>
-            </button>
-
-            {/* Quick Request a Part */}
-            <button
-              id="navbar-request-part-btn"
-              onClick={() => setActiveModal('request_part')}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
-            >
-              <Gavel className="w-4 h-4 text-indigo-200" />
-              <span>{isArabic ? 'طلب قطعة' : 'Request Part'}</span>
-            </button>
-
-            {/* Cart Button */}
+            {/* Shopping Bag / Cart */}
             <button
               id="navbar-cart-btn"
               onClick={() => setActiveModal('cart')}
-              className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.04] text-slate-200 hover:text-white transition-colors cursor-pointer"
+              className="relative p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/[0.05] transition-colors cursor-pointer micro-press"
+              title={isArabic ? 'سلة الطلبات' : 'Cart & Active Orders'}
+              aria-label="Shopping Cart"
             >
               <ShoppingBag className="w-4 h-4" />
               {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-indigo-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-md">
+                <span className="absolute 1 top-1 right-1 bg-[#335aff] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
                   {cart.length}
                 </span>
               )}
             </button>
 
-            {/* User Profile & Security Popover */}
+            {/* User Profile & Role Popover */}
             <div className="relative" ref={profileRef}>
               <button
                 id="navbar-profile-btn"
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="flex items-center gap-2 p-1 sm:px-2.5 sm:py-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-indigo-500/40 text-xs transition-all cursor-pointer"
+                className="flex items-center gap-1.5 p-1 sm:px-2.5 sm:py-1.5 rounded-lg hover:bg-white/[0.05] text-xs transition-all cursor-pointer micro-press border border-transparent hover:border-white/10"
+                aria-expanded={isProfileOpen}
               >
                 {currentUser ? (
                   <>
                     <img
                       src={currentUser.avatarUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80'}
-                      alt={currentUser.name}
-                      className="w-7 h-7 rounded-lg object-cover border border-indigo-400/40"
+                      alt=""
+                      className="w-6 h-6 rounded-full object-cover border border-white/20"
                     />
-                    <span className="text-xs font-bold text-white hidden sm:inline truncate max-w-[90px]">
+                    <span className="text-xs font-semibold text-slate-200 hidden sm:inline truncate max-w-[80px]">
                       {currentUser.name.split(' ')[0]}
                     </span>
                   </>
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <User className="w-4 h-4 text-indigo-400" />
-                    <span className="text-xs font-semibold text-slate-200 hidden sm:inline">
-                      {isArabic ? 'تسجيل الدخول' : 'Sign In'}
+                  <div className="flex items-center gap-1.5 text-slate-300 hover:text-white">
+                    <User className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs font-semibold hidden sm:inline">
+                      {isArabic ? 'حسابي' : 'Sign In'}
                     </span>
                   </div>
                 )}
@@ -220,30 +197,50 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
               </button>
 
               {isProfileOpen && (
-                <div className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-72 rounded-2xl bg-[#0e1424] border border-white/10 shadow-2xl shadow-black/80 z-50 p-2 space-y-1">
+                <div
+                  className="absolute right-0 rtl:right-auto rtl:left-0 mt-2 w-72 rounded-2xl bg-[#0e1424] border border-white/10 shadow-2xl shadow-black/80 z-50 p-2 space-y-1.5 animate-in fade-in zoom-in-95 duration-150"
+                  dir={isArabic ? 'rtl' : 'ltr'}
+                >
                   {currentUser ? (
                     <>
-                      <div className="p-3 border-b border-white/5">
+                      <div className="p-3 border-b border-white/[0.07]">
                         <div className="font-bold text-white text-xs truncate">{currentUser.name}</div>
                         <div className="text-[11px] text-slate-400 truncate">{currentUser.email}</div>
-                        <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-500/10 text-blue-300 border border-blue-500/25">
                           {currentUser.role}
                         </span>
                       </div>
 
-                      {/* Portal Links based on User Authorization */}
-                      <div className="p-1 border-b border-white/5 space-y-1">
+                      {/* Role Switching */}
+                      <div className="py-1 border-b border-white/[0.07] space-y-1">
                         <button
                           onClick={() => {
                             setRole('customer');
                             setIsProfileOpen(false);
                           }}
-                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-left rtl:text-right transition-colors cursor-pointer ${
-                            role === 'customer' ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-300 hover:bg-white/[0.04]'
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left rtl:text-right transition-colors cursor-pointer ${
+                            role === 'customer'
+                              ? 'bg-blue-600/15 text-blue-400 font-bold'
+                              : 'text-slate-300 hover:bg-white/[0.04]'
                           }`}
                         >
                           <Car className="w-4 h-4 text-emerald-400" />
                           <span>{isArabic ? 'سوق المشتري' : 'Buyer Marketplace'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setRole('workshop');
+                            setIsProfileOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left rtl:text-right transition-colors cursor-pointer ${
+                            role === 'workshop'
+                              ? 'bg-blue-600/15 text-blue-400 font-bold'
+                              : 'text-slate-300 hover:bg-white/[0.04]'
+                          }`}
+                        >
+                          <Layers className="w-4 h-4 text-blue-400" />
+                          <span>{isArabic ? 'بوابة الورش ومراكز الصيانة' : 'Workshop & Garage Portal'}</span>
                         </button>
 
                         {(currentUser.role === 'supplier' || currentUser.role === 'admin') && (
@@ -252,12 +249,14 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
                               setRole('supplier');
                               setIsProfileOpen(false);
                             }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-left rtl:text-right transition-colors cursor-pointer ${
-                              role === 'supplier' ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-300 hover:bg-white/[0.04]'
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left rtl:text-right transition-colors cursor-pointer ${
+                              role === 'supplier'
+                                ? 'bg-blue-600/15 text-blue-400 font-bold'
+                                : 'text-slate-300 hover:bg-white/[0.04]'
                             }`}
                           >
-                            <Layers className="w-4 h-4 text-amber-400" />
-                            <span>{isArabic ? 'بوابة الوكيل والمخزون' : 'Dealer Business Portal'}</span>
+                            <ShieldCheck className="w-4 h-4 text-amber-400" />
+                            <span>{isArabic ? 'بوابة الوكلاء والتوريد' : 'Dealer Business Portal'}</span>
                           </button>
                         )}
 
@@ -267,35 +266,19 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
                               setRole('admin');
                               setIsProfileOpen(false);
                             }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-left rtl:text-right transition-colors cursor-pointer ${
-                              role === 'admin' ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-300 hover:bg-white/[0.04]'
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-left rtl:text-right transition-colors cursor-pointer ${
+                              role === 'admin'
+                                ? 'bg-blue-600/15 text-blue-400 font-bold'
+                                : 'text-slate-300 hover:bg-white/[0.04]'
                             }`}
                           >
-                            <ShieldCheck className="w-4 h-4 text-indigo-400" />
-                            <span>{isArabic ? 'لوحة تحكم الإدارة' : 'Admin Console'}</span>
-                          </button>
-                        )}
-
-                        {onOpenPartlineConsole && (
-                          <button
-                            onClick={() => {
-                              setIsProfileOpen(false);
-                              onOpenPartlineConsole();
-                            }}
-                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:bg-white/[0.04] transition-colors cursor-pointer"
-                          >
-                            <div className="flex items-center gap-2">
-                              <Layers className="w-4 h-4 text-indigo-400" />
-                              <span>{isArabic ? 'كونسول Partline للعمليات' : 'Partline Ops Console'}</span>
-                            </div>
-                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                              OPS
-                            </span>
+                            <Shield className="w-4 h-4 text-indigo-400" />
+                            <span>{isArabic ? 'لوحة تحكم المنصة' : 'Platform Administration'}</span>
                           </button>
                         )}
                       </div>
 
-                      {/* Security & Sessions Trigger */}
+                      {/* Security and Logout */}
                       <button
                         onClick={() => {
                           setIsProfileOpen(false);
@@ -303,19 +286,18 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
                         }}
                         className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-slate-300 hover:text-white hover:bg-white/[0.04] transition-colors cursor-pointer"
                       >
-                        <Shield className="w-4 h-4 text-indigo-400" />
-                        <span>{isArabic ? 'الأمان والجلسات النشطة' : 'Active Sessions & Security'}</span>
+                        <Shield className="w-4 h-4 text-slate-400" />
+                        <span>{isArabic ? 'الأمان والجلسات' : 'Security & Active Sessions'}</span>
                       </button>
 
-                      {/* Logout */}
                       <button
                         onClick={() => {
                           setIsProfileOpen(false);
                           logout();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-red-300 hover:bg-red-500/10 transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                       >
-                        <LogOut className="w-4 h-4 text-red-400" />
+                        <LogOut className="w-4 h-4" />
                         <span>{isArabic ? 'تسجيل الخروج' : 'Sign Out'}</span>
                       </button>
                     </>
@@ -326,7 +308,7 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
                           setIsProfileOpen(false);
                           openAuthModal('customer', 'signin');
                         }}
-                        className="w-full py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer text-center"
+                        className="w-full py-2.5 px-3 rounded-xl bg-[#335aff] hover:bg-[#2647e6] text-white font-bold text-xs cursor-pointer text-center transition-colors shadow-md"
                       >
                         {isArabic ? 'تسجيل الدخول' : 'Sign In'}
                       </button>
@@ -335,18 +317,18 @@ export const AppNavbar: React.FC<AppNavbarProps> = ({ onOpenSanawiaScan, onOpenP
                           setIsProfileOpen(false);
                           openAuthModal('customer', 'signup');
                         }}
-                        className="w-full py-2 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-300 font-bold text-xs border border-white/10 cursor-pointer text-center"
+                        className="w-full py-2 px-3 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 font-semibold text-xs border border-white/10 cursor-pointer text-center transition-colors"
                       >
-                        {isArabic ? 'إنشاء حساب مشتري' : 'Register Buyer'}
+                        {isArabic ? 'إنشاء حساب جديد' : 'Create Account'}
                       </button>
                       <button
                         onClick={() => {
                           setIsProfileOpen(false);
                           openAuthModal('supplier', 'signup');
                         }}
-                        className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-bold text-xs border border-amber-500/30 cursor-pointer text-center"
+                        className="w-full py-2 px-3 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-semibold text-xs border border-amber-500/20 cursor-pointer text-center transition-colors"
                       >
-                        {isArabic ? 'تسجيل كوكيل / متجر' : 'Apply as Dealer'}
+                        {isArabic ? 'تسجيل كوكيل / مورد' : 'Dealer Registration'}
                       </button>
                     </div>
                   )}

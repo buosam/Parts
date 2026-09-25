@@ -41,6 +41,8 @@ const MarketplaceApp: React.FC = () => {
     searchQuery,
     currentUser,
     setRole,
+    activeModal,
+    setActiveModal,
   } = useMarketplace();
 
   const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
@@ -88,62 +90,52 @@ const MarketplaceApp: React.FC = () => {
             <HomeHero />
 
             {/* Buyer Mode View Switcher Bar */}
-            <div className="max-w-7xl mx-auto px-4 mt-6">
-              <div className="flex items-center justify-between gap-4 p-1.5 bg-[#0e1424] border border-white/10 rounded-2xl shadow-md">
-                <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-1.5 bg-[#0e1424] border border-white/[0.08] rounded-2xl shadow-sm">
+                <div className="flex items-center gap-1.5 w-full sm:w-auto p-0.5 bg-black/30 rounded-xl">
                   <button
                     id="buyer-tab-catalog"
+                    type="button"
                     onClick={() => {
                       if (selectedCategory === 'requests') {
                         setSelectedCategory('All');
                       }
                     }}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${!isBiddingView
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
-                      }`}
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer micro-press ${
+                      !isBiddingView
+                        ? 'bg-[#335aff] text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                    }`}
                   >
                     <Layers className="w-4 h-4" />
-                    <span>{isArabic ? 'الكتالوج وقطع الغيار' : 'Search & Catalog'}</span>
+                    <span>{isArabic ? 'كتالوج قطع الغيار' : 'Browse Parts Catalog'}</span>
                   </button>
 
                   <button
                     id="buyer-tab-bidding"
+                    type="button"
                     onClick={() => setSelectedCategory('requests')}
-                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer min-h-[44px] ${isBiddingView
-                        ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                        : 'text-amber-400 hover:text-amber-300 hover:bg-amber-500/10'
-                      }`}
+                    className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all cursor-pointer micro-press ${
+                      isBiddingView
+                        ? 'bg-[#335aff] text-white shadow-xs'
+                        : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                    }`}
                   >
                     <Gavel className="w-4 h-4" />
-                    <span>{isArabic ? 'عروض الأسعار والطلبات' : 'Get Offers & Quotes'}</span>
-                    <span className="hidden md:inline text-[10px] font-black uppercase bg-black/20 text-slate-900 px-1.5 py-0.5 rounded ml-1">
-                      LIVE
-                    </span>
+                    <span>{isArabic ? 'طلبات وعروض الأسعار' : 'Dealer Quotes & RFQ'}</span>
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5" />
                   </button>
                 </div>
 
-                <div className="hidden lg:flex items-center gap-3 pr-2">
-                  <div className="flex items-center gap-2 text-xs text-slate-400">
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <div className="hidden lg:flex items-center gap-3 pr-2 rtl:pr-0 rtl:pl-2 text-xs text-slate-400">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span>
                       {isArabic
-                        ? 'مخزون حقيقي متزامن مع وكلاء بغداد، أربيل، والبصرة'
-                        : 'Real-time dealer inventory across Baghdad, Erbil & Basra'}
+                        ? 'مخزون حقيقي متزامن مع وكلاء بغداد وأربيل والبصرة'
+                        : 'Live inventory synced across verified Iraqi dealers'}
                     </span>
                   </div>
-
-                  <button
-                    onClick={() => setIsPartlineConsoleOpen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all cursor-pointer shadow-xs"
-                    title="Switch to Partline Operations Console"
-                  >
-                    <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
-                    <span>{isArabic ? 'كونسول Partline' : 'Partline Console'}</span>
-                    <kbd className="hidden xl:inline text-[9px] font-mono px-1 py-0.2 rounded bg-black/40 text-indigo-200">
-                      ⌘K
-                    </kbd>
-                  </button>
                 </div>
               </div>
             </div>
@@ -224,7 +216,13 @@ const MarketplaceApp: React.FC = () => {
       {/* Global Modals */}
       <MasterPartDetailModal part={selectedPart} onClose={() => setSelectedPart(null)} />
       <VehicleSelectorModal />
-      <SanawiaDocOcrModal isOpen={isSanawiaModalOpen} onClose={() => setIsSanawiaModalOpen(false)} />
+      <SanawiaDocOcrModal
+        isOpen={isSanawiaModalOpen || activeModal === 'sanawia_ocr'}
+        onClose={() => {
+          setIsSanawiaModalOpen(false);
+          setActiveModal(null);
+        }}
+      />
       <PhotoSearchModal />
       <QuoteUploadModal />
       <RequestPartModal />

@@ -1,6 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * IQAutoMarket - Automotive Departments & Category Filter
  */
 
 import React from 'react';
@@ -22,8 +23,8 @@ export const CarIdDepartmentBar: React.FC = () => {
   const departments = [
     {
       id: 'All',
-      label: 'All Auto Parts',
-      labelAr: 'جميع قطع الغيار',
+      label: 'All Parts',
+      labelAr: 'جميع القطع',
       icon: Layers,
     },
     {
@@ -65,36 +66,34 @@ export const CarIdDepartmentBar: React.FC = () => {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 mt-6">
-      <div className="bg-white/[0.03] border border-white/10 text-slate-200 backdrop-blur-md rounded-2xl p-1.5 shadow-lg shadow-black/20">
-        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-          {departments.map((dept) => {
-            const Icon = dept.icon;
-            const isActive = selectedCategory === dept.id;
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-6" dir={isArabic ? 'rtl' : 'ltr'}>
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1">
+        {departments.map((dept) => {
+          const Icon = dept.icon;
+          const isActive = selectedCategory === dept.id;
 
-            return (
-              <button
-                key={dept.id}
-                id={`dept-tab-${dept.id}`}
-                onClick={() => setSelectedCategory(dept.id)}
-                className={`group shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-600/30 font-extrabold'
-                    : 'text-slate-400 hover:text-white hover:bg-white/[0.05]'
+          return (
+            <button
+              key={dept.id}
+              id={`dept-tab-${dept.id}`}
+              type="button"
+              onClick={() => setSelectedCategory(dept.id)}
+              className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer micro-press ${
+                isActive
+                  ? 'bg-white/[0.12] text-white border border-white/20 shadow-xs font-bold'
+                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04] border border-transparent'
+              }`}
+            >
+              <Icon
+                className={`w-3.5 h-3.5 ${
+                  isActive ? 'text-[#335aff]' : 'text-slate-500'
                 }`}
-              >
-                <Icon
-                  className={`w-3.5 h-3.5 ${
-                    isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'
-                  }`}
-                />
-                <span>{isArabic ? dept.labelAr : dept.label}</span>
-              </button>
-            );
-          })}
-        </div>
+              />
+              <span>{isArabic ? dept.labelAr : dept.label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 };
-

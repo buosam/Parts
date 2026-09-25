@@ -182,7 +182,7 @@ export const SupplierStorefrontModal: React.FC = () => {
                           addToCart(masterPart, offer);
                           setActiveModal('cart');
                         }}
-                        className="px-4 py-2 bg-linear-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-slate-950 font-black rounded-xl text-xs shadow-md shadow-emerald-500/20 transition-all"
+                        className="px-4 py-2 bg-[#335aff] hover:bg-[#2548e6] text-white font-semibold rounded-xl text-xs transition-all cursor-pointer micro-press min-h-[38px]"
                       >
                         {isArabic ? 'شراء القطعة' : 'Order Part'}
                       </button>

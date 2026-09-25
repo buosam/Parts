@@ -208,9 +208,9 @@ export const RequestPartModal: React.FC = () => {
               <button
                 type="submit"
                 id="submit-request-offers-btn"
-                className="w-full mt-3 py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm rounded-xl shadow-lg shadow-amber-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01]"
+                className="w-full mt-3 py-3 bg-[#335aff] hover:bg-[#2548e6] text-white font-bold text-sm rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer micro-press min-h-[44px]"
               >
-                <Gavel className="w-4 h-4 text-slate-950" />
+                <Gavel className="w-4 h-4 text-white" />
                 <span>{isArabic ? 'طلب عروض الأسعار الآن' : 'Get Offers'}</span>
               </button>
             </form>

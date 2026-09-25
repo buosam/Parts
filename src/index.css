@@ -5,15 +5,28 @@
     --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
     --font-heading: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
     --font-arabic: 'Tajawal', 'IBM Plex Sans Arabic', system-ui, sans-serif;
-    --bg-main: #090d16;
-    --card-surface: #0e1424;
-    --card-surface-hover: #131b30;
-    --brand-accent: #4f46e5;
+    
+    /* Sophisticated Automotive Dark Palette */
+    --bg-canvas: #090d16;
+    --bg-surface: #0e1424;
+    --bg-surface-elevated: #131c30;
+    --bg-surface-subtle: rgba(255, 255, 255, 0.03);
+    
+    /* Brand Accents */
+    --brand-blue: #335aff;
+    --brand-blue-hover: #2647e6;
+    --brand-orange: #fd660e;
+    --brand-orange-hover: #e55505;
+    
+    /* Semantic Status */
+    --status-fit: #10b981;
+    --status-warning: #f59e0b;
+    --status-danger: #ef4444;
   }
 
   body {
     font-family: var(--font-primary);
-    background-color: var(--bg-main);
+    background-color: var(--bg-canvas);
     color: #f1f5f9;
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -23,7 +36,7 @@
 
   h1, h2, h3, h4, .font-heading {
     font-family: var(--font-heading);
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
   }
 
   [dir="rtl"], .font-arabic {
@@ -36,76 +49,89 @@
     font-family: var(--font-arabic), var(--font-heading);
   }
 
-  /* Accessible Touch Targets */
+  /* Accessible Touch Targets & Interactions */
   button, a, input, select, textarea {
     touch-action: manipulation;
   }
+
+  /* Universal Focused State */
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: none;
+    ring: 2px;
+    ring-color: rgba(51, 90, 255, 0.6);
+    ring-offset: 2px;
+    ring-offset-color: #090d16;
+  }
 }
 
-/* Premium Surface Tokens */
-.glass-panel {
-  background: rgba(14, 20, 36, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+/* Premium Restrained Surface Utilities */
+.surface-card {
+  background-color: #0e1424;
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.glass-panel-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+.surface-card-interactive {
+  background-color: #0e1424;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.glass-panel-hover:hover {
-  background: rgba(19, 27, 48, 0.95);
-  border-color: rgba(99, 102, 241, 0.35);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+.surface-card-interactive:hover {
+  background-color: #12192c;
+  border-color: rgba(51, 90, 255, 0.35);
+  transform: translateY(-1px);
 }
-
-.glass-card {
-  background: #0e1424;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+.surface-card-interactive:active {
+  transform: translateY(0);
 }
 
 .glass-nav {
-  background: rgba(9, 13, 22, 0.92);
+  background: rgba(9, 13, 22, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
-/* Ambient Lighting & Glows */
+/* Emil Kowalski Smooth Micro Transitions */
+.micro-press {
+  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), opacity 120ms ease;
+}
+.micro-press:active {
+  transform: scale(0.97);
+}
+
+/* Fitment Badge Styles */
+.fitment-pill-active {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.fitment-pill-check {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+/* Subtle Ambient Lighting */
 .mesh-glow {
   position: absolute;
   border-radius: 9999px;
   filter: blur(120px);
   pointer-events: none;
-  opacity: 0.18;
+  opacity: 0.12;
   z-index: 0;
 }
 
 .mesh-glow-blue {
-  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  background: radial-gradient(circle, #335aff 0%, transparent 70%);
 }
 
 .mesh-glow-indigo {
-  background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+  background: radial-gradient(circle, #4f46e5 0%, transparent 70%);
 }
 
-.mesh-glow-amber {
-  background: radial-gradient(circle, #f59e0b 0%, transparent 70%);
-}
-
-.mesh-glow-emerald {
-  background: radial-gradient(circle, #10b981 0%, transparent 70%);
-}
-
-/* Micro Animations */
-@keyframes subtle-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.animate-subtle-float {
-  animation: subtle-float 5s ease-in-out infinite;
+.mesh-glow-orange {
+  background: radial-gradient(circle, #fd660e 0%, transparent 70%);
 }
 
 /* Skeleton Loading Animation */
@@ -115,15 +141,15 @@
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0.03) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite;
 }
 
-/* Sleek Minimal Scrollbar */
+/* Clean Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -131,11 +157,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.25);
 }
 
+/* Respect User Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

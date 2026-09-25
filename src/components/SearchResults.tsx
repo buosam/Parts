@@ -1,11 +1,12 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * IQAutoMarket - Restrained Product Discovery & Cards (Sections 8 & 9)
  */
 
 import React, { useState, useMemo } from 'react';
 import {
-  CheckCircle,
+  CheckCircle2,
   AlertTriangle,
   Star,
   Truck,
@@ -15,12 +16,13 @@ import {
   Store,
   Clock,
   Gavel,
-  Sparkles,
   Check,
   Filter,
   SlidersHorizontal,
   ChevronDown,
   Wrench,
+  Search,
+  RotateCcw,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { MasterPart } from '../types';
@@ -34,7 +36,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
     masterParts,
     activeVehicle,
     searchQuery,
+    setSearchQuery,
     selectedCategory,
+    setSelectedCategory,
     addToCart,
     setSelectedSupplierIdForStore,
     setActiveModal,
@@ -47,18 +51,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
 
   const [onlyFitsMyCar, setOnlyFitsMyCar] = useState(true);
   const [qualityFilter, setQualityFilter] = useState<'all' | 'genuine' | 'oem' | 'aftermarket'>('all');
-  const [availabilityFilter, setAvailabilityFilter] = useState<'all' | 'in_stock_today'>('all');
   const [sortBy, setSortBy] = useState<'compatibility' | 'price_asc' | 'price_desc' | 'trust'>('compatibility');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
 
-  // Extract unique brands
-  const availableBrands = useMemo(() => {
-    const brands = new Set(masterParts.map((p) => p.brand));
-    return ['all', ...Array.from(brands)];
-  }, [masterParts]);
-
-  // Filter and rank parts
+  // Filter and prioritize parts
   const filteredAndRankedParts = useMemo(() => {
     return masterParts
       .filter((part) => {
@@ -119,228 +115,177 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
           if (!hasMatchingQuality) return false;
         }
 
-        // Availability filter
-        if (availabilityFilter === 'in_stock_today') {
-          const hasImmediateStock = part.offers.some((o) => o.stockStatus === 'in_stock_today');
-          if (!hasImmediateStock) return false;
-        }
-
         return true;
       })
       .sort((a, b) => {
-        const fitA = activeVehicle
-          ? a.compatibleVehicles.some(
-              (v) =>
-                v.make.toLowerCase() === activeVehicle.make.toLowerCase() &&
-                v.model.toLowerCase() === activeVehicle.model.toLowerCase() &&
-                activeVehicle.year >= v.yearStart &&
-                activeVehicle.year <= v.yearEnd
-            )
-          : false;
+        if (sortBy === 'price_asc') {
+          const minA = a.offers.length > 0 ? Math.min(...a.offers.map((o) => o.priceUSD)) : Infinity;
+          const minB = b.offers.length > 0 ? Math.min(...b.offers.map((o) => o.priceUSD)) : Infinity;
+          return minA - minB;
+        }
+        if (sortBy === 'price_desc') {
+          const maxA = a.offers.length > 0 ? Math.max(...a.offers.map((o) => o.priceUSD)) : 0;
+          const maxB = b.offers.length > 0 ? Math.max(...b.offers.map((o) => o.priceUSD)) : 0;
+          return maxB - maxA;
+        }
+        if (sortBy === 'trust') {
+          const ratingA = Math.max(...a.offers.map((o) => o.supplierRating || 0), 0);
+          const ratingB = Math.max(...b.offers.map((o) => o.supplierRating || 0), 0);
+          return ratingB - ratingA;
+        }
 
-        const fitB = activeVehicle
-          ? b.compatibleVehicles.some(
-              (v) =>
-                v.make.toLowerCase() === activeVehicle.make.toLowerCase() &&
-                v.model.toLowerCase() === activeVehicle.model.toLowerCase() &&
-                activeVehicle.year >= v.yearStart &&
-                activeVehicle.year <= v.yearEnd
-            )
-          : false;
-
-        const lowestPriceA = a.offers.length > 0 ? Math.min(...a.offers.map((o) => o.priceUSD)) : 999999;
-        const lowestPriceB = b.offers.length > 0 ? Math.min(...b.offers.map((o) => o.priceUSD)) : 999999;
-
-        const maxTrustA = a.offers.length > 0 ? Math.max(...a.offers.map((o) => o.supplierRating)) : 0;
-        const maxTrustB = b.offers.length > 0 ? Math.max(...b.offers.map((o) => o.supplierRating)) : 0;
-
-        if (sortBy === 'compatibility') {
+        // Default 'compatibility': prioritizes active vehicle fitment and genuine stock
+        if (activeVehicle) {
+          const fitA = a.compatibleVehicles.some(
+            (v) =>
+              v.make.toLowerCase() === activeVehicle.make.toLowerCase() &&
+              v.model.toLowerCase() === activeVehicle.model.toLowerCase()
+          );
+          const fitB = b.compatibleVehicles.some(
+            (v) =>
+              v.make.toLowerCase() === activeVehicle.make.toLowerCase() &&
+              v.model.toLowerCase() === activeVehicle.model.toLowerCase()
+          );
           if (fitA && !fitB) return -1;
           if (!fitA && fitB) return 1;
-          return maxTrustB - maxTrustA;
         }
-        if (sortBy === 'price_asc') return lowestPriceA - lowestPriceB;
-        if (sortBy === 'price_desc') return lowestPriceB - lowestPriceA;
-        if (sortBy === 'trust') return maxTrustB - maxTrustA;
         return 0;
       });
-  }, [masterParts, selectedCategory, searchQuery, onlyFitsMyCar, selectedBrand, qualityFilter, availabilityFilter, sortBy, activeVehicle]);
+  }, [masterParts, searchQuery, selectedCategory, activeVehicle, onlyFitsMyCar, selectedBrand, qualityFilter, sortBy]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      {/* Control / Filter Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/10">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-8" dir={isArabic ? 'rtl' : 'ltr'}>
+      {/* Search Header & Filter Controls Strip */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
-              {isArabic ? 'قطع الغيار المتوفرة' : 'Available Parts'}
-            </h2>
-            <span className="text-xs font-bold text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full">
+          <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+            <span>{isArabic ? 'قطع الغيار المتوفرة' : 'Available Parts'}</span>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] text-slate-400">
               {filteredAndRankedParts.length}
             </span>
-          </div>
+          </h2>
           {searchQuery && (
-            <p className="text-xs text-slate-400 mt-1">
-              {isArabic ? 'نتائج البحث عن:' : 'Showing results for:'}{' '}
-              <span className="font-semibold text-indigo-300">"{searchQuery}"</span>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {isArabic ? 'نتائج البحث عن:' : 'Results for:'}{' '}
+              <span className="text-white font-semibold">"{searchQuery}"</span>
             </p>
           )}
         </div>
 
-        {/* Primary Filters */}
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          {/* Fits My Car Toggle */}
+        {/* Filter Controls */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+          {/* Fitment Toggle */}
           {activeVehicle && (
             <button
-              id="filter-fits-car-btn"
+              type="button"
               onClick={() => setOnlyFitsMyCar(!onlyFitsMyCar)}
-              className={`px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer micro-press ${
                 onlyFitsMyCar
-                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
-                  : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
+                  ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-300'
+                  : 'bg-white/[0.04] border border-white/10 text-slate-400 hover:text-white'
               }`}
             >
-              <CheckCircle className={`w-3.5 h-3.5 ${onlyFitsMyCar ? 'text-emerald-400' : 'text-slate-500'}`} />
-              <span>{isArabic ? `يناسب ${activeVehicle.model}` : `Fits ${activeVehicle.model}`}</span>
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>
+                {isArabic ? `يناسب ${activeVehicle.model} فقط` : `Fits ${activeVehicle.model} Only`}
+              </span>
             </button>
           )}
 
-          {/* In Stock Today */}
-          <button
-            id="filter-in-stock-btn"
-            onClick={() => setAvailabilityFilter(availabilityFilter === 'all' ? 'in_stock_today' : 'all')}
-            className={`px-3 py-1.5 rounded-lg border font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              availabilityFilter === 'in_stock_today'
-                ? 'bg-blue-500/15 border-blue-500/40 text-blue-300'
-                : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
-            }`}
+          {/* Quality Filter */}
+          <select
+            value={qualityFilter}
+            onChange={(e) => setQualityFilter(e.target.value as any)}
+            className="bg-[#0e1424] border border-white/10 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
           >
-            <Truck className="w-3.5 h-3.5 text-slate-400" />
-            <span>{isArabic ? 'متوفر اليوم' : 'In Stock'}</span>
-          </button>
+            <option value="all">{isArabic ? 'جميع الجودات' : 'All Quality Tiers'}</option>
+            <option value="genuine">{isArabic ? 'أصلي وكالة (OEM)' : 'Genuine OEM'}</option>
+            <option value="oem">{isArabic ? 'مواصفة وكالة (Tier-1)' : 'OEM Spec'}</option>
+            <option value="aftermarket">{isArabic ? 'تجاري معتمد' : 'Aftermarket'}</option>
+          </select>
 
-          {/* Sort Selector */}
-          <div className="flex items-center gap-1.5 bg-white/[0.03] border border-white/10 rounded-lg px-2.5 py-1.5">
-            <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              id="sort-parts-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-transparent text-slate-300 text-xs font-semibold focus:outline-hidden cursor-pointer"
+          {/* Sort By */}
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="bg-[#0e1424] border border-white/10 text-slate-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none cursor-pointer"
+          >
+            <option value="compatibility">{isArabic ? 'الأكثر توافقاً' : 'Best Match'}</option>
+            <option value="price_asc">{isArabic ? 'السعر: من الأقل للأعلى' : 'Price: Low to High'}</option>
+            <option value="price_desc">{isArabic ? 'السعر: من الأعلى للأقل' : 'Price: High to Low'}</option>
+            <option value="trust">{isArabic ? 'أعلى تقييم للوكيل' : 'Highest Dealer Rating'}</option>
+          </select>
+
+          {/* Reset Filters */}
+          {(selectedCategory !== 'All' || searchQuery || qualityFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                setQualityFilter('all');
+                setSelectedBrand('all');
+              }}
+              className="text-xs text-slate-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+              title="Reset all filters"
             >
-              <option value="compatibility" className="bg-slate-900 text-white">
-                {isArabic ? 'الأولوية: التوافق والتقييم' : 'Rank: Fitment & Trust'}
-              </option>
-              <option value="price_asc" className="bg-slate-900 text-white">
-                {isArabic ? 'السعر: من الأقل للأعلى' : 'Price: Low to High'}
-              </option>
-              <option value="price_desc" className="bg-slate-900 text-white">
-                {isArabic ? 'السعر: من الأعلى للأقل' : 'Price: High to Low'}
-              </option>
-              <option value="trust" className="bg-slate-900 text-white">
-                {isArabic ? 'الأعلى تقييماً' : 'Highest Rating'}
-              </option>
-            </select>
-          </div>
-
-          {/* More Filters Toggle */}
-          <button
-            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className={`px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition-all cursor-pointer ${
-              showAdvancedFilters || selectedBrand !== 'all' || qualityFilter !== 'all'
-                ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300'
-                : 'bg-white/[0.03] border-white/10 text-slate-400 hover:text-white'
-            }`}
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>{isArabic ? 'تصفية إضافية' : 'Filters'}</span>
-            {(selectedBrand !== 'all' || qualityFilter !== 'all') && (
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-            )}
-            <ChevronDown className={`w-3 h-3 transition-transform ${showAdvancedFilters ? 'rotate-180' : ''}`} />
-          </button>
+              <RotateCcw className="w-3 h-3" />
+              <span>{isArabic ? 'إعادة ضبط' : 'Reset'}</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Advanced Filters Drawer (Progressive Disclosure) */}
-      {showAdvancedFilters && (
-        <div className="p-4 mt-3 bg-[#0e1424] rounded-2xl border border-white/10 flex flex-wrap items-center gap-4 text-xs animate-in fade-in duration-150">
-          <div>
-            <span className="text-slate-400 block mb-1 font-semibold">{isArabic ? 'الشركة المصنعة / العلامة:' : 'Brand / Manufacturer:'}</span>
-            <select
-              value={selectedBrand}
-              onChange={(e) => setSelectedBrand(e.target.value)}
-              className="bg-slate-900 border border-white/10 text-white rounded-xl px-3 py-1.5 focus:outline-hidden"
-            >
-              {availableBrands.map((b) => (
-                <option key={b} value={b}>
-                  {b === 'all' ? (isArabic ? 'جميع العلامات' : 'All Brands') : b}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <span className="text-slate-400 block mb-1 font-semibold">{isArabic ? 'درجة الجودة:' : 'Quality Tier:'}</span>
-            <select
-              value={qualityFilter}
-              onChange={(e) => setQualityFilter(e.target.value as any)}
-              className="bg-slate-900 border border-white/10 text-white rounded-xl px-3 py-1.5 focus:outline-hidden"
-            >
-              <option value="all">{isArabic ? 'جميع الدرجات' : 'All Tiers'}</option>
-              <option value="genuine">{isArabic ? 'أصلي وكالة (Genuine OEM)' : 'Genuine OEM'}</option>
-              <option value="oem">{isArabic ? 'معتمد تجاري (OEM Tier-1)' : 'OEM Tier-1'}</option>
-              <option value="aftermarket">{isArabic ? 'تجاري بديل (Aftermarket)' : 'Aftermarket'}</option>
-            </select>
-          </div>
-
-          {(selectedBrand !== 'all' || qualityFilter !== 'all') && (
-            <button
-              onClick={() => {
-                setSelectedBrand('all');
-                setQualityFilter('all');
-              }}
-              className="mt-4 text-xs text-rose-400 hover:underline cursor-pointer"
-            >
-              {isArabic ? 'إعادة تعيين الفلاتر' : 'Reset Filters'}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Zero results state with Get Offers opportunity */}
+      {/* Zero Results State with Reverse RFQ Opportunity (Section 28) */}
       {filteredAndRankedParts.length === 0 && (
-        <div className="my-10 p-8 sm:p-12 bg-[#0e1424] text-white rounded-3xl border border-white/10 shadow-2xl max-w-xl mx-auto text-center relative overflow-hidden">
-          <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-3 shadow-lg">
-            <Gavel className="w-7 h-7" />
+        <div className="my-12 p-8 sm:p-12 surface-card rounded-3xl text-center max-w-lg mx-auto space-y-4">
+          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 flex items-center justify-center mx-auto">
+            <Gavel className="w-6 h-6" />
           </div>
-          <h3 className="font-extrabold text-white text-xl tracking-tight">
-            {isArabic ? 'لم تجد القطعة المطلوبة في الكتالوج؟' : `Can't find "${searchQuery || 'this part'}" in stock?`}
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 mb-6 max-w-md mx-auto leading-relaxed">
-            {isArabic
-              ? 'اطلب القطعة الآن وسيقوم أكثر من 120 وكيلاً ومتجراً معتمداً في العراق بتقديم عروض أسعار تنافسية فورية.'
-              : 'Post your request and let 120+ verified auto parts dealers across Iraq compete with their best prices and instant delivery.'}
-          </p>
-          <button
-            id="zero-results-request-bidding-btn"
-            onClick={() => {
-              setPrefilledPartRequest({
-                partName: searchQuery || (activeVehicle ? `${activeVehicle.make} ${activeVehicle.model} Replacement Part` : 'Automotive Spare Part'),
-                partDescription: `Searched in live catalogue for "${searchQuery}". Need verified store owners to bid on supplying this item.`,
-              });
-              setActiveModal('request_part');
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 text-xs font-black rounded-xl shadow-lg shadow-amber-500/20 transition-all inline-flex items-center gap-2 hover:scale-[1.02] cursor-pointer"
-          >
-            <Gavel className="w-4 h-4" />
-            <span>{isArabic ? 'طلب عروض أسعار من الوكلاء' : 'Get Offers from Dealers'}</span>
-          </button>
+          <div>
+            <h3 className="text-lg font-bold text-white">
+              {isArabic ? 'لم يتم العثور على قطع مطابقة' : 'No matching parts found'}
+            </h3>
+            <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">
+              {isArabic
+                ? 'لا تقلق! يمكنك طلب هذه القطعة الآن وسيقوم أكثر من 120 وكيلاً معتمداً في العراق بتقديم عروض أسعار منافسة.'
+                : 'Don\'t worry! Post a part request and let 120+ verified dealers across Iraq compete with their best stock and pricing.'}
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setPrefilledPartRequest({
+                  partName: searchQuery || (activeVehicle ? `${activeVehicle.make} ${activeVehicle.model} Part` : 'Spare Part'),
+                  partDescription: `Requesting quote for ${searchQuery}.`,
+                });
+                setActiveModal('request_part');
+              }}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#335aff] hover:bg-[#2647e6] text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-md micro-press"
+            >
+              <Gavel className="w-4 h-4" />
+              <span>{isArabic ? 'طلب عروض أسعار من الوكلاء' : 'Request Quotes from Dealers'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+                setOnlyFitsMyCar(false);
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-slate-300 font-semibold text-xs border border-white/10 cursor-pointer transition-colors"
+            >
+              {isArabic ? 'عرض كل القطع' : 'View All Parts'}
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Grid of Product Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-6">
+      {/* Clean Restrained Product Cards Grid (Section 9) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5 mt-6">
         {filteredAndRankedParts.map((part) => {
           const isFit = activeVehicle
             ? part.compatibleVehicles.some(
@@ -350,7 +295,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                   activeVehicle.year >= v.yearStart &&
                   activeVehicle.year <= v.yearEnd
               )
-            : true;
+            : null;
 
           const inStockOffers = part.offers.filter((o) => o.stockQuantity > 0 && o.stockStatus !== 'out_of_stock');
           const isOutOfStock = part.offers.length === 0 || inStockOffers.length === 0;
@@ -367,107 +312,107 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
             <div
               key={part.id}
               id={`master-part-card-${part.id}`}
-              className={`bg-[#0e1424] rounded-2xl border ${
-                isOutOfStock ? 'border-amber-500/20' : 'border-white/10'
-              } hover:border-indigo-500/40 hover:shadow-xl transition-all flex flex-col overflow-hidden group`}
+              onClick={() => onSelectPart(part)}
+              className="surface-card-interactive rounded-2xl overflow-hidden flex flex-col justify-between cursor-pointer group"
             >
-              {/* Card Image */}
-              <div
-                className="relative h-44 sm:h-48 bg-slate-900 overflow-hidden cursor-pointer"
-                onClick={() => onSelectPart(part)}
-              >
-                {/* Fallback graphic if image is missing or loading */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-slate-800">
-                  <Wrench className="w-10 h-10 opacity-30" />
-                </div>
-
+              {/* Card Image with Restrained Compatibility Overlay */}
+              <div className="relative aspect-[16/10] bg-slate-950 overflow-hidden">
                 <img
                   src={part.imageUrl}
-                  alt=""
-                  onError={(e) => {
-                    (e.currentTarget as HTMLElement).style.opacity = '0';
-                  }}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 relative z-1"
+                  alt={part.partName}
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
                 />
 
-                {/* Subtle dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent pointer-events-none z-2" />
+                {/* Subtle gradient vignette */}
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent opacity-80 pointer-events-none" />
 
-                {/* Subtle Fitment Tag */}
-                {activeVehicle && (
-                  <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 z-10">
-                    {isFit ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/90 text-slate-950 text-[10px] font-black shadow-xs backdrop-blur-xs">
-                        <CheckCircle className="w-3 h-3 text-slate-950" />
-                        <span>{isArabic ? `يناسب ${activeVehicle.model}` : `Fits ${activeVehicle.model}`}</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/90 text-slate-950 text-[10px] font-black shadow-xs backdrop-blur-xs">
-                        <AlertTriangle className="w-3 h-3 text-slate-950" />
-                        <span>{isArabic ? 'تحقق من التوافق' : 'Check Fitment'}</span>
-                      </span>
-                    )}
+                {/* Compatibility Badge (Section 7 & 9) */}
+                <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 z-10">
+                  {isFit === true && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/90 text-slate-950 text-[10px] font-black shadow-xs">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>{isArabic ? `مطابق لـ ${activeVehicle?.model}` : `Fits ${activeVehicle?.model}`}</span>
+                    </span>
+                  )}
+                  {isFit === false && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/90 text-slate-950 text-[10px] font-black shadow-xs">
+                      <AlertTriangle className="w-3 h-3" />
+                      <span>{isArabic ? 'تحقق من التوافق' : 'Check Fitment'}</span>
+                    </span>
+                  )}
+                </div>
+
+                {/* Quality Tier Chip */}
+                {bestOffer && (
+                  <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10">
+                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-slate-200 border border-white/10">
+                      {bestOffer.quality === 'genuine' ? 'OEM Genuine' : bestOffer.quality === 'oem' ? 'OEM Spec' : 'Aftermarket'}
+                    </span>
                   </div>
                 )}
               </div>
 
-              {/* Card Body */}
+              {/* Card Body - Extreme Restraint */}
               <div className="p-4 flex-1 flex flex-col justify-between">
-                <div className="cursor-pointer" onClick={() => onSelectPart(part)}>
+                <div>
                   {/* Brand & Part Number */}
-                  <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
                     <span className="font-semibold text-slate-300">{part.brand}</span>
-                    <span className="font-mono text-[11px] text-slate-400">{part.partNumber}</span>
+                    <span className="font-mono text-slate-500">{part.partNumber}</span>
                   </div>
 
                   {/* Part Title */}
                   <h3
-                    className="font-bold text-white text-sm sm:text-base hover:text-indigo-400 transition-colors line-clamp-1 leading-snug"
+                    className="font-bold text-white text-sm sm:text-base leading-snug group-hover:text-[#335aff] transition-colors line-clamp-1"
                     title={isArabic && part.partNameArabic ? part.partNameArabic : part.partName}
                   >
                     {isArabic && part.partNameArabic ? part.partNameArabic : part.partName}
                   </h3>
 
-                  {/* Price & Supplier */}
-                  <div className="mt-3.5 flex items-baseline justify-between">
-                    <div className="font-black text-white text-base sm:text-lg tracking-tight">
-                      {formatPrice(lowestPriceUSD, lowestPriceIQD)}
-                    </div>
-
-                    {bestOffer && (
-                      <div
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedSupplierIdForStore(bestOffer.supplierId);
-                          setActiveModal('supplier_store');
-                        }}
-                        className="text-xs text-slate-400 hover:text-indigo-300 transition-colors flex items-center gap-1.5"
-                      >
-                        <span className="truncate max-w-[110px]">{bestOffer.supplierName}</span>
-                        <span className="text-amber-400 font-bold text-[11px] flex items-center gap-0.5">
-                          ★ {bestOffer.supplierRating}
-                        </span>
-                      </div>
+                  {/* Availability Status */}
+                  <div className="mt-2 flex items-center gap-1.5 text-xs">
+                    {!isOutOfStock ? (
+                      <span className="text-emerald-400 font-medium text-[11px] flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                        <span>{isArabic ? 'متوفر بالمخزن (شحن فوري)' : 'In Stock • Ships Today'}</span>
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-medium text-[11px] flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                        <span>{isArabic ? 'حسب الطلب (عروض أسعار)' : 'On Demand • Get Quotes'}</span>
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Single Dominant CTA */}
-                <div className="mt-3 pt-3 border-t border-white/[0.07]">
+                {/* Bottom Price & Single Dominant CTA */}
+                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] text-slate-500 uppercase font-semibold">
+                      {isArabic ? 'السعر يبدأ من' : 'Starting from'}
+                    </div>
+                    <div className="text-base font-black text-white tracking-tight">
+                      {formatPrice(lowestPriceUSD, lowestPriceIQD)}
+                    </div>
+                  </div>
+
                   {bestOffer && !isOutOfStock ? (
                     <button
+                      type="button"
                       id={`buy-btn-${part.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         addToCart(part, bestOffer);
                       }}
-                      className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-[#335aff] hover:text-white text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer micro-press border border-white/10 hover:border-transparent"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
-                      <span>{isArabic ? 'شراء الآن' : 'Buy Now'}</span>
+                      <span>{isArabic ? 'شراء' : 'Buy Now'}</span>
                     </button>
                   ) : (
                     <button
+                      type="button"
                       id={`get-offers-btn-${part.id}`}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -479,10 +424,10 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                         });
                         setActiveModal('request_part');
                       }}
-                      className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer micro-press border border-amber-500/25"
                     >
-                      <Gavel className="w-3.5 h-3.5 text-slate-950" />
-                      <span>{isArabic ? 'طلب عروض أسعار' : 'Get Offers'}</span>
+                      <Gavel className="w-3.5 h-3.5" />
+                      <span>{isArabic ? 'طلب عروض' : 'Get Offers'}</span>
                     </button>
                   )}
                 </div>
@@ -494,4 +439,3 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
     </div>
   );
 };
-
