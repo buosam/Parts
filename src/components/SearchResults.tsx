@@ -371,12 +371,12 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                     {!isOutOfStock ? (
                       <span className="text-emerald-400 font-medium text-[11px] flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        <span>{isArabic ? 'متوفر بالمخزن (شحن فوري)' : 'In Stock • Ships Today'}</span>
+                        <span>{isArabic ? 'متوفر بالمخزن' : 'In Stock'}</span>
                       </span>
                     ) : (
                       <span className="text-amber-400 font-medium text-[11px] flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                        <span>{isArabic ? 'حسب الطلب (عروض أسعار)' : 'On Demand • Get Quotes'}</span>
+                        <span>{isArabic ? 'حسب الطلب' : 'On Demand'}</span>
                       </span>
                     )}
                   </div>

@@ -94,10 +94,10 @@ export const RequestPartModal: React.FC = () => {
             </div>
             <div>
               <h2 className="font-extrabold text-white text-base sm:text-lg">
-                {isArabic ? 'طلب عروض أسعار من الوكلاء' : 'Get Offers from Verified Dealers'}
+                {isArabic ? 'طلب تسعير قطعة' : 'Request Part Quote'}
               </h2>
               <p className="text-xs text-slate-400">
-                {isArabic ? 'لم تجد القطعة؟ اطلبها وسيتنافس الوكلاء بتقديم العروض' : 'Can\'t find it? 120+ verified dealers will send quotes'}
+                {isArabic ? 'سيتنافس الوكلاء المعتمدون في العراق بتقديم أفضل العروض' : 'Verified dealers across Iraq will compete with their best stock and pricing'}
               </p>
             </div>
           </div>

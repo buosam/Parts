@@ -17,12 +17,20 @@ async function run() {
   await pMobile.screenshot({ path: 'C:/Users/masou/.gemini/antigravity-ide/brain/443c4fe3-c732-49e1-89ef-0571657763a5/screenshots/simplified-mobile-390.png' });
   await pMobile.close();
 
-  // Arabic Desktop
+  // Arabic Desktop & Modal
   const pAr = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await pAr.goto('http://localhost:3000', { waitUntil: 'networkidle' });
   await pAr.click('#navbar-language-toggle');
   await pAr.waitForTimeout(600);
   await pAr.screenshot({ path: 'C:/Users/masou/.gemini/antigravity-ide/brain/443c4fe3-c732-49e1-89ef-0571657763a5/screenshots/simplified-arabic-1440.png' });
+  
+  // Open Arabic modal
+  const firstCard = pAr.locator('[id^="master-part-card-"]').first();
+  if (await firstCard.isVisible()) {
+    await firstCard.click();
+    await pAr.waitForTimeout(600);
+    await pAr.screenshot({ path: 'C:/Users/masou/.gemini/antigravity-ide/brain/443c4fe3-c732-49e1-89ef-0571657763a5/screenshots/simplified-arabic-modal.png' });
+  }
   await pAr.close();
 
   await browser.close();

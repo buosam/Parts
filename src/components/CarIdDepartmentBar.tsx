@@ -66,7 +66,7 @@ export const CarIdDepartmentBar: React.FC = () => {
     },
     {
       id: 'requests',
-      label: 'Dealer Quotes & RFQ',
+      label: 'Dealer Quotes',
       labelAr: 'عروض الأسعار',
       icon: Gavel,
       isLive: true,

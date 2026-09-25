@@ -144,7 +144,7 @@ export const HomeHero: React.FC = () => {
                     <span>{isArabic ? 'المركبة' : 'Your Vehicle'}</span>
                     {activeVehicle && (
                       <span className="text-[9px] text-emerald-400 font-bold bg-emerald-500/20 px-1 rounded">
-                        ✓ Fits
+                        {isArabic ? '✓ مطابق' : '✓ Fits'}
                       </span>
                     )}
                   </div>
