@@ -1,29 +1,30 @@
 @import "tailwindcss";
+@import "./design-tokens.css";
 
 @layer base {
   :root {
-    --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-primary: var(--font-family-body);
+    --font-heading: var(--font-family-display);
     --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
     
-    /* Authentic Automotive Engineering Palette */
-    --bg-canvas: #0d111a;          /* Chassis Slate ground plane */
-    --bg-surface: #151d2a;         /* Machined Iron primary panel */
-    --bg-surface-elevated: #1c2637;/* Raised assembly surface */
+    /* Authentic Automotive Engineering Palette from Design Tokens */
+    --bg-canvas: var(--color-neutral-950);          /* #0d111a Chassis Slate */
+    --bg-surface: var(--color-neutral-900);         /* #151d2a Machined Iron */
+    --bg-surface-elevated: var(--color-neutral-800);/* #1c2637 Raised surface */
     --bg-surface-subtle: rgba(255, 255, 255, 0.04);
     
     /* Functional Industrial Accents */
-    --brand-blue: #2554d7;         /* Blueprint Blue (OEM Calibration) */
-    --brand-blue-hover: #1d42b0;
-    --brand-amber: #d9730d;        /* Tolerance Amber (Live Bidding & Warranty) */
+    --brand-blue: var(--color-primary-500);         /* #2554d7 Blueprint Blue */
+    --brand-blue-hover: var(--color-primary-600);   /* #1d43af */
+    --brand-amber: var(--color-warning);            /* #d9730d Tolerance Amber */
     --brand-amber-hover: #b85f07;
     
     /* Structural Semantic Verification */
-    --status-fit: #059669;         /* Clearance Green (Guaranteed Fitment) */
-    --status-warning: #d9730d;     /* Tolerance Amber (VIN Check Required) */
-    --status-danger: #dc2626;      /* Incompatible / Critical */
+    --status-fit: var(--color-success);             /* #059669 Clearance Green */
+    --status-warning: var(--color-warning);         /* #d9730d Tolerance Amber */
+    --status-danger: var(--color-danger);           /* #dc2626 Critical */
     
-    --text-primary: #f3f6fa;       /* Cast Zinc White */
+    --text-primary: var(--color-neutral-50);        /* #f3f6fa Cast Zinc */
     --text-muted: #94a3b8;
   }
 
