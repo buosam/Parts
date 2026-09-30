@@ -3,31 +3,34 @@
 @layer base {
   :root {
     --font-primary: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    --font-heading: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
-    --font-arabic: 'Tajawal', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+    --font-heading: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif;
+    --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
     
-    /* Sophisticated Automotive Dark Palette */
-    --bg-canvas: #090d16;
-    --bg-surface: #0e1424;
-    --bg-surface-elevated: #131c30;
-    --bg-surface-subtle: rgba(255, 255, 255, 0.03);
+    /* Authentic Automotive Engineering Palette */
+    --bg-canvas: #0d111a;          /* Chassis Slate ground plane */
+    --bg-surface: #151d2a;         /* Machined Iron primary panel */
+    --bg-surface-elevated: #1c2637;/* Raised assembly surface */
+    --bg-surface-subtle: rgba(255, 255, 255, 0.04);
     
-    /* Brand Accents */
-    --brand-blue: #335aff;
-    --brand-blue-hover: #2647e6;
-    --brand-orange: #fd660e;
-    --brand-orange-hover: #e55505;
+    /* Functional Industrial Accents */
+    --brand-blue: #2554d7;         /* Blueprint Blue (OEM Calibration) */
+    --brand-blue-hover: #1d42b0;
+    --brand-amber: #d9730d;        /* Tolerance Amber (Live Bidding & Warranty) */
+    --brand-amber-hover: #b85f07;
     
-    /* Semantic Status */
-    --status-fit: #10b981;
-    --status-warning: #f59e0b;
-    --status-danger: #ef4444;
+    /* Structural Semantic Verification */
+    --status-fit: #059669;         /* Clearance Green (Guaranteed Fitment) */
+    --status-warning: #d9730d;     /* Tolerance Amber (VIN Check Required) */
+    --status-danger: #dc2626;      /* Incompatible / Critical */
+    
+    --text-primary: #f3f6fa;       /* Cast Zinc White */
+    --text-muted: #94a3b8;
   }
 
   body {
     font-family: var(--font-primary);
     background-color: var(--bg-canvas);
-    color: #f1f5f9;
+    color: var(--text-primary);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -36,7 +39,8 @@
 
   h1, h2, h3, h4, .font-heading {
     font-family: var(--font-heading);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   [dir="rtl"], .font-arabic {
@@ -57,81 +61,59 @@
   /* Universal Focused State */
   button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: none;
-    ring: 2px;
-    ring-color: rgba(51, 90, 255, 0.6);
-    ring-offset: 2px;
-    ring-offset-color: #090d16;
+    box-shadow: 0 0 0 2px #0d111a, 0 0 0 4px #2554d7;
   }
 }
 
-/* Premium Restrained Surface Utilities */
-.surface-card {
-  background-color: #0e1424;
+/* Machined Industrial Panels (Mechanical 6-8px radius, no fuzzy shadows) */
+.machined-panel {
+  background-color: #151d2a;
   border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
 }
 
-.surface-card-interactive {
-  background-color: #0e1424;
+.machined-panel-interactive {
+  background-color: #151d2a;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 8px;
+  transition: border-color 140ms ease, background-color 140ms ease;
 }
-.surface-card-interactive:hover {
-  background-color: #12192c;
-  border-color: rgba(51, 90, 255, 0.35);
-  transform: translateY(-1px);
-}
-.surface-card-interactive:active {
-  transform: translateY(0);
+.machined-panel-interactive:hover {
+  background-color: #1a2333;
+  border-color: rgba(37, 84, 215, 0.45);
 }
 
 .glass-nav {
-  background: rgba(9, 13, 22, 0.94);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(13, 17, 26, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Emil Kowalski Smooth Micro Transitions */
+/* Micro Press Response */
 .micro-press {
-  transition: transform 120ms cubic-bezier(0.16, 1, 0.3, 1), opacity 120ms ease;
+  transition: transform 100ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 .micro-press:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-/* Fitment Badge Styles */
-.fitment-pill-active {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+/* Fitment Status Envelopes */
+.fitment-guaranteed {
+  background: rgba(5, 150, 105, 0.12);
+  border: 1px solid rgba(5, 150, 105, 0.35);
   color: #34d399;
 }
 
-.fitment-pill-check {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+.fitment-check {
+  background: rgba(217, 115, 13, 0.12);
+  border: 1px solid rgba(217, 115, 13, 0.35);
   color: #fbbf24;
 }
 
-/* Subtle Ambient Lighting */
-.mesh-glow {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(120px);
-  pointer-events: none;
-  opacity: 0.12;
-  z-index: 0;
-}
-
-.mesh-glow-blue {
-  background: radial-gradient(circle, #335aff 0%, transparent 70%);
-}
-
-.mesh-glow-indigo {
-  background: radial-gradient(circle, #4f46e5 0%, transparent 70%);
-}
-
-.mesh-glow-orange {
-  background: radial-gradient(circle, #fd660e 0%, transparent 70%);
+/* Precision Tabular Numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 /* Skeleton Loading Animation */

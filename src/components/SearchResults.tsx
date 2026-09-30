@@ -309,30 +309,27 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
               key={part.id}
               id={`master-part-card-${part.id}`}
               onClick={() => onSelectPart(part)}
-              className="surface-card-interactive rounded-2xl overflow-hidden flex flex-col justify-between cursor-pointer group"
+              className="machined-panel-interactive rounded-lg overflow-hidden flex flex-col justify-between cursor-pointer group"
             >
-              {/* Card Image with Restrained Compatibility Overlay */}
-              <div className="relative aspect-[16/10] bg-slate-950 overflow-hidden">
+              {/* Card Image with Technical Fitment Envelope */}
+              <div className="relative aspect-[16/10] bg-[#0d111a] overflow-hidden border-b border-white/[0.06]">
                 <img
                   src={part.imageUrl}
                   alt={part.partName}
                   loading="lazy"
-                  className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                  className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-200"
                 />
 
-                {/* Subtle gradient vignette */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0e1424] via-transparent to-transparent opacity-80 pointer-events-none" />
-
-                {/* Compatibility Badge (Section 7 & 9) */}
+                {/* Compatibility Badge */}
                 <div className="absolute top-2.5 left-2.5 rtl:left-auto rtl:right-2.5 z-10">
                   {isFit === true && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/90 text-slate-950 text-[10px] font-black shadow-xs">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded fitment-guaranteed text-[10px] font-bold">
                       <CheckCircle2 className="w-3 h-3" />
                       <span>{isArabic ? `مطابق لـ ${activeVehicle?.model}` : `Fits ${activeVehicle?.model}`}</span>
                     </span>
                   )}
                   {isFit === false && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/90 text-slate-950 text-[10px] font-black shadow-xs">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded fitment-check text-[10px] font-bold">
                       <AlertTriangle className="w-3 h-3" />
                       <span>{isArabic ? 'تحقق من التوافق' : 'Check Fitment'}</span>
                     </span>
@@ -342,49 +339,55 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                 {/* Quality Tier Chip */}
                 {bestOffer && (
                   <div className="absolute top-2.5 right-2.5 rtl:right-auto rtl:left-2.5 z-10">
-                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-black/60 backdrop-blur-md text-slate-200 border border-white/10">
-                      {bestOffer.quality === 'genuine' ? 'OEM Genuine' : bestOffer.quality === 'oem' ? 'OEM Spec' : 'Aftermarket'}
+                    <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-[#0d111a]/85 backdrop-blur-sm text-slate-200 border border-white/10">
+                      {bestOffer.quality === 'genuine' ? (isArabic ? 'أصلي وكالة' : 'OEM Genuine') : bestOffer.quality === 'oem' ? (isArabic ? 'مواصفة أصلية' : 'OEM Spec') : (isArabic ? 'تجاري معتمد' : 'Aftermarket')}
                     </span>
                   </div>
                 )}
               </div>
 
-              {/* Card Body - Extreme Restraint */}
-              <div className="p-4 flex-1 flex flex-col justify-between">
+              {/* Card Body */}
+              <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
                 <div>
                   {/* Brand & Part Number */}
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                  <div className="flex items-center justify-between text-[11px] text-[#94a3b8] mb-1">
                     <span className="font-semibold text-slate-300">{part.brand}</span>
-                    <span className="font-mono text-slate-500">{part.partNumber}</span>
+                    <span className="font-mono text-slate-400">{part.partNumber}</span>
                   </div>
 
                   {/* Part Title */}
                   <h3
-                    className="font-bold text-white text-sm sm:text-base leading-snug group-hover:text-[#335aff] transition-colors line-clamp-1"
+                    className="font-bold text-white text-sm leading-snug group-hover:text-[#2554d7] transition-colors line-clamp-1"
                     title={isArabic && part.partNameArabic ? part.partNameArabic : part.partName}
                   >
                     {isArabic && part.partNameArabic ? part.partNameArabic : part.partName}
                   </h3>
 
-                  {/* Availability Status */}
-                  <div className="mt-2 flex items-center gap-1.5 text-xs">
+                  {/* Availability & Dealer City */}
+                  <div className="mt-2 flex items-center justify-between text-xs">
                     {!isOutOfStock ? (
                       <span className="text-emerald-400 font-medium text-[11px] flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        <span>{isArabic ? 'متوفر بالمخزن' : 'In Stock'}</span>
+                        <span>{isArabic ? 'متوفر بالمستودع' : 'In Stock'}</span>
                       </span>
                     ) : (
-                      <span className="text-amber-400 font-medium text-[11px] flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                      <span className="text-[#d9730d] font-medium text-[11px] flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#d9730d]" />
                         <span>{isArabic ? 'حسب الطلب' : 'On Demand'}</span>
+                      </span>
+                    )}
+
+                    {bestOffer?.supplierCity && (
+                      <span className="text-[11px] text-[#94a3b8]">
+                        {bestOffer.supplierCity}
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Bottom Price & Single Dominant CTA */}
-                <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center justify-between gap-3">
-                  <div className="text-base font-black text-white tracking-tight">
+                {/* Bottom Price & Action */}
+                <div className="mt-3.5 pt-2.5 border-t border-white/[0.06] flex items-center justify-between gap-3">
+                  <div className="text-sm font-bold text-white tracking-tight tabular-nums">
                     {formatPrice(lowestPriceUSD, lowestPriceIQD)}
                   </div>
 
@@ -396,7 +399,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                         e.stopPropagation();
                         addToCart(part, bestOffer);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-[#335aff] hover:text-white text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer micro-press border border-white/10 hover:border-transparent"
+                      className="px-3 py-1.5 rounded bg-white/[0.06] hover:bg-[#2554d7] hover:text-white text-slate-200 text-xs font-medium transition-colors flex items-center gap-1.5 cursor-pointer micro-press border border-white/10 hover:border-transparent"
                     >
                       <ShoppingBag className="w-3.5 h-3.5" />
                       <span>{isArabic ? 'شراء' : 'Order'}</span>
@@ -415,7 +418,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onSelectPart }) =>
                         });
                         setActiveModal('request_part');
                       }}
-                      className="px-3.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer micro-press border border-amber-500/25"
+                      className="px-3 py-1.5 rounded bg-[#d9730d]/15 hover:bg-[#d9730d]/30 text-[#f6ad55] text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer micro-press border border-[#d9730d]/30"
                     >
                       <Gavel className="w-3.5 h-3.5" />
                       <span>{isArabic ? 'طلب عروض' : 'Get Offers'}</span>

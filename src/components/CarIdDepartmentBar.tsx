@@ -86,16 +86,16 @@ export const CarIdDepartmentBar: React.FC = () => {
               id={`dept-tab-${dept.id}`}
               type="button"
               onClick={() => setSelectedCategory(dept.id)}
-              className={`shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer micro-press ${
+              className={`shrink-0 flex items-center gap-2 px-3.5 py-1.5 rounded text-xs font-medium transition-colors cursor-pointer ${
                 isActive
-                  ? 'bg-[#335aff] text-white shadow-xs font-bold'
-                  : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                  ? 'bg-[#2554d7] text-white font-semibold'
+                  : 'text-[#94a3b8] hover:text-white hover:bg-white/[0.05] border border-transparent hover:border-white/[0.06]'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{isArabic ? dept.labelAr : dept.label}</span>
               {(dept as any).isLive && (
-                <span className={`w-2 h-2 rounded-full ${isActive ? 'bg-white' : 'bg-emerald-400'} animate-pulse`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white' : 'bg-[#d9730d]'}`} />
               )}
             </button>
           );
