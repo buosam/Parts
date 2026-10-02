@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, Suspense, lazy } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
 import { LangProvider, useLang } from './i18n';
 import { toast, Toaster } from 'sonner';
@@ -20,26 +20,26 @@ import RfqBand from './sections/RfqBand';
 import ScannerSection from './sections/ScannerSection';
 import SiteFooter from './sections/SiteFooter';
 import MobileTabBar from './sections/MobileTabBar';
-
-// Contextual Modals & Dashboards
-import { PartlineConsole } from './components/Partline/PartlineConsole';
-import { SanawiaDocOcrModal } from './components/Buyer/SanawiaDocOcrModal';
-import { MasterPartDetailModal } from './components/MasterPartDetailModal';
-import { VehicleSelectorModal } from './components/VehicleSelectorModal';
-import { PhotoSearchModal } from './components/PhotoSearchModal';
-import { QuoteUploadModal } from './components/QuoteUploadModal';
-import { RequestPartModal } from './components/RequestPartModal';
-import { RequestsBoard } from './components/RequestsBoard';
-import { SubmitPartBidModal } from './components/SubmitPartBidModal';
-import { WorkshopDashboard } from './components/WorkshopDashboard';
-import { SupplierPortal } from './components/SupplierPortal';
-import { AdminDashboard } from './components/AdminDashboard';
-import { CartModal } from './components/CartModal';
-import { AuthModal } from './components/AuthModal';
-import { SupplierStorefrontModal } from './components/SupplierStorefrontModal';
-import { DealerReviewModal } from './components/DealerReviewModal';
 import { MasterPart } from './types';
 import { Lock, AlertOctagon } from 'lucide-react';
+
+// Code-split heavy modals and dashboards for blazing-fast initial load
+const PartlineConsole = lazy(() => import('./components/Partline/PartlineConsole').then(m => ({ default: m.PartlineConsole })));
+const SanawiaDocOcrModal = lazy(() => import('./components/Buyer/SanawiaDocOcrModal').then(m => ({ default: m.SanawiaDocOcrModal })));
+const MasterPartDetailModal = lazy(() => import('./components/MasterPartDetailModal').then(m => ({ default: m.MasterPartDetailModal })));
+const VehicleSelectorModal = lazy(() => import('./components/VehicleSelectorModal').then(m => ({ default: m.VehicleSelectorModal })));
+const PhotoSearchModal = lazy(() => import('./components/PhotoSearchModal').then(m => ({ default: m.PhotoSearchModal })));
+const QuoteUploadModal = lazy(() => import('./components/QuoteUploadModal').then(m => ({ default: m.QuoteUploadModal })));
+const RequestPartModal = lazy(() => import('./components/RequestPartModal').then(m => ({ default: m.RequestPartModal })));
+const RequestsBoard = lazy(() => import('./components/RequestsBoard').then(m => ({ default: m.RequestsBoard })));
+const SubmitPartBidModal = lazy(() => import('./components/SubmitPartBidModal').then(m => ({ default: m.SubmitPartBidModal })));
+const WorkshopDashboard = lazy(() => import('./components/WorkshopDashboard').then(m => ({ default: m.WorkshopDashboard })));
+const SupplierPortal = lazy(() => import('./components/SupplierPortal').then(m => ({ default: m.SupplierPortal })));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const CartModal = lazy(() => import('./components/CartModal').then(m => ({ default: m.CartModal })));
+const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
+const SupplierStorefrontModal = lazy(() => import('./components/SupplierStorefrontModal').then(m => ({ default: m.SupplierStorefrontModal })));
+const DealerReviewModal = lazy(() => import('./components/DealerReviewModal').then(m => ({ default: m.DealerReviewModal })));
 
 const MarketplaceApp: React.FC = () => {
   const {
@@ -214,9 +214,11 @@ const MarketplaceApp: React.FC = () => {
 
   if (isPartlineConsoleOpen) {
     return (
-      <PartlineConsole
-        onExitToMarketplace={() => setIsPartlineConsoleOpen(false)}
-      />
+      <Suspense fallback={<div className="min-h-screen bg-[#070a12] flex items-center justify-center text-paper font-mono text-xs">Loading Partline AI...</div>}>
+        <PartlineConsole
+          onExitToMarketplace={() => setIsPartlineConsoleOpen(false)}
+        />
+      </Suspense>
     );
   }
 
@@ -245,7 +247,9 @@ const MarketplaceApp: React.FC = () => {
           <div>
             {isBiddingView ? (
               <div className="max-w-7xl mx-auto px-4 py-8">
-                <RequestsBoard />
+                <Suspense fallback={<div className="py-20 text-center text-ink-faint font-mono text-sm">Loading Requests...</div>}>
+                  <RequestsBoard />
+                </Suspense>
               </div>
             ) : (
               <>
@@ -288,7 +292,11 @@ const MarketplaceApp: React.FC = () => {
         )}
 
         {/* Workshop Dashboard */}
-        {role === 'workshop' && <WorkshopDashboard />}
+        {role === 'workshop' && (
+          <Suspense fallback={<div className="py-20 text-center text-ink-faint font-mono text-sm">Loading Workshop Dashboard...</div>}>
+            <WorkshopDashboard />
+          </Suspense>
+        )}
 
         {/* Dealer / Supplier Portal */}
         {role === 'supplier' && (
@@ -313,7 +321,9 @@ const MarketplaceApp: React.FC = () => {
               </button>
             </div>
           ) : (
-            <SupplierPortal />
+            <Suspense fallback={<div className="py-20 text-center text-ink-faint font-mono text-sm">Loading Supplier Portal...</div>}>
+              <SupplierPortal />
+            </Suspense>
           )
         )}
 
@@ -340,7 +350,9 @@ const MarketplaceApp: React.FC = () => {
               </button>
             </div>
           ) : (
-            <AdminDashboard />
+            <Suspense fallback={<div className="py-20 text-center text-ink-faint font-mono text-sm">Loading Admin Dashboard...</div>}>
+              <AdminDashboard />
+            </Suspense>
           )
         )}
       </main>
@@ -351,32 +363,35 @@ const MarketplaceApp: React.FC = () => {
       {/* Mobile Tab Bar */}
       <MobileTabBar active={activeTab} onNavigate={navigate} cartCount={cartTotalCount} />
 
-      {/* Global Modals & Notifications */}
+      {/* Global Modals & Notifications (Loaded Lazily on Demand) */}
       <Toaster position="top-center" richColors closeButton />
-      <MasterPartDetailModal part={selectedPart} onClose={() => setSelectedPart(null)} />
-      <VehicleSelectorModal />
-      <SanawiaDocOcrModal
-        isOpen={isSanawiaModalOpen || activeModal === 'sanawia_ocr'}
-        onClose={() => {
-          setIsSanawiaModalOpen(false);
-          setActiveModal(null);
-        }}
-      />
-      <PhotoSearchModal />
-      <QuoteUploadModal />
-      <RequestPartModal />
-      <CartModal />
-      <AuthModal />
-      <SupplierStorefrontModal />
-      <DealerReviewModal />
-
-      {/* Store Owner Bid Modal */}
-      {selectedRequestForBid && (
-        <SubmitPartBidModal
-          request={selectedRequestForBid}
-          onClose={() => setSelectedRequestForBid(null)}
+      
+      <Suspense fallback={null}>
+        {selectedPart && <MasterPartDetailModal part={selectedPart} onClose={() => setSelectedPart(null)} />}
+        <VehicleSelectorModal />
+        <SanawiaDocOcrModal
+          isOpen={isSanawiaModalOpen || activeModal === 'sanawia_ocr'}
+          onClose={() => {
+            setIsSanawiaModalOpen(false);
+            setActiveModal(null);
+          }}
         />
-      )}
+        <PhotoSearchModal />
+        <QuoteUploadModal />
+        <RequestPartModal />
+        <CartModal />
+        <AuthModal />
+        <SupplierStorefrontModal />
+        <DealerReviewModal />
+
+        {/* Store Owner Bid Modal */}
+        {selectedRequestForBid && (
+          <SubmitPartBidModal
+            request={selectedRequestForBid}
+            onClose={() => setSelectedRequestForBid(null)}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };

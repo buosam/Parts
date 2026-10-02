@@ -14,10 +14,15 @@ import { requireAuth, AuthenticatedRequest } from './src/server/security/rbac';
 import { logAuditEvent } from './src/server/security/audit';
 import { usersStore } from './src/server/security/auth';
 
+import compression from 'compression';
+
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+// Enable gzip/brotli compression for ultra-fast asset transfers
+app.use(compression());
 
 // Security Headers (Defense in Depth)
 app.use((req, res, next) => {
