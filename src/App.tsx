@@ -3,14 +3,27 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { MarketplaceProvider, useMarketplace } from './context/MarketplaceContext';
-import { AppNavbar } from './components/Navigation/AppNavbar';
-import { Logo } from './components/Logo';
+import { LangProvider, useLang } from './i18n';
+import { toast, Toaster } from 'sonner';
+import { DEFAULT_VEHICLE, PARTS, type Part, type Vehicle } from './data/parts';
+import SiteHeader from './sections/SiteHeader';
+import HeroFitment from './sections/HeroFitment';
+import TrustStrip from './sections/TrustStrip';
+import CatalogSection, {
+  EMPTY_FILTERS,
+  type CatalogFilters,
+  type SortKey,
+} from './sections/CatalogSection';
+import RfqBand from './sections/RfqBand';
+import ScannerSection from './sections/ScannerSection';
+import SiteFooter from './sections/SiteFooter';
+import MobileTabBar from './sections/MobileTabBar';
+
+// Contextual Modals & Dashboards
 import { PartlineConsole } from './components/Partline/PartlineConsole';
 import { SanawiaDocOcrModal } from './components/Buyer/SanawiaDocOcrModal';
-import { HomeHero } from './components/HomeHero';
-import { SearchResults } from './components/SearchResults';
 import { MasterPartDetailModal } from './components/MasterPartDetailModal';
 import { VehicleSelectorModal } from './components/VehicleSelectorModal';
 import { PhotoSearchModal } from './components/PhotoSearchModal';
@@ -25,34 +38,37 @@ import { CartModal } from './components/CartModal';
 import { AuthModal } from './components/AuthModal';
 import { SupplierStorefrontModal } from './components/SupplierStorefrontModal';
 import { DealerReviewModal } from './components/DealerReviewModal';
-import { CarIdDepartmentBar } from './components/CarIdDepartmentBar';
-import { MobileBottomNav } from './components/MobileBottomNav';
 import { MasterPart } from './types';
-import { ShieldCheck, Car, Phone, Mail, MapPin, Sparkles, Layers, Gavel, CheckCircle2, Zap, ArrowRight, Lock, AlertOctagon } from 'lucide-react';
+import { Lock, AlertOctagon } from 'lucide-react';
 
 const MarketplaceApp: React.FC = () => {
   const {
     role,
-    language,
+    setRole,
+    currentUser,
+    cart,
+    addToCart,
+    activeModal,
+    setActiveModal,
+    openAuthModal,
     selectedRequestForBid,
     setSelectedRequestForBid,
     selectedCategory,
-    setSelectedCategory,
-    searchQuery,
-    currentUser,
-    setRole,
-    activeModal,
-    setActiveModal,
   } = useMarketplace();
+
+  const { t, lang, dir } = useLang();
+  const [vehicle, setVehicle] = useState<Vehicle>(DEFAULT_VEHICLE);
+  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<CatalogFilters>(EMPTY_FILTERS);
+  const [sort, setSort] = useState<SortKey>("match");
+  const [view, setView] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState("top");
 
   const [selectedPart, setSelectedPart] = useState<MasterPart | null>(null);
   const [isSanawiaModalOpen, setIsSanawiaModalOpen] = useState(false);
   const [isPartlineConsoleOpen, setIsPartlineConsoleOpen] = useState(false);
-  const isArabic = language === 'ar';
 
-  const isBiddingView = selectedCategory === 'requests';
-
-  // Global ⌘K / Ctrl+K listener
+  // Global ⌘K / Ctrl+K listener for Partline AI Console
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -64,6 +80,125 @@ const MarketplaceApp: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Filter & sort catalog parts
+  const parts = useMemo(() => {
+    let list = PARTS.slice();
+
+    const q = query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (p) =>
+          p.oem.toLowerCase().includes(q) ||
+          p.name.toLowerCase().includes(q) ||
+          p.brand.toLowerCase().includes(q)
+      );
+    }
+    if (filters.fitsOnly) list = list.filter((p) => p.fits);
+    if (filters.categories.length)
+      list = list.filter((p) => filters.categories.includes(p.category));
+    if (filters.qualities.length)
+      list = list.filter((p) => filters.qualities.includes(p.quality));
+    if (filters.brands.length)
+      list = list.filter((p) => filters.brands.includes(p.brand));
+    if (filters.availability !== "all")
+      list = list.filter((p) => p.stock === filters.availability);
+
+    switch (sort) {
+      case "priceAsc":
+        list.sort((a, b) => a.price - b.price);
+        break;
+      case "priceDesc":
+        list.sort((a, b) => b.price - a.price);
+        break;
+      case "rating":
+        list.sort((a, b) => b.rating - a.rating);
+        break;
+      default:
+        list.sort(
+          (a, b) =>
+            Number(b.fits) - Number(a.fits) ||
+            (a.stock === "in" ? 0 : 1) - (b.stock === "in" ? 0 : 1) ||
+            b.rating - a.rating
+        );
+    }
+    return list;
+  }, [query, filters, sort]);
+
+  const handleOrder = (p: Part) => {
+    const yr = parseInt(vehicle.year, 10) || 2021;
+    const mappedMasterPart: MasterPart = {
+      id: p.id,
+      partNumber: p.oem,
+      partName: p.name,
+      partNameAr: p.name,
+      category: p.category as any,
+      description: `${p.brand} Part. Fits ${vehicle.year} ${vehicle.make} ${vehicle.model}. Lead time: ${p.leadTime}.`,
+      compatibleVehicles: [{
+        make: vehicle.make,
+        model: vehicle.model,
+        yearStart: yr - 3,
+        yearEnd: yr + 3,
+        engine: vehicle.engine,
+        trim: vehicle.trim,
+      }],
+      standardPriceUSD: p.price,
+      averageMarketPriceIQD: p.price * 1500,
+      offers: [{
+        id: `off_${p.id}`,
+        supplierId: 'sup_alsinak_01',
+        supplierName: p.warehouse === 'Baghdad' ? 'Al-Sinak Central Hub' : `${p.warehouse} Auto District`,
+        supplierRating: p.rating,
+        verifiedInteractionsCount: 420,
+        repeatPurchaseRate: 98,
+        quality: p.quality === 'Genuine OEM' ? 'genuine' : p.quality === 'OEM Spec' ? 'oem' : 'aftermarket',
+        brand: p.brand,
+        priceUSD: p.price,
+        priceIQD: p.price * 1500,
+        stockStatus: p.stock === 'in' ? 'in_stock_today' : 'order_on_demand',
+        stockQuantity: p.stock === 'in' ? 14 : 2,
+        warranty: '12-Month Official Warranty',
+        deliveryTime: p.leadTime,
+        deliveryOptions: ['express_courier', 'pickup'],
+        supplierCity: p.warehouse,
+        supplierLocationDetail: `${p.warehouse} Central Wholesale Market`,
+      }],
+      rating: p.rating,
+      reviewCount: 28,
+      inStock: p.stock === 'in',
+    };
+
+    addToCart(mappedMasterPart, mappedMasterPart.offers[0], 1);
+
+    toast.success(t("orderPlaced"), {
+      description: `${p.oem} — ${p.name} ${t("orderPlacedD")}`,
+      action: {
+        label: t("cart"),
+        onClick: () => setActiveModal('cart'),
+      },
+    });
+  };
+
+  const navigate = (id: string) => {
+    setActiveTab(id);
+    if (id === 'garage') {
+      setActiveModal('vehicle_selector');
+      return;
+    }
+    if (id === 'account') {
+      openAuthModal();
+      return;
+    }
+    if (id === 'offers') {
+      const el = document.getElementById('rfq');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   if (isPartlineConsoleOpen) {
     return (
       <PartlineConsole
@@ -72,53 +207,96 @@ const MarketplaceApp: React.FC = () => {
     );
   }
 
+  const isBiddingView = selectedCategory === 'requests';
+  const cartTotalCount = cart.reduce((s, i) => s + i.quantity, 0);
+
   return (
-    <div
-      dir={isArabic ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-[#0b0f19] text-slate-100 font-sans flex flex-col selection:bg-indigo-500 selection:text-white"
-    >
-      {/* Role-Conscious Navigation Bar */}
-      <AppNavbar
+    <div dir={dir} className="min-h-screen bg-paper text-ink font-sans flex flex-col selection:bg-terra selection:text-white">
+      {/* Redesigned Site Header */}
+      <SiteHeader
+        query={query}
+        onQuery={setQuery}
+        cartCount={cartTotalCount}
+        userName={currentUser?.name || "Ahmed"}
+        role={role}
+        onOpenCart={() => setActiveModal('cart')}
+        onOpenPartline={() => setIsPartlineConsoleOpen(true)}
+        onOpenAuth={() => openAuthModal()}
         onOpenSanawiaScan={() => setIsSanawiaModalOpen(true)}
-        onOpenPartlineConsole={() => setIsPartlineConsoleOpen(true)}
+        onRoleChange={setRole}
       />
 
-      {/* Main Role-Based Workspace */}
-      <main className="flex-1 pb-24 md:pb-16">
+      {/* Main Role-Based Content */}
+      <main className="flex-1 pb-24 md:pb-0">
         {role === 'customer' && (
           <div>
-            <HomeHero />
-            <CarIdDepartmentBar />
             {isBiddingView ? (
-              <RequestsBoard />
+              <div className="max-w-7xl mx-auto px-4 py-8">
+                <RequestsBoard />
+              </div>
             ) : (
-              <SearchResults onSelectPart={(part) => setSelectedPart(part)} />
+              <>
+                {/* Hero Fitment Module */}
+                <HeroFitment
+                  vehicle={vehicle}
+                  onVehicle={setVehicle}
+                  onScan={() => {
+                    setIsSanawiaModalOpen(true);
+                  }}
+                />
+
+                {/* Trust & Guarantee Strip */}
+                <TrustStrip />
+
+                {/* Live Redesigned Warehouse Catalog */}
+                <CatalogSection
+                  parts={parts}
+                  query={query}
+                  filters={filters}
+                  onFilters={setFilters}
+                  sort={sort}
+                  onSort={setSort}
+                  view={view}
+                  onView={setView}
+                  vehicleLabel={vehicle.model}
+                  onOrder={handleOrder}
+                />
+
+                {/* RFQ Tender Band */}
+                <RfqBand />
+
+                {/* Sanawia OCR Scanner Section */}
+                <div id="scanner" className="scroll-mt-16">
+                  <ScannerSection />
+                </div>
+              </>
             )}
           </div>
         )}
 
+        {/* Workshop Dashboard */}
         {role === 'workshop' && <WorkshopDashboard />}
 
-        {/* Dealer Portal Boundary Guard */}
+        {/* Dealer / Supplier Portal */}
         {role === 'supplier' && (
           currentUser && currentUser.role !== 'supplier' && currentUser.role !== 'admin' ? (
-            <div className="max-w-xl mx-auto my-16 p-8 bg-[#0e1424] rounded-3xl border border-red-500/30 text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+            <div className="max-w-xl mx-auto my-16 p-8 bg-surface rounded-3xl border border-terra-line text-center space-y-4 shadow-card">
+              <div className="w-16 h-16 rounded-2xl bg-terra-soft text-terra flex items-center justify-center mx-auto">
                 <AlertOctagon className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-black text-white">
-                {isArabic ? 'غير مصرح: بوابة الوكلاء المعتمدين' : '403 Forbidden: Dealer Business Portal'}
+              <h2 className="text-xl font-bold text-ink">
+                {lang === 'ar' ? 'غير مصرح: بوابة الوكلاء المعتمدين' : '403 Forbidden: Dealer Business Portal'}
               </h2>
-              <p className="text-xs text-slate-400">
-                {isArabic
+              <p className="text-xs text-ink-soft">
+                {lang === 'ar'
                   ? 'حسابك الحالي مسجل كمشتري. للوصول لبوابة إدارة المخزون وتوريد القطع، يرجى تسجيل الدخول بحساب وكيل تجاري معتمد.'
                   : 'Your current session is a Buyer account. Authorized business credentials are required to access dealer inventory.'}
               </p>
               <button
                 onClick={() => setRole('customer')}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer"
+                className="px-6 py-2.5 rounded-full bg-terra hover:bg-terra-hover text-paper font-semibold text-xs transition-colors"
               >
-                {isArabic ? 'العودة لسوق المشتري' : 'Return to Marketplace'}
+                {lang === 'ar' ? 'العودة لسوق المشتري' : 'Return to Marketplace'}
               </button>
             </div>
           ) : (
@@ -126,26 +304,26 @@ const MarketplaceApp: React.FC = () => {
           )
         )}
 
-        {/* Admin Console Boundary Guard */}
+        {/* Admin Console */}
         {role === 'admin' && (
           currentUser?.role !== 'admin' ? (
-            <div className="max-w-xl mx-auto my-16 p-8 bg-[#0e1424] rounded-3xl border border-red-500/30 text-center space-y-4">
-              <div className="w-16 h-16 rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center mx-auto">
+            <div className="max-w-xl mx-auto my-16 p-8 bg-surface rounded-3xl border border-terra-line text-center space-y-4 shadow-card">
+              <div className="w-16 h-16 rounded-2xl bg-night text-paper flex items-center justify-center mx-auto">
                 <Lock className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-black text-white">
-                {isArabic ? '403 محظور: منطقة إدارية مقيدة' : '403 Forbidden: Restricted Administration'}
+              <h2 className="text-xl font-bold text-ink">
+                {lang === 'ar' ? '403 محظور: منطقة إدارية مقيدة' : '403 Forbidden: Restricted Administration'}
               </h2>
-              <p className="text-xs text-slate-400">
-                {isArabic
+              <p className="text-xs text-ink-soft">
+                {lang === 'ar'
                   ? 'تم تسجيل محاولة وصول غير مصرح بها إلى مسارات الإدارة (/admin/*) وتوثيقها في سجل الأمان.'
                   : 'Unauthorized access attempt to /admin/* has been logged in the security audit trail.'}
               </p>
               <button
                 onClick={() => setRole('customer')}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs cursor-pointer"
+                className="px-6 py-2.5 rounded-full bg-terra hover:bg-terra-hover text-paper font-semibold text-xs transition-colors"
               >
-                {isArabic ? 'العودة للمنصة العامة' : 'Return to Public Marketplace'}
+                {lang === 'ar' ? 'العودة للمنصة العامة' : 'Return to Public Marketplace'}
               </button>
             </div>
           ) : (
@@ -154,10 +332,14 @@ const MarketplaceApp: React.FC = () => {
         )}
       </main>
 
-      {/* Mobile Bottom Navigation Bar (44px+ touch targets) */}
-      <MobileBottomNav />
+      {/* Redesigned Footer */}
+      <SiteFooter />
 
-      {/* Global Modals */}
+      {/* Mobile Tab Bar */}
+      <MobileTabBar active={activeTab} onNavigate={navigate} cartCount={cartTotalCount} />
+
+      {/* Global Modals & Notifications */}
+      <Toaster position="top-center" richColors closeButton />
       <MasterPartDetailModal part={selectedPart} onClose={() => setSelectedPart(null)} />
       <VehicleSelectorModal />
       <SanawiaDocOcrModal
@@ -182,48 +364,17 @@ const MarketplaceApp: React.FC = () => {
           onClose={() => setSelectedRequestForBid(null)}
         />
       )}
-
-      {/* Sleek Minimalist Footer */}
-      <footer className="bg-[#070a12] text-slate-400 border-t border-white/[0.08] text-xs py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Logo
-              variant="dark"
-              size="sm"
-              showBadge={true}
-              showSubtitle={false}
-              isArabic={isArabic}
-            />
-            <span className="text-slate-600 hidden sm:inline">•</span>
-            <span className="text-slate-400 text-xs hidden sm:inline">
-              {isArabic ? 'سوق قطع الغيار المعتمد في العراق' : "Iraq's automotive spare-parts marketplace."}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3 sm:gap-4 text-[11px] text-slate-500">
-            <span>Baghdad</span>
-            <span>•</span>
-            <span>Erbil</span>
-            <span>•</span>
-            <span>Basra</span>
-            <span>•</span>
-            <span>Sulaymaniyah</span>
-          </div>
-
-          <div className="text-slate-500 text-[11px]">
-            © 2026 IQAutoMarket
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
 
 export const App: React.FC = () => {
   return (
-    <MarketplaceProvider>
-      <MarketplaceApp />
-    </MarketplaceProvider>
+    <LangProvider>
+      <MarketplaceProvider>
+        <MarketplaceApp />
+      </MarketplaceProvider>
+    </LangProvider>
   );
 };
 

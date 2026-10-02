@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   CATEGORIES,
   PARTS,
@@ -381,6 +381,7 @@ function CheckRow({
   onToggle,
   children,
 }: {
+  key?: React.Key;
   checked: boolean;
   onToggle: () => void;
   children: React.ReactNode;
@@ -411,6 +412,7 @@ function RadioRow({
   onSelect,
   label,
 }: {
+  key?: React.Key;
   checked: boolean;
   onSelect: () => void;
   label: string;

@@ -1,97 +1,209 @@
 @import "tailwindcss";
 @import "./design-tokens.css";
 
-@layer base {
-  :root {
-    --font-primary: var(--font-family-body);
-    --font-heading: var(--font-family-display);
-    --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
-    
-    /* Authentic Automotive Engineering Palette from Design Tokens */
-    --bg-canvas: var(--color-neutral-950);          /* #0d111a Chassis Slate */
-    --bg-surface: var(--color-neutral-900);         /* #151d2a Machined Iron */
-    --bg-surface-elevated: var(--color-neutral-800);/* #1c2637 Raised surface */
-    --bg-surface-subtle: rgba(255, 255, 255, 0.04);
-    
-    /* Functional Industrial Accents */
-    --brand-blue: var(--color-primary-500);         /* #2554d7 Blueprint Blue */
-    --brand-blue-hover: var(--color-primary-600);   /* #1d43af */
-    --brand-amber: var(--color-warning);            /* #d9730d Tolerance Amber */
-    --brand-amber-hover: #b85f07;
-    
-    /* Structural Semantic Verification */
-    --status-fit: var(--color-success);             /* #059669 Clearance Green */
-    --status-warning: var(--color-warning);         /* #d9730d Tolerance Amber */
-    --status-danger: var(--color-danger);           /* #dc2626 Critical */
-    
-    --text-primary: var(--color-neutral-50);        /* #f3f6fa Cast Zinc */
-    --text-muted: #94a3b8;
-  }
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
 
-  body {
-    font-family: var(--font-primary);
-    background-color: var(--bg-canvas);
-    color: var(--text-primary);
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    padding-bottom: env(safe-area-inset-bottom, 0);
-  }
+  --color-paper: #FBFBF9;
+  --color-surface: #FFFFFF;
+  --color-sand: #F4F3EF;
+  --color-line: #E8E6E0;
+  
+  --color-ink: #262219;
+  --color-ink-soft: #6B655C;
+  --color-ink-faint: #9A938A;
+  
+  --color-terra: #C2502E;
+  --color-terra-hover: #A8431F;
+  --color-terra-soft: #F4E7DC;
+  --color-terra-line: #E3C7B4;
+  
+  --color-forest: #2E7D4F;
+  --color-forest-soft: #E3EFE6;
+  
+  --color-amberx: #A96F14;
+  --color-amberx-soft: #F6ECD4;
+  
+  --color-night: #2B2820;
+  --color-night-deep: #221F18;
 
-  h1, h2, h3, h4, .font-heading {
-    font-family: var(--font-heading);
-    letter-spacing: -0.025em;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  }
+  --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card: 0 1px 2px rgb(38 34 25 / 0.04), 0 8px 24px -12px rgb(38 34 25 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(38 34 25 / 0.05), 0 20px 44px -16px rgb(38 34 25 / 0.22);
 
-  [dir="rtl"], .font-arabic {
-    font-family: var(--font-arabic), var(--font-primary);
-    letter-spacing: normal;
-  }
-
-  [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] .font-heading {
-    letter-spacing: normal;
-    font-family: var(--font-arabic), var(--font-heading);
-  }
-
-  /* Accessible Touch Targets & Interactions */
-  button, a, input, select, textarea {
-    touch-action: manipulation;
-  }
-
-  /* Universal Focused State */
-  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px #0d111a, 0 0 0 4px #2554d7;
-  }
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-xs: calc(var(--radius) - 6px);
 }
 
-/* Machined Industrial Panels (Mechanical 6-8px radius, no fuzzy shadows) */
+:root {
+  --background: 60 14% 98%;          /* paper #FBFBF9 */
+  --foreground: 45 19% 12%;          /* ink #262219 */
+  --card: 0 0% 100%;
+  --card-foreground: 45 19% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 45 19% 12%;
+  --primary: 16 62% 47%;             /* terracotta */
+  --primary-foreground: 40 30% 97%;
+  --secondary: 45 14% 94%;
+  --secondary-foreground: 45 19% 12%;
+  --muted: 45 14% 94%;
+  --muted-foreground: 40 7% 39%;
+  --accent: 25 48% 91%;              /* terra-soft */
+  --accent-foreground: 16 62% 36%;
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 48 10% 89%;              /* line #E8E6E0 */
+  --input: 48 10% 89%;
+  --ring: 16 62% 47%;
+  --radius: 0.75rem;
+  
+  --font-primary: 'Geist', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-heading: 'Geist', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-arabic: 'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: #FBFBF9;
+  color: #262219;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  font-feature-settings: "ss01" on, "cv11" on, "tnum" on;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #c2502e;
+  color: #fbfbf9;
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #f4e7dc, 0 0 0 5px #c2502e;
+  border-radius: 6px;
+}
+
+/* Typography and Localization */
+[dir="rtl"], .font-arabic {
+  font-family: var(--font-arabic), var(--font-primary);
+  letter-spacing: normal;
+}
+
+[dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] .font-heading {
+  letter-spacing: normal;
+  font-family: var(--font-arabic), var(--font-heading);
+}
+
+/* Keep part numbers, VINs and codes LTR inside RTL pages */
+[dir="rtl"] .font-mono {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Micro styling components */
+.micro-label {
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Paper grain background */
+.paper-grain {
+  background-image:
+    radial-gradient(1200px 600px at 20% -10%, rgb(194 80 46 / 0.045), transparent 60%),
+    radial-gradient(1000px 700px at 85% 15%, rgb(43 40 32 / 0.035), transparent 55%);
+}
+
+/* Blueprint dotted grids */
+.blueprint-grid {
+  background-image: radial-gradient(circle, #d8d4c9 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.blueprint-grid-dark {
+  background-image: radial-gradient(circle, rgb(251 251 249 / 0.10) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Registration card scanline */
+.scanline {
+  animation: scan-sweep 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes scan-sweep {
+  0%, 100% { top: 18%; }
+  50% { top: 82%; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes dash-flow {
+  to { stroke-dashoffset: -24; }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-dash-flow {
+  animation: dash-flow 1.2s linear infinite;
+}
+
+/* Hide scrollbars */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Industrial & Utility classes */
 .machined-panel {
-  background-color: #151d2a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-}
-
-.machined-panel-interactive {
-  background-color: #151d2a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  transition: border-color 140ms ease, background-color 140ms ease;
-}
-.machined-panel-interactive:hover {
-  background-color: #1a2333;
-  border-color: rgba(37, 84, 215, 0.45);
+  background-color: #ffffff;
+  border: 1px solid #e8e6e0;
+  border-radius: 12px;
 }
 
 .glass-nav {
-  background: rgba(13, 17, 26, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(251, 251, 249, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid #e8e6e0;
 }
 
-/* Micro Press Response */
 .micro-press {
   transition: transform 100ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -99,56 +211,37 @@
   transform: scale(0.98);
 }
 
-/* Fitment Status Envelopes */
-.fitment-guaranteed {
-  background: rgba(5, 150, 105, 0.12);
-  border: 1px solid rgba(5, 150, 105, 0.35);
-  color: #34d399;
-}
-
-.fitment-check {
-  background: rgba(217, 115, 13, 0.12);
-  border: 1px solid rgba(217, 115, 13, 0.35);
-  color: #fbbf24;
-}
-
-/* Precision Tabular Numbers */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
 
-/* Skeleton Loading Animation */
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+.text-balance {
+  text-wrap: balance;
 }
 
-.skeleton-shimmer {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0.03) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.8s infinite;
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 /* Clean Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090d16;
+  background: #f4f3ef;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
+  background: #d8d4c9;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #c2502e;
 }
 
-/* Respect User Motion Preferences */
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
