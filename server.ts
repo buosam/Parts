@@ -977,7 +977,10 @@ async function startServer() {
   } else {
     console.log('⚡ Launching Vite in development middleware mode...');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: {
+        middlewareMode: true,
+        allowedHosts: ['iqautomarket.com', '.iqautomarket.com', 'localhost', '127.0.0.1'],
+      },
       appType: 'spa',
     });
     app.use(vite.middlewares);
