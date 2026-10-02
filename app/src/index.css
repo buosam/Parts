@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 60 14% 98%;          /* paper #FBFBF9 */
+    --foreground: 45 19% 12%;          /* ink #262219 */
+    --card: 0 0% 100%;
+    --card-foreground: 45 19% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 45 19% 12%;
+    --primary: 16 62% 47%;             /* terracotta */
+    --primary-foreground: 40 30% 97%;
+    --secondary: 45 14% 94%;
+    --secondary-foreground: 45 19% 12%;
+    --muted: 45 14% 94%;
+    --muted-foreground: 40 7% 39%;
+    --accent: 25 48% 91%;              /* terra-soft */
+    --accent-foreground: 16 62% 36%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 48 10% 89%;              /* line #E8E6E0 */
+    --input: 48 10% 89%;
+    --ring: 16 62% 47%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+    font-feature-settings: "ss01" on, "cv11" on, "tnum" on;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: #c2502e;
+    color: #fbfbf9;
+  }
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px #f4e7dc, 0 0 0 5px #c2502e;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* mono micro-label: eyebrow pills, catalog numbers, counts */
+  .micro-label {
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.08em];
+  }
+  /* paper grain via layered radial gradients */
+  .paper-grain {
+    background-image:
+      radial-gradient(1200px 600px at 20% -10%, rgb(194 80 46 / 0.045), transparent 60%),
+      radial-gradient(1000px 700px at 85% 15%, rgb(43 40 32 / 0.035), transparent 55%);
+  }
+  /* blueprint dotted grid for hero visual */
+  .blueprint-grid {
+    background-image: radial-gradient(circle, #d8d4c9 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .blueprint-grid-dark {
+    background-image: radial-gradient(circle, rgb(251 251 249 / 0.10) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  /* registration card scanline */
+  .scanline {
+    animation: scan-sweep 3s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  @keyframes scan-sweep {
+    0%, 100% { top: 18%; }
+    50% { top: 82%; }
+  }
+  /* hide scrollbars on horizontal chip rails */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* keep part numbers, VINs and codes LTR inside RTL pages */
+[dir="rtl"] .font-mono {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
