@@ -60,6 +60,23 @@ app.use('/api/', (req, res, next) => {
 
 app.use(express.json({ limit: '15mb' }));
 
+// Production Health & Readiness Probe
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.floor(process.uptime()),
+    database: isDbConnected() ? 'connected' : 'in-memory-fallback',
+    geminiConfigured: Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY'),
+    environment: process.env.NODE_ENV || 'development',
+    version: '1.0.0',
+    memory: {
+      rssMb: Math.round(process.memoryUsage().rss / 1024 / 1024),
+      heapUsedMb: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+    },
+  });
+});
+
 // Lazy GoogleGenAI initialization
 function getGenAI(): GoogleGenAI | null {
   const apiKey = process.env.GEMINI_API_KEY;
