@@ -23,8 +23,9 @@ import MobileTabBar from './sections/MobileTabBar';
 import { MasterPart } from './types';
 import { Lock, AlertOctagon } from 'lucide-react';
 
+import { PartlineConsole } from './components/Partline/PartlineConsole';
+
 // Code-split heavy modals and dashboards for blazing-fast initial load
-const PartlineConsole = lazy(() => import('./components/Partline/PartlineConsole').then(m => ({ default: m.PartlineConsole })));
 const SanawiaDocOcrModal = lazy(() => import('./components/Buyer/SanawiaDocOcrModal').then(m => ({ default: m.SanawiaDocOcrModal })));
 const MasterPartDetailModal = lazy(() => import('./components/MasterPartDetailModal').then(m => ({ default: m.MasterPartDetailModal })));
 const VehicleSelectorModal = lazy(() => import('./components/VehicleSelectorModal').then(m => ({ default: m.VehicleSelectorModal })));
@@ -227,11 +228,9 @@ const MarketplaceApp: React.FC = () => {
 
   if (isPartlineConsoleOpen) {
     return (
-      <Suspense fallback={<div className="min-h-screen bg-[#070a12] flex items-center justify-center text-paper font-mono text-xs">Loading Partline AI...</div>}>
-        <PartlineConsole
-          onExitToMarketplace={() => setIsPartlineConsoleOpen(false)}
-        />
-      </Suspense>
+      <PartlineConsole
+        onExitToMarketplace={() => setIsPartlineConsoleOpen(false)}
+      />
     );
   }
 

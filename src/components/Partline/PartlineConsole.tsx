@@ -2704,3 +2704,5 @@ export const PartlineConsole: React.FC<PartlineConsoleProps> = ({ onExitToMarket
     </div>
   );
 };
+
+export default PartlineConsole;
