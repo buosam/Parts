@@ -1,14 +1,23 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/i18n";
 import { ArrowIcon, UsersIcon } from "@/components/icons";
 
-export default function RfqBand() {
+interface Props {
+  onSendRfq?: (partName: string) => void;
+}
+
+export default function RfqBand({ onSendRfq }: Props) {
   const { t } = useLang();
   const [value, setValue] = useState("");
 
   const send = () => {
-    toast.success(t("rfqSent"), { description: t("rfqSentD") });
+    if (!value.trim()) return;
+    if (onSendRfq) {
+      onSendRfq(value.trim());
+    } else {
+      toast.success(t("rfqSent"), { description: t("rfqSentD") });
+    }
     setValue("");
   };
 

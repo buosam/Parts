@@ -13,6 +13,7 @@ interface Props {
   view: "grid" | "list";
   vehicleLabel: string;
   onOrder: (p: Part) => void;
+  onSelectPart?: (p: Part) => void;
 }
 
 export function QualityChip({ q }: { q: Part["quality"] }) {
@@ -45,7 +46,7 @@ export function StockDot({ stock }: { stock: Part["stock"] }) {
   );
 }
 
-export default function PartCard({ part, view, vehicleLabel, onOrder }: Props) {
+export default function PartCard({ part, view, vehicleLabel, onOrder, onSelectPart }: Props) {
   const { t } = useLang();
   const Icon = CATEGORY_ICONS[part.category];
   const cta = part.stock === "in" ? t("order") : t("getOffers");
@@ -67,12 +68,18 @@ export default function PartCard({ part, view, vehicleLabel, onOrder }: Props) {
   if (view === "list") {
     return (
       <article className="group flex items-center gap-4 rounded-2xl border border-line bg-surface p-3.5 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift sm:gap-5 sm:p-4">
-        <div className="blueprint-grid grid size-16 shrink-0 place-items-center rounded-xl border border-line bg-sand text-ink sm:size-20">
+        <div
+          onClick={() => onSelectPart?.(part)}
+          className={`blueprint-grid grid size-16 shrink-0 place-items-center rounded-xl border border-line bg-sand text-ink sm:size-20 ${onSelectPart ? 'cursor-pointer hover:border-terra/40' : ''}`}
+        >
           <Icon className="size-7 sm:size-9" strokeWidth={1.3} />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-            <span className="font-mono text-[11px] font-semibold tracking-[0.04em] text-terra">
+            <span
+              onClick={() => onSelectPart?.(part)}
+              className={`font-mono text-[11px] font-semibold tracking-[0.04em] text-terra ${onSelectPart ? 'cursor-pointer hover:underline' : ''}`}
+            >
               {part.oem}
             </span>
             <span className="micro-label text-ink-faint">{part.brand}</span>
@@ -85,7 +92,10 @@ export default function PartCard({ part, view, vehicleLabel, onOrder }: Props) {
               </span>
             )}
           </div>
-          <h3 className="mt-1 truncate text-[15px] font-semibold tracking-[-0.01em]">
+          <h3
+            onClick={() => onSelectPart?.(part)}
+            className={`mt-1 truncate text-[15px] font-semibold tracking-[-0.01em] ${onSelectPart ? 'cursor-pointer hover:text-terra' : ''}`}
+          >
             {part.name}
           </h3>
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-soft">
@@ -117,7 +127,10 @@ export default function PartCard({ part, view, vehicleLabel, onOrder }: Props) {
   return (
     <article className="group flex flex-col rounded-2xl border border-line bg-surface shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lift">
       {/* glyph tile */}
-      <div className="blueprint-grid relative grid h-36 place-items-center rounded-t-2xl border-b border-line bg-sand text-ink">
+      <div
+        onClick={() => onSelectPart?.(part)}
+        className={`blueprint-grid relative grid h-36 place-items-center rounded-t-2xl border-b border-line bg-sand text-ink ${onSelectPart ? 'cursor-pointer' : ''}`}
+      >
         <Icon className="size-16 transition-transform duration-300 group-hover:scale-105" strokeWidth={1.1} />
         <div className="absolute start-3 top-3 flex gap-1.5">
           {part.fits && (
@@ -136,12 +149,18 @@ export default function PartCard({ part, view, vehicleLabel, onOrder }: Props) {
 
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-[11px] font-semibold tracking-[0.04em] text-terra">
+          <span
+            onClick={() => onSelectPart?.(part)}
+            className={`font-mono text-[11px] font-semibold tracking-[0.04em] text-terra ${onSelectPart ? 'cursor-pointer hover:underline' : ''}`}
+          >
             {part.oem}
           </span>
           <span className="micro-label text-ink-faint">{part.brand}</span>
         </div>
-        <h3 className="mt-1.5 text-[15px] font-semibold leading-snug tracking-[-0.01em]">
+        <h3
+          onClick={() => onSelectPart?.(part)}
+          className={`mt-1.5 text-[15px] font-semibold leading-snug tracking-[-0.01em] ${onSelectPart ? 'cursor-pointer hover:text-terra' : ''}`}
+        >
           {part.name}
         </h3>
         <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink-soft">

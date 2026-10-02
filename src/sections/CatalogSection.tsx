@@ -55,6 +55,7 @@ interface Props {
   onView: (v: "grid" | "list") => void;
   vehicleLabel: string;
   onOrder: (p: Part) => void;
+  onSelectPart?: (p: Part) => void;
 }
 
 const QUALITIES: { key: Quality; tKey: "genuine" | "oemSpec" | "aftermarket" }[] = [
@@ -335,6 +336,7 @@ export default function CatalogSection(props: Props) {
                     view={props.view}
                     vehicleLabel={props.vehicleLabel}
                     onOrder={props.onOrder}
+                    onSelectPart={props.onSelectPart}
                   />
                 </div>
               ))}

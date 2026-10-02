@@ -1,8 +1,13 @@
+import React from "react";
 import { useLang } from "@/i18n";
 import { CheckIcon, LockIcon, ScanIcon } from "@/components/icons";
 
-export default function ScannerSection() {
-  const { t } = useLang();
+interface Props {
+  onScanClick?: () => void;
+}
+
+export default function ScannerSection({ onScanClick }: Props) {
+  const { t, lang } = useLang();
   const points = [t("scanPoint1"), t("scanPoint2"), t("scanPoint3")];
 
   return (
@@ -30,10 +35,21 @@ export default function ScannerSection() {
               </li>
             ))}
           </ul>
+          {onScanClick && (
+            <div className="mt-8">
+              <button
+                onClick={onScanClick}
+                className="flex min-h-[48px] items-center gap-2.5 rounded-xl bg-terra px-6 text-sm font-semibold text-paper shadow-md transition-colors hover:bg-terra-hover cursor-pointer"
+              >
+                <ScanIcon className="size-5" />
+                <span>{lang === "ar" ? "افتح كاميرا المسح الضوئي للسنوية" : "Launch Sanawia Card Scanner"}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Extraction mock */}
-        <div className="relative">
+        <div className="relative" onClick={onScanClick} role={onScanClick ? "button" : undefined}>
           <div className="rounded-2xl border border-line bg-paper p-4 shadow-card sm:p-5">
             {/* card scan frame */}
             <div className="blueprint-grid relative overflow-hidden rounded-xl border border-dashed border-terra-line bg-terra-soft/40 p-5">

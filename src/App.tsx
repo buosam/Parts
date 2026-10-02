@@ -124,7 +124,7 @@ const MarketplaceApp: React.FC = () => {
     return list;
   }, [query, filters, sort]);
 
-  const handleOrder = (p: Part) => {
+  const mapPartToMaster = (p: Part): MasterPart => {
     const yr = parseInt(vehicle.year, 10) || 2021;
     const catMap: Record<string, MasterPart['category']> = {
       brakes: 'Brake',
@@ -135,7 +135,7 @@ const MarketplaceApp: React.FC = () => {
       filters: 'Filters',
     };
 
-    const mappedMasterPart: MasterPart = {
+    return {
       id: p.id,
       partNumber: p.oem,
       oemNumber: p.oem,
@@ -144,7 +144,7 @@ const MarketplaceApp: React.FC = () => {
       manufacturer: p.brand,
       brand: p.brand,
       category: catMap[p.category] || 'Brake',
-      description: `${p.brand} Part. Fits ${vehicle.year} ${vehicle.make} ${vehicle.model}. Lead time: ${p.leadTime}.`,
+      description: `${p.brand} OEM Quality Part. Fits ${vehicle.year} ${vehicle.make} ${vehicle.model}. Lead time: ${p.leadTime}.`,
       specifications: {
         'Origin': 'Japan / Germany / Korea',
         'Lead Time': p.leadTime,
@@ -179,7 +179,10 @@ const MarketplaceApp: React.FC = () => {
         supplierLocationDetail: `${p.warehouse} Central Wholesale Market`,
       }],
     };
+  };
 
+  const handleOrder = (p: Part) => {
+    const mappedMasterPart = mapPartToMaster(p);
     addToCart(mappedMasterPart, mappedMasterPart.offers[0], 1);
 
     toast.success(t("orderPlaced"), {
@@ -187,6 +190,16 @@ const MarketplaceApp: React.FC = () => {
       action: {
         label: t("cart"),
         onClick: () => setActiveModal('cart'),
+      },
+    });
+  };
+
+  const handleSendRfq = (partNameQuery: string) => {
+    toast.success(t("rfqSent"), {
+      description: `${partNameQuery} — ${t("rfqSentD")}`,
+      action: {
+        label: lang === 'ar' ? 'عرض الطلبات' : 'View RFQ Board',
+        onClick: () => setActiveModal('requests_board'),
       },
     });
   };
@@ -277,14 +290,15 @@ const MarketplaceApp: React.FC = () => {
                   onView={setView}
                   vehicleLabel={vehicle.model}
                   onOrder={handleOrder}
+                  onSelectPart={(p) => setSelectedPart(mapPartToMaster(p))}
                 />
 
                 {/* RFQ Tender Band */}
-                <RfqBand />
+                <RfqBand onSendRfq={handleSendRfq} />
 
                 {/* Sanawia OCR Scanner Section */}
                 <div id="scanner" className="scroll-mt-16">
-                  <ScannerSection />
+                  <ScannerSection onScanClick={() => setIsSanawiaModalOpen(true)} />
                 </div>
               </>
             )}

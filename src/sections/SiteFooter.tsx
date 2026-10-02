@@ -1,5 +1,6 @@
+import React from "react";
 import { useLang } from "@/i18n";
-import { LogoMark } from "@/components/icons";
+import { Logo } from "@/components/Logo";
 
 const COLS: string[][] = [
   ["Catalog", "Dealer quotes", "RFQ tender", "Fitment checker"],
@@ -8,19 +9,14 @@ const COLS: string[][] = [
 ];
 
 export default function SiteFooter() {
-  const { t, tlist } = useLang();
+  const { t, tlist, lang } = useLang();
   return (
     <footer className="bg-night-deep text-paper">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr]">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="grid size-9 place-items-center rounded-[10px] bg-terra text-paper">
-                <LogoMark className="size-5" />
-              </span>
-              <span className="text-[15px] font-semibold">
-                IQ<span className="text-terra">Auto</span>Market
-              </span>
+              <Logo variant="dark" size="md" showBadge={true} showSubtitle={false} isArabic={lang === "ar"} />
             </div>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-paper/55">
               {t("footerTag")}

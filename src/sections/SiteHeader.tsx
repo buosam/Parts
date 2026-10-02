@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLang } from "@/i18n";
-import { CartIcon, LogoMark, SearchIcon } from "@/components/icons";
+import { Logo } from "@/components/Logo";
+import { CartIcon, SearchIcon } from "@/components/icons";
 import { Sparkles, User, Shield, Wrench, Store } from "lucide-react";
 
 interface Props {
@@ -45,17 +46,9 @@ export default function SiteHeader({
       }`}
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-5 sm:px-6">
-        {/* Brand */}
+        {/* Official Brand Logo */}
         <a href="#top" className="flex min-h-[44px] items-center gap-2.5" aria-label="IQAutoMarket home">
-          <span className="grid size-9 place-items-center rounded-[10px] bg-terra text-paper shadow-sm">
-            <LogoMark className="size-5" />
-          </span>
-          <span className="leading-none">
-            <span className="block text-[15px] font-semibold tracking-[-0.01em]">
-              IQ<span className="text-terra">Auto</span>Market
-            </span>
-            <span className="micro-label mt-1 block text-ink-faint">IRQ · EST. 2026</span>
-          </span>
+          <Logo variant="full" size="md" showBadge={true} showSubtitle={false} isArabic={lang === "ar"} />
         </a>
 
         {/* Search — center on desktop */}
