@@ -14,6 +14,7 @@ export function getDbPool(): Pool | null {
   const connectionString =
     process.env.DATABASE_URL ||
     process.env.DATABASE_PRIVATE_URL ||
+    process.env.DATABASE_PUBLIC_URL ||
     (process.env.PGHOST && process.env.PGUSER
       ? `postgresql://${process.env.PGUSER}:${process.env.PGPASSWORD || ''}@${process.env.PGHOST}:${process.env.PGPORT || 5432}/${process.env.PGDATABASE || 'railway'}`
       : undefined);
@@ -23,12 +24,17 @@ export function getDbPool(): Pool | null {
   }
 
   try {
+    const isInternalRailway = connectionString.includes('railway.internal') || (process.env.PGHOST && process.env.PGHOST.includes('railway.internal'));
+    const isExplicitSsl = connectionString.includes('sslmode=require');
+
     const config: PoolConfig = {
       connectionString,
       ssl:
-        process.env.NODE_ENV === 'production' || connectionString.includes('sslmode=require')
-          ? { rejectUnauthorized: false }
-          : false,
+        isInternalRailway
+          ? false
+          : isExplicitSsl || process.env.NODE_ENV === 'production'
+            ? { rejectUnauthorized: false }
+            : false,
       max: 10,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
