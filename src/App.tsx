@@ -126,13 +126,31 @@ const MarketplaceApp: React.FC = () => {
 
   const handleOrder = (p: Part) => {
     const yr = parseInt(vehicle.year, 10) || 2021;
+    const catMap: Record<string, MasterPart['category']> = {
+      brakes: 'Brake',
+      suspension: 'Suspension',
+      engine: 'Engine',
+      body: 'Body Parts',
+      cooling: 'Cooling',
+      filters: 'Filters',
+    };
+
     const mappedMasterPart: MasterPart = {
       id: p.id,
       partNumber: p.oem,
+      oemNumber: p.oem,
       partName: p.name,
-      partNameAr: p.name,
-      category: p.category as any,
+      partNameArabic: p.name,
+      manufacturer: p.brand,
+      brand: p.brand,
+      category: catMap[p.category] || 'Brake',
       description: `${p.brand} Part. Fits ${vehicle.year} ${vehicle.make} ${vehicle.model}. Lead time: ${p.leadTime}.`,
+      specifications: {
+        'Origin': 'Japan / Germany / Korea',
+        'Lead Time': p.leadTime,
+        'Warehouse': p.warehouse,
+      },
+      imageUrl: '',
       compatibleVehicles: [{
         make: vehicle.make,
         model: vehicle.model,
@@ -141,8 +159,6 @@ const MarketplaceApp: React.FC = () => {
         engine: vehicle.engine,
         trim: vehicle.trim,
       }],
-      standardPriceUSD: p.price,
-      averageMarketPriceIQD: p.price * 1500,
       offers: [{
         id: `off_${p.id}`,
         supplierId: 'sup_alsinak_01',
@@ -162,9 +178,6 @@ const MarketplaceApp: React.FC = () => {
         supplierCity: p.warehouse,
         supplierLocationDetail: `${p.warehouse} Central Wholesale Market`,
       }],
-      rating: p.rating,
-      reviewCount: 28,
-      inStock: p.stock === 'in',
     };
 
     addToCart(mappedMasterPart, mappedMasterPart.offers[0], 1);
