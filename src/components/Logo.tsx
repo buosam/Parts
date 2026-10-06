@@ -9,13 +9,13 @@ import React from 'react';
 export interface LogoProps {
   /**
    * Presentation variant:
-   * - 'full': The original full brand logo with gear mark + "IQAutoMarket"
-   * - 'dark': High-contrast dark header version (orange IQ + white AutoMarket)
+   * - 'full' | 'color': The vibrant official color brand logo (/IQautomarket-logo-color.webp)
+   * - 'dark' | 'light': High-contrast light monochrome version for dark backgrounds (/IQautomarket-logo-light.webp)
    * - 'mark': Just the gear mark emblem (crescent blue gear + orange circle)
    * - 'white': Monochrome white gear mark
    * - 'badge': Icon mark inside an illuminated glassmorphic container with custom typography
    */
-  variant?: 'full' | 'dark' | 'mark' | 'white' | 'badge';
+  variant?: 'full' | 'dark' | 'mark' | 'white' | 'badge' | 'color' | 'light';
   /**
    * Predefined or custom size
    */
@@ -123,7 +123,7 @@ export const Logo: React.FC<LogoProps> = ({
     );
   }
 
-  // 3. Badge variant (illuminated card with the vector emblem and custom styled typography)
+  // 3. Badge variant (illuminated card with the vector emblem and custom typography)
   if (variant === 'badge') {
     return (
       <div
@@ -157,12 +157,9 @@ export const Logo: React.FC<LogoProps> = ({
     );
   }
 
-  // 4. Full or Dark variants: High-resolution official image logo with optional badge & subtitle
-  const imgSrc = variant === 'dark' ? '/logo-dark.png' : '/logo.png';
-  const srcSet =
-    variant === 'dark'
-      ? '/logo-dark.png 1x, /logo-dark@2x.png 2x'
-      : '/logo.png 1x, /logo@2x.png 2x, /logo@4x.png 4x';
+  // 4. Full, Color, Dark, or Light variants: High-resolution official image logo with optional badge & subtitle
+  const isDarkVariant = variant === 'dark' || variant === 'light';
+  const imgSrc = isDarkVariant ? '/IQautomarket-logo-light.webp' : '/IQautomarket-logo-color.webp';
 
   return (
     <div
@@ -172,9 +169,12 @@ export const Logo: React.FC<LogoProps> = ({
       <div className="relative flex items-center shrink-0">
         <img
           src={imgSrc}
-          srcSet={srcSet}
           alt="IQAutoMarket"
-          className={`${currentSize.h} w-auto object-contain transition-transform duration-200 group-hover:scale-102 drop-shadow-[0_2px_10px_rgba(51,90,255,0.25)]`}
+          className={`${currentSize.h} w-auto object-contain transition-transform duration-200 group-hover:scale-102 ${
+            isDarkVariant
+              ? 'drop-shadow-[0_2px_8px_rgba(255,255,255,0.15)]'
+              : 'drop-shadow-[0_2px_10px_rgba(51,90,255,0.25)]'
+          }`}
         />
       </div>
 

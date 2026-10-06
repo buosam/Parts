@@ -69,7 +69,7 @@ export default function SiteHeader({
         <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-3 sm:px-6">
           {/* Logo */}
           <a href="#top" className="flex items-center gap-2 shrink-0 me-2" aria-label="IQAutoMarket home">
-            <Logo variant="full" size="md" showBadge={false} showSubtitle={false} isArabic={lang === "ar"} />
+            <Logo variant="light" size="md" showBadge={false} showSubtitle={false} isArabic={lang === "ar"} />
           </a>
 
           {/* Search Bar - Amazon style */}
