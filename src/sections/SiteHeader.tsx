@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLang } from "@/i18n";
 import { Logo } from "@/components/Logo";
 import { CartIcon, SearchIcon } from "@/components/icons";
-import { Sparkles, User, Shield, Wrench, Store } from "lucide-react";
+import { User, Package, Menu, Sparkles, ChevronDown, Store, Wrench, Shield } from "lucide-react";
 
 interface Props {
   query: string;
@@ -15,6 +15,7 @@ interface Props {
   onOpenAuth?: () => void;
   onOpenSanawiaScan?: () => void;
   onRoleChange?: (role: any) => void;
+  onSelectBrandCategory?: (brandOrCategory: string) => void;
 }
 
 export default function SiteHeader({
@@ -27,10 +28,11 @@ export default function SiteHeader({
   onOpenPartline,
   onOpenAuth,
   onRoleChange,
+  onSelectBrandCategory,
 }: Props) {
-  const { t, lang, toggle } = useLang();
+  const { lang, toggle } = useLang();
   const [scrolled, setScrolled] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -39,172 +41,234 @@ export default function SiteHeader({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const handleNavClick = (term: string) => {
+    if (onSelectBrandCategory) {
+      onSelectBrandCategory(term);
+    } else {
+      onQuery(term);
+    }
+  };
+
+  const navItems = [
+    { label: lang === "ar" ? "قطع السيارات" : "Auto Parts", filter: "Auto Parts" },
+    { label: "Toyota", filter: "Toyota" },
+    { label: "Lexus", filter: "Lexus" },
+    { label: "Nissan", filter: "Nissan" },
+    { label: "Hyundai", filter: "Hyundai" },
+    { label: "Kia", filter: "Kia" },
+    { label: lang === "ar" ? "سيارات أوروبية" : "European Cars", filter: "European" },
+    { label: lang === "ar" ? "شاحنات" : "Trucks", filter: "Trucks" },
+    { label: lang === "ar" ? "إكسسوارات" : "Accessories", filter: "Accessories" },
+    { label: lang === "ar" ? "العروض والتخفيضات" : "Deals", filter: "Deals" },
+  ];
+
   return (
-    <header
-      className={`sticky top-0 z-40 border-b bg-paper/85 backdrop-blur-[14px] backdrop-saturate-150 transition-[border-color,box-shadow] duration-300 ${
-        scrolled ? "border-line shadow-[0_1px_0_rgb(38_34_25/0.02)]" : "border-transparent"
-      }`}
-    >
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-5 sm:px-6">
-        {/* Official Brand Logo */}
-        <a href="#top" className="flex min-h-[44px] items-center gap-2.5" aria-label="IQAutoMarket home">
-          <Logo variant="full" size="md" showBadge={true} showSubtitle={false} isArabic={lang === "ar"} />
-        </a>
+    <header className="sticky top-0 z-40 bg-surface border-b border-line shadow-xs">
+      {/* Top Header Bar */}
+      <div className="bg-[#121820] text-white">
+        <div className="mx-auto flex h-14 max-w-7xl items-center gap-3 px-3 sm:px-6">
+          {/* Logo */}
+          <a href="#top" className="flex items-center gap-2 shrink-0 me-2" aria-label="IQAutoMarket home">
+            <Logo variant="full" size="md" showBadge={false} showSubtitle={false} isArabic={lang === "ar"} />
+          </a>
 
-        {/* Search — center on desktop */}
-        <div className="relative mx-auto hidden w-full max-w-xl md:block">
-          <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 size-[18px] -translate-y-1/2 text-ink-faint" />
-          <input
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="h-11 w-full rounded-full border border-line bg-surface ps-10 pe-16 text-sm text-ink shadow-xs outline-none transition placeholder:text-ink-faint focus:border-terra-line"
-            aria-label={t("navSearch")}
-          />
-          <kbd className="micro-label pointer-events-none absolute end-3.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-line bg-sand px-1.5 py-0.5 text-[10px] text-ink-faint lg:block">
-            OEM#
-          </kbd>
-        </div>
-
-        {/* Actions */}
-        <div className="ms-auto flex items-center gap-1.5 md:ms-0">
-          {/* Partline AI button */}
-          {onOpenPartline && (
-            <button
-              onClick={onOpenPartline}
-              className="flex min-h-[40px] items-center gap-1.5 rounded-full border border-terra/20 bg-terra-soft/60 px-3 text-xs font-semibold text-terra transition-colors hover:bg-terra-soft"
-              title="Partline AI Console (⌘K)"
+          {/* Search Bar - Amazon style */}
+          <div className="flex-1 max-w-3xl mx-2">
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="flex items-center rounded-md overflow-hidden bg-white text-ink focus-within:ring-2 focus-within:ring-terra"
             >
-              <Sparkles className="size-3.5" />
-              <span className="hidden sm:inline">Partline AI</span>
-              <span className="hidden rounded bg-terra/10 px-1 py-0.5 text-[9px] font-mono lg:inline">⌘K</span>
-            </button>
-          )}
-
-          {/* Language Toggle */}
-          <button
-            onClick={toggle}
-            className="micro-label flex min-h-[44px] items-center gap-1.5 rounded-full px-3 text-ink-soft transition-colors hover:bg-sand hover:text-ink"
-            aria-label="Toggle language"
-          >
-            {lang === "en" ? "العربية" : "EN"}
-          </button>
-
-          {/* Cart */}
-          <button
-            onClick={onOpenCart}
-            className="relative flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-sand hover:text-ink"
-            aria-label={t("cart")}
-          >
-            <CartIcon className="size-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-0.5 -end-0.5 grid min-w-5 place-items-center rounded-full bg-terra px-1 py-0.5 font-mono text-[10px] font-semibold leading-none text-paper">
-                {cartCount}
-              </span>
-            )}
-          </button>
-
-          {/* Account Profile / Role Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="flex min-h-[44px] items-center gap-2 rounded-full ps-1.5 pe-3 transition-colors hover:bg-sand"
-            >
-              <span className="grid size-8 place-items-center rounded-full bg-night font-mono text-[11px] font-semibold text-paper">
-                {userName.substring(0, 2).toUpperCase()}
-              </span>
-              <span className="hidden text-sm font-medium sm:inline">{userName}</span>
-            </button>
-
-            {isMenuOpen && (
-              <div className="absolute end-0 mt-2 w-56 rounded-2xl border border-line bg-surface p-2 shadow-lift animate-fade-up z-50">
-                <div className="px-3 py-2 border-b border-line">
-                  <div className="text-xs font-semibold text-ink">{userName}</div>
-                  <div className="text-[11px] text-ink-faint capitalize">{role} Account</div>
-                </div>
-
-                <div className="py-1">
-                  {onRoleChange && (
-                    <>
-                      <button
-                        onClick={() => {
-                          onRoleChange("customer");
-                          setIsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-start transition-colors ${
-                          role === "customer" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
-                        }`}
-                      >
-                        <User className="size-3.5" />
-                        Buyer Marketplace
-                      </button>
-                      <button
-                        onClick={() => {
-                          onRoleChange("workshop");
-                          setIsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-start transition-colors ${
-                          role === "workshop" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
-                        }`}
-                      >
-                        <Wrench className="size-3.5" />
-                        Workshop Dashboard
-                      </button>
-                      <button
-                        onClick={() => {
-                          onRoleChange("supplier");
-                          setIsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-start transition-colors ${
-                          role === "supplier" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
-                        }`}
-                      >
-                        <Store className="size-3.5" />
-                        Supplier / Dealer Portal
-                      </button>
-                      <button
-                        onClick={() => {
-                          onRoleChange("admin");
-                          setIsMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-start transition-colors ${
-                          role === "admin" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
-                        }`}
-                      >
-                        <Shield className="size-3.5" />
-                        Admin Console
-                      </button>
-                    </>
-                  )}
-                  {onOpenAuth && (
-                    <button
-                      onClick={() => {
-                        onOpenAuth();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-start text-ink hover:bg-sand border-t border-line mt-1 pt-2"
-                    >
-                      Manage Account / Sign In
-                    </button>
-                  )}
-                </div>
+              <div className="relative flex-1 flex items-center">
+                <SearchIcon className="pointer-events-none absolute start-3 size-4 text-ink-faint" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => onQuery(e.target.value)}
+                  placeholder={
+                    lang === "ar"
+                      ? "ابحث عن قطع الغيار بالاسم، الرقم المرجعي (OEM)، VIN، أو نوع السيارة..."
+                      : "Search parts by name, part number, VIN, or vehicle..."
+                  }
+                  className="w-full h-10 ps-9 pe-3 text-xs sm:text-sm text-ink placeholder:text-ink-faint bg-white outline-none"
+                />
               </div>
+              <button
+                type="submit"
+                className="h-10 px-4 bg-terra hover:bg-terra-hover text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-colors shrink-0"
+              >
+                <SearchIcon className="size-4" />
+                <span className="hidden sm:inline">{lang === "ar" ? "بحث" : "Search"}</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Right Header Navigation */}
+          <div className="flex items-center gap-1 sm:gap-3 text-xs shrink-0 ms-auto">
+            {/* Partline AI Console Button */}
+            {onOpenPartline && (
+              <button
+                onClick={onOpenPartline}
+                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors"
+                title="Partline AI (⌘K)"
+              >
+                <Sparkles className="size-3.5 text-terra" />
+                <span>Partline AI</span>
+                <span className="text-[10px] bg-white/20 px-1 rounded font-mono">⌘K</span>
+              </button>
             )}
+
+            {/* Language Switcher */}
+            <button
+              onClick={toggle}
+              className="px-2 py-1.5 rounded hover:bg-white/10 text-gray-300 hover:text-white transition-colors text-xs font-semibold"
+            >
+              {lang === "en" ? "العربية" : "EN"}
+            </button>
+
+            {/* Account / Sign In Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsAccountMenuOpen(!isAccountMenuOpen)}
+                className="flex items-center gap-1 px-2 py-1.5 rounded hover:bg-white/10 text-start transition-colors"
+              >
+                <User className="size-4 text-gray-300" />
+                <div className="hidden sm:block text-[11px] leading-tight">
+                  <div className="text-gray-400 text-[10px]">{lang === "ar" ? "مرحباً،" : "Hello,"} {userName}</div>
+                  <div className="font-semibold text-white flex items-center gap-0.5">
+                    {lang === "ar" ? "الحساب والقوائم" : "Account & Orders"}
+                    <ChevronDown className="size-3 text-gray-400" />
+                  </div>
+                </div>
+              </button>
+
+              {isAccountMenuOpen && (
+                <div className="absolute end-0 mt-1 w-56 rounded-md border border-line bg-surface p-2 shadow-lift text-ink z-50">
+                  <div className="px-3 py-2 border-b border-line">
+                    <div className="text-xs font-semibold text-ink">{userName}</div>
+                    <div className="text-[11px] text-ink-faint capitalize">{role} Account</div>
+                  </div>
+                  <div className="py-1">
+                    {onRoleChange && (
+                      <>
+                        <button
+                          onClick={() => {
+                            onRoleChange("customer");
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-start transition-colors ${
+                            role === "customer" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
+                          }`}
+                        >
+                          <User className="size-3.5" />
+                          Buyer Marketplace
+                        </button>
+                        <button
+                          onClick={() => {
+                            onRoleChange("workshop");
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-start transition-colors ${
+                            role === "workshop" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
+                          }`}
+                        >
+                          <Wrench className="size-3.5" />
+                          Workshop Dashboard
+                        </button>
+                        <button
+                          onClick={() => {
+                            onRoleChange("supplier");
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-start transition-colors ${
+                            role === "supplier" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
+                          }`}
+                        >
+                          <Store className="size-3.5" />
+                          Supplier / Dealer Portal
+                        </button>
+                        <button
+                          onClick={() => {
+                            onRoleChange("admin");
+                            setIsAccountMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-start transition-colors ${
+                            role === "admin" ? "bg-terra-soft text-terra" : "text-ink hover:bg-sand"
+                          }`}
+                        >
+                          <Shield className="size-3.5" />
+                          Admin Console
+                        </button>
+                      </>
+                    )}
+                    {onOpenAuth && (
+                      <button
+                        onClick={() => {
+                          onOpenAuth();
+                          setIsAccountMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-start text-ink hover:bg-sand border-t border-line mt-1 pt-2"
+                      >
+                        {lang === "ar" ? "إدارة الحساب / تسجيل الدخول" : "Manage Account / Sign In"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Orders */}
+            <button
+              onClick={() => onOpenCart?.()}
+              className="hidden sm:flex items-center gap-1 px-2 py-1.5 rounded hover:bg-white/10 text-start text-gray-300 hover:text-white transition-colors"
+            >
+              <Package className="size-4" />
+              <div className="text-[11px] leading-tight">
+                <div className="text-gray-400 text-[10px]">{lang === "ar" ? "متابعة" : "Returns"}</div>
+                <div className="font-semibold text-white">{lang === "ar" ? "& الطلبات" : "& Orders"}</div>
+              </div>
+            </button>
+
+            {/* Cart */}
+            <button
+              onClick={onOpenCart}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded hover:bg-white/10 text-white font-semibold text-xs transition-colors relative"
+            >
+              <div className="relative">
+                <CartIcon className="size-5 text-terra" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1.5 -end-2 bg-terra text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden md:inline ms-1">{lang === "ar" ? "السلة" : "Cart"}</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile search row */}
-      <div className="border-t border-line/70 px-4 pb-3 pt-2.5 md:hidden">
-        <div className="relative">
-          <SearchIcon className="pointer-events-none absolute start-3.5 top-1/2 size-[18px] -translate-y-1/2 text-ink-faint" />
-          <input
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            placeholder={t("searchPlaceholder")}
-            className="h-11 w-full rounded-full border border-line bg-surface ps-10 pe-4 text-sm outline-none placeholder:text-ink-faint focus:border-terra-line"
-            aria-label={t("navSearch")}
-          />
+      {/* Second Navigation Bar - Categories & Quick Links */}
+      <div className="bg-[#1c2430] text-gray-200 border-t border-gray-800 text-xs overflow-x-auto scrollbar-none">
+        <div className="mx-auto flex h-9 max-w-7xl items-center px-3 sm:px-6 gap-1 whitespace-nowrap">
+          {/* All Categories Button */}
+          <button
+            onClick={() => handleNavClick("")}
+            className="flex items-center gap-1.5 font-bold text-white px-2.5 py-1 rounded hover:bg-white/10 me-2 transition-colors shrink-0"
+          >
+            <Menu className="size-4" />
+            <span>{lang === "ar" ? "جميع الأقسام" : "All Categories"}</span>
+          </button>
+
+          {/* Category/Brand Quick Links */}
+          {navItems.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleNavClick(item.filter)}
+              className="px-2.5 py-1 rounded hover:bg-white/10 hover:text-white transition-colors shrink-0 text-gray-300 font-medium"
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
     </header>
