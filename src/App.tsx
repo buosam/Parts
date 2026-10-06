@@ -9,15 +9,11 @@ import { LangProvider, useLang } from './i18n';
 import { toast, Toaster } from 'sonner';
 import { DEFAULT_VEHICLE, PARTS, type Part, type Vehicle } from './data/parts';
 import SiteHeader from './sections/SiteHeader';
-import HeroFitment from './sections/HeroFitment';
-import TrustStrip from './sections/TrustStrip';
 import CatalogSection, {
   EMPTY_FILTERS,
   type CatalogFilters,
   type SortKey,
 } from './sections/CatalogSection';
-import RfqBand from './sections/RfqBand';
-import ScannerSection from './sections/ScannerSection';
 import SiteFooter from './sections/SiteFooter';
 import MobileTabBar from './sections/MobileTabBar';
 import { MasterPart } from './types';
@@ -195,16 +191,6 @@ const MarketplaceApp: React.FC = () => {
     });
   };
 
-  const handleSendRfq = (partNameQuery: string) => {
-    toast.success(t("rfqSent"), {
-      description: `${partNameQuery} — ${t("rfqSentD")}`,
-      action: {
-        label: lang === 'ar' ? 'عرض الطلبات' : 'View RFQ Board',
-        onClick: () => setActiveModal('requests_board'),
-      },
-    });
-  };
-
   const navigate = (id: string) => {
     setActiveTab(id);
     if (id === 'garage') {
@@ -216,7 +202,7 @@ const MarketplaceApp: React.FC = () => {
       return;
     }
     if (id === 'offers') {
-      const el = document.getElementById('rfq');
+      const el = document.getElementById('catalog');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
@@ -239,7 +225,7 @@ const MarketplaceApp: React.FC = () => {
 
   return (
     <div dir={dir} className="min-h-screen bg-paper text-ink font-sans flex flex-col selection:bg-terra selection:text-white">
-      {/* Redesigned Site Header */}
+      {/* Redesigned Amazon-style Site Header */}
       <SiteHeader
         query={query}
         onQuery={setQuery}
@@ -251,6 +237,10 @@ const MarketplaceApp: React.FC = () => {
         onOpenAuth={() => openAuthModal()}
         onOpenSanawiaScan={() => setIsSanawiaModalOpen(true)}
         onRoleChange={setRole}
+        onSelectBrandCategory={(term) => {
+          if (term === "Auto Parts" || term === "Deals") setQuery("");
+          else setQuery(term);
+        }}
       />
 
       {/* Main Role-Based Content */}
@@ -265,19 +255,7 @@ const MarketplaceApp: React.FC = () => {
               </div>
             ) : (
               <>
-                {/* Hero Fitment Module */}
-                <HeroFitment
-                  vehicle={vehicle}
-                  onVehicle={setVehicle}
-                  onScan={() => {
-                    setIsSanawiaModalOpen(true);
-                  }}
-                />
-
-                {/* Trust & Guarantee Strip */}
-                <TrustStrip />
-
-                {/* Live Redesigned Warehouse Catalog */}
+                {/* Main E-Commerce Catalog Section */}
                 <CatalogSection
                   parts={parts}
                   query={query}
@@ -287,18 +265,12 @@ const MarketplaceApp: React.FC = () => {
                   onSort={setSort}
                   view={view}
                   onView={setView}
-                  vehicleLabel={vehicle.model}
+                  vehicleLabel={`${vehicle.make} ${vehicle.model}`}
+                  vehicle={vehicle}
+                  onVehicleChange={setVehicle}
                   onOrder={handleOrder}
                   onSelectPart={(p) => setSelectedPart(mapPartToMaster(p))}
                 />
-
-                {/* RFQ Tender Band */}
-                <RfqBand onSendRfq={handleSendRfq} />
-
-                {/* Sanawia OCR Scanner Section */}
-                <div id="scanner" className="scroll-mt-16">
-                  <ScannerSection onScanClick={() => setIsSanawiaModalOpen(true)} />
-                </div>
               </>
             )}
           </div>
@@ -376,7 +348,7 @@ const MarketplaceApp: React.FC = () => {
       {/* Mobile Tab Bar */}
       <MobileTabBar active={activeTab} onNavigate={navigate} cartCount={cartTotalCount} />
 
-      {/* Global Modals & Notifications (Loaded Lazily on Demand) */}
+      {/* Global Modals & Notifications */}
       <Toaster position="top-center" richColors closeButton />
       
       <Suspense fallback={null}>
