@@ -1,4 +1,5 @@
-FROM node:20-slim
+# Use AWS Public ECR mirror to avoid Docker Hub 429 Rate Limits on shared cloud builders
+FROM public.ecr.aws/docker/library/node:20-slim
 
 WORKDIR /app
 
