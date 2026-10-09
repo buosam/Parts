@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useLang } from "@/i18n";
 import { Logo } from "@/components/Logo";
 import { CartIcon, SearchIcon } from "@/components/icons";
-import { User, Package, Menu, Sparkles, ChevronDown, Store, Wrench, Shield } from "lucide-react";
+import { User, Package, Menu, Sparkles, ChevronDown, Store, Wrench, Shield, Crown } from "lucide-react";
+import { useMarketplace } from "@/context/MarketplaceContext";
 
 interface Props {
   query: string;
@@ -31,6 +32,7 @@ export default function SiteHeader({
   onSelectBrandCategory,
 }: Props) {
   const { lang, toggle } = useLang();
+  const { setActiveModal, activeSubscription } = useMarketplace();
   const [scrolled, setScrolled] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
 
@@ -117,6 +119,15 @@ export default function SiteHeader({
               </button>
             )}
 
+            {/* Subscriptions / Prime Button */}
+            <button
+              onClick={() => setActiveModal('subscription')}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer"
+            >
+              <Crown className="size-3.5 text-amber-400" />
+              <span>{activeSubscription && activeSubscription.priceUSD > 0 ? activeSubscription.tierName : (lang === "ar" ? "الاشتراكات" : "Prime & Plans")}</span>
+            </button>
+
             {/* Language Switcher */}
             <button
               onClick={toggle}
@@ -147,6 +158,25 @@ export default function SiteHeader({
                     <div className="text-xs font-semibold text-ink">{userName}</div>
                     <div className="text-[11px] text-ink-faint capitalize">{role} Account</div>
                   </div>
+
+                  <div className="py-1 border-b border-line">
+                    <button
+                      onClick={() => {
+                        setActiveModal('subscription');
+                        setIsAccountMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-md text-xs font-bold text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Crown className="size-3.5 text-amber-500" />
+                        <span>{lang === "ar" ? "إدارة الاشتراكات" : "Subscription & Plans"}</span>
+                      </div>
+                      <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">
+                        {activeSubscription?.tierName || "Free"}
+                      </span>
+                    </button>
+                  </div>
+
                   <div className="py-1">
                     {onRoleChange && (
                       <>

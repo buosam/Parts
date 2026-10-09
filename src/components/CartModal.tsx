@@ -21,6 +21,9 @@ import {
   Banknote,
   Coins,
   Check,
+  Crown,
+  Zap,
+  Sparkles,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 
@@ -36,6 +39,8 @@ export const CartModal: React.FC = () => {
     setSelectedOrderForRating,
     formatPrice,
     language,
+    activeSubscription,
+    calculateCartPerks,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
@@ -52,8 +57,11 @@ export const CartModal: React.FC = () => {
   if (activeModal !== 'cart') return null;
 
   const subtotalUSD = cart.reduce((sum, item) => sum + item.offer.priceUSD * item.quantity, 0);
-  const deliveryFeeUSD = deliveryMethod === 'supplier_delivery' ? (subtotalUSD > 100 ? 0 : 8) : 0;
-  const totalUSD = subtotalUSD + deliveryFeeUSD;
+  const baseShippingUSD = deliveryMethod === 'supplier_delivery' ? 8 : 0;
+  const perksResult = calculateCartPerks(subtotalUSD, baseShippingUSD);
+  const deliveryFeeUSD = perksResult.finalShippingUSD;
+  const discountAmountUSD = perksResult.discountAmountUSD;
+  const totalUSD = perksResult.totalUSD;
   const totalIQD = Math.round(totalUSD * 1500);
 
   const handlePlaceOrder = (e: React.FormEvent) => {
@@ -224,6 +232,47 @@ export const CartModal: React.FC = () => {
                     ))}
                   </div>
 
+                  {/* Subscription Banner & Active Perks */}
+                  {activeSubscription && activeSubscription.priceUSD > 0 ? (
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <Crown className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <span className="font-bold text-amber-300 block">
+                            {activeSubscription.tierName} {isArabic ? 'مفعل' : 'Active Member'}
+                          </span>
+                          <span className="text-[11px] text-zinc-400">
+                            {isArabic ? 'توصيل مجاني + خصم مشتريات وضمان ممتد' : 'Free Express Shipping + VIP Trade Discount & Warranty'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">
+                        {isArabic ? 'مزايا مطبقة' : 'PERKS APPLIED'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-2xl flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+                        <div>
+                          <span className="font-bold text-white block">
+                            {isArabic ? 'اشترك في IQAutoMarket Prime' : 'Join IQAutoMarket Prime'}
+                          </span>
+                          <span className="text-[11px] text-zinc-400">
+                            {isArabic ? 'احصل على توصيل مجاني وضمان سنة كاملة على كل طلب' : 'Get 100% Free Shipping + 1-Year Extended Warranty on every order'}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveModal('subscription')}
+                        className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-[11px] rounded-lg transition-colors cursor-pointer shrink-0"
+                      >
+                        {isArabic ? 'ترقية الآن' : 'Upgrade $9/mo'}
+                      </button>
+                    </div>
+                  )}
+
                   {/* Checkout Form */}
                   <form onSubmit={handlePlaceOrder} className="pt-4 border-t border-white/10 space-y-4 text-xs">
                     <h4 className="font-extrabold text-white text-sm flex items-center gap-1.5">
@@ -310,10 +359,24 @@ export const CartModal: React.FC = () => {
                         <span>{isArabic ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
                         <span className="font-bold text-white">{formatPrice(subtotalUSD)}</span>
                       </div>
+
+                      {discountAmountUSD > 0 && (
+                        <div className="flex justify-between text-emerald-400 font-bold">
+                          <span className="flex items-center gap-1">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>{isArabic ? `خصم العضوية (${perksResult.discountPercent}%):` : `Membership Discount (${perksResult.discountPercent}%):`}</span>
+                          </span>
+                          <span>-{formatPrice(discountAmountUSD)}</span>
+                        </div>
+                      )}
+
                       <div className="flex justify-between text-slate-400">
                         <span>{isArabic ? 'رسوم التوصيل:' : 'Delivery Fee:'}</span>
-                        <span className="font-bold text-emerald-400">{deliveryFeeUSD === 0 ? 'FREE' : formatPrice(deliveryFeeUSD)}</span>
+                        <span className="font-bold text-emerald-400">
+                          {deliveryFeeUSD === 0 ? (isArabic ? 'مجاناً (Prime)' : 'FREE (Prime Member)') : formatPrice(deliveryFeeUSD)}
+                        </span>
                       </div>
+
                       <div className="flex justify-between text-base font-black text-white pt-2 border-t border-white/10">
                         <span>{isArabic ? 'الإجمالي النهائي:' : 'Total Amount:'}</span>
                         <span className="text-emerald-400">{formatPrice(totalUSD, totalIQD)}</span>

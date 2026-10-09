@@ -226,6 +226,25 @@ export async function initDatabase(): Promise<boolean> {
         branch_id VARCHAR(64),
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS user_subscriptions (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) REFERENCES users(id) ON DELETE CASCADE,
+        plan_id VARCHAR(64) NOT NULL,
+        role VARCHAR(50) NOT NULL,
+        tier_name VARCHAR(100) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+        billing_cycle VARCHAR(20) NOT NULL DEFAULT 'monthly',
+        price_usd NUMERIC(10, 2) NOT NULL DEFAULT 0,
+        price_iqd NUMERIC(12, 2) NOT NULL DEFAULT 0,
+        payment_method VARCHAR(50) DEFAULT 'ZainCash',
+        perks JSONB DEFAULT '{}'::jsonb,
+        starts_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        auto_renew BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
     `);
 
     client.release();

@@ -10,6 +10,7 @@ import buyerRoutes from './src/server/routes/buyerRoutes';
 import dealerRoutes from './src/server/routes/dealerRoutes';
 import adminRoutes from './src/server/routes/adminRoutes';
 import documentRoutes from './src/server/routes/documentRoutes';
+import subscriptionRoutes from './src/server/routes/subscriptionRoutes';
 import { requireAuth, AuthenticatedRequest } from './src/server/security/rbac';
 import { logAuditEvent } from './src/server/security/audit';
 import { usersStore } from './src/server/security/auth';
@@ -101,6 +102,7 @@ app.use('/api/buyer', buyerRoutes);
 app.use('/api/dealer', dealerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
 
 // Production Health & Readiness Probe
 app.get('/api/health', (req, res) => {

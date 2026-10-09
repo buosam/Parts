@@ -37,6 +37,7 @@ const CartModal = lazy(() => import('./components/CartModal').then(m => ({ defau
 const AuthModal = lazy(() => import('./components/AuthModal').then(m => ({ default: m.AuthModal })));
 const SupplierStorefrontModal = lazy(() => import('./components/SupplierStorefrontModal').then(m => ({ default: m.SupplierStorefrontModal })));
 const DealerReviewModal = lazy(() => import('./components/DealerReviewModal').then(m => ({ default: m.DealerReviewModal })));
+const SubscriptionModal = lazy(() => import('./components/SubscriptionModal').then(m => ({ default: m.SubscriptionModal })));
 
 const MarketplaceApp: React.FC = () => {
   const {
@@ -366,6 +367,7 @@ const MarketplaceApp: React.FC = () => {
         <RequestPartModal />
         <CartModal />
         <AuthModal />
+        <SubscriptionModal />
         <SupplierStorefrontModal />
         <DealerReviewModal />
 

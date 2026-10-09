@@ -47,6 +47,11 @@ import {
   DEFAULT_FIELD_MAPPINGS,
 } from '../data/mockData';
 import { INITIAL_AUCTIONS } from '../data/mockAuctions';
+import {
+  ActiveUserSubscription,
+  SubscriptionPlan,
+  SUBSCRIPTION_PLANS,
+} from '../data/subscriptionPlans';
 
 export interface CartItem {
   masterPart: MasterPart;
@@ -105,9 +110,15 @@ interface MarketplaceContextType {
   changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
+  // Subscriptions & Memberships
+  activeSubscription: ActiveUserSubscription | null;
+  subscriptionPlans: SubscriptionPlan[];
+  subscribeToPlan: (planId: string, billingCycle?: 'monthly' | 'yearly', paymentMethod?: string) => Promise<{ success: boolean; message?: string }>;
+  cancelSubscription: () => Promise<{ success: boolean; message?: string }>;
+  calculateCartPerks: (subtotalUSD: number, baseShippingUSD?: number) => { discountPercent: number; discountAmountUSD: number; freeShippingApplied: boolean; finalShippingUSD: number; totalUSD: number };
   // Modals & Navigation triggers
-  activeModal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null;
-  setActiveModal: (modal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null) => void;
+  activeModal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | 'subscription' | null;
+  setActiveModal: (modal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | 'subscription' | null) => void;
   selectedSupplierIdForStore: string | null;
   setSelectedSupplierIdForStore: (id: string | null) => void;
   selectedOrderForRating: Order | null;
@@ -733,10 +744,107 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCurrentUser(null);
     localStorage.removeItem('iqm_auth_token');
     localStorage.removeItem('sp_current_user');
+    localStorage.removeItem('iqm_user_subscription');
+    setActiveSubscription(null);
+  };
+
+  // Active User Subscription State
+  const [activeSubscription, setActiveSubscription] = useState<ActiveUserSubscription | null>(() => {
+    try {
+      const cached = localStorage.getItem('iqm_user_subscription');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const subscriptionPlans = SUBSCRIPTION_PLANS;
+
+  const fetchCurrentSubscription = async () => {
+    try {
+      const token = localStorage.getItem('iqm_auth_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch('/api/subscriptions/current', { headers });
+      const data = await res.json();
+      if (res.ok && data.success && data.subscription) {
+        setActiveSubscription(data.subscription);
+        localStorage.setItem('iqm_user_subscription', JSON.stringify(data.subscription));
+      }
+    } catch (e) {
+      console.warn('Subscription fetch warning:', e);
+    }
+  };
+
+  // Fetch subscription on startup and when user changes
+  useEffect(() => {
+    fetchCurrentSubscription();
+  }, [currentUser?.id]);
+
+  const subscribeToPlan = async (
+    planId: string,
+    billingCycle: 'monthly' | 'yearly' = 'monthly',
+    paymentMethod: string = 'ZainCash'
+  ) => {
+    const token = localStorage.getItem('iqm_auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/subscriptions/subscribe', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ planId, billingCycle, paymentMethod }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.subscription) {
+      setActiveSubscription(data.subscription);
+      localStorage.setItem('iqm_user_subscription', JSON.stringify(data.subscription));
+      return { success: true, message: data.message };
+    }
+    throw new Error(data.message || 'Subscription failed.');
+  };
+
+  const cancelSubscription = async () => {
+    const token = localStorage.getItem('iqm_auth_token');
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch('/api/subscriptions/cancel', {
+      method: 'POST',
+      headers,
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      if (activeSubscription) {
+        const updated = { ...activeSubscription, autoRenew: false, status: 'CANCELLED' as const };
+        setActiveSubscription(updated);
+        localStorage.setItem('iqm_user_subscription', JSON.stringify(updated));
+      }
+      return { success: true, message: data.message };
+    }
+    throw new Error(data.message || 'Subscription cancellation failed.');
+  };
+
+  const calculateCartPerks = (subtotalUSD: number, baseShippingUSD: number = 6) => {
+    const perks = activeSubscription?.perks || {};
+    const discountPercent = perks.discountPercent || 0;
+    const discountAmountUSD = (subtotalUSD * discountPercent) / 100;
+    const freeShippingApplied = Boolean(perks.freeShipping && (subtotalUSD >= 30 || activeSubscription?.role === 'workshop'));
+    const finalShippingUSD = freeShippingApplied ? 0 : baseShippingUSD;
+    const totalUSD = subtotalUSD - discountAmountUSD + finalShippingUSD;
+
+    return {
+      discountPercent,
+      discountAmountUSD,
+      freeShippingApplied,
+      finalShippingUSD,
+      totalUSD,
+    };
   };
 
   // UI state
-  const [activeModal, setActiveModal] = useState<'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null>(null);
+  const [activeModal, setActiveModal] = useState<'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | 'subscription' | null>(null);
   const [selectedSupplierIdForStore, setSelectedSupplierIdForStore] = useState<string | null>(null);
   const [selectedOrderForRating, setSelectedOrderForRating] = useState<Order | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -1830,6 +1938,12 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         changePassword,
         updateProfile,
         logout,
+        // Subscriptions
+        activeSubscription,
+        subscriptionPlans,
+        subscribeToPlan,
+        cancelSubscription,
+        calculateCartPerks,
         activeModal,
         setActiveModal,
         selectedSupplierIdForStore,
