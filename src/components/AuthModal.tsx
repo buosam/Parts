@@ -491,16 +491,16 @@ export const AuthModal: React.FC = () => {
                 <label className="text-xs text-zinc-400 font-bold block mb-2">
                   {isArabic ? 'الانتقال إلى البوابة المخصصة:' : 'Switch Active Portal:'}
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     type="button"
                     onClick={() => {
                       setRole('customer');
                       setActiveModal(null);
                     }}
-                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-terra text-start transition-all cursor-pointer flex items-center gap-2"
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-terra text-center transition-all cursor-pointer flex flex-col items-center gap-1.5"
                   >
-                    <Car className="w-4 h-4 text-terra" />
+                    <Car className="w-5 h-5 text-terra" />
                     <div className="text-xs font-bold text-white">{isArabic ? 'سوق القطع' : 'Marketplace'}</div>
                   </button>
 
@@ -510,9 +510,9 @@ export const AuthModal: React.FC = () => {
                       setRole('workshop');
                       setActiveModal(null);
                     }}
-                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500 text-start transition-all cursor-pointer flex items-center gap-2"
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500 text-center transition-all cursor-pointer flex flex-col items-center gap-1.5"
                   >
-                    <Wrench className="w-4 h-4 text-indigo-400" />
+                    <Wrench className="w-5 h-5 text-indigo-400" />
                     <div className="text-xs font-bold text-white">{isArabic ? 'بوابة الورش' : 'Workshop'}</div>
                   </button>
 
@@ -522,22 +522,10 @@ export const AuthModal: React.FC = () => {
                       setRole('supplier');
                       setActiveModal(null);
                     }}
-                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500 text-start transition-all cursor-pointer flex items-center gap-2"
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500 text-center transition-all cursor-pointer flex flex-col items-center gap-1.5"
                   >
-                    <Store className="w-4 h-4 text-emerald-400" />
+                    <Store className="w-5 h-5 text-emerald-400" />
                     <div className="text-xs font-bold text-white">{isArabic ? 'بوابة التجار' : 'Dealer Portal'}</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setRole('admin');
-                      setActiveModal(null);
-                    }}
-                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500 text-start transition-all cursor-pointer flex items-center gap-2"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-amber-400" />
-                    <div className="text-xs font-bold text-white">{isArabic ? 'لوحة الإدارة' : 'Admin Console'}</div>
                   </button>
                 </div>
               </div>
@@ -1102,8 +1090,8 @@ export const AuthModal: React.FC = () => {
             <div className="flex items-center justify-between text-[11px] text-zinc-400 mb-2">
               <span>{isArabic ? 'حسابات تجريبية سريعة (1-Click):' : 'Quick Demo Logins (1-Click):'}</span>
             </div>
-            <div className="grid grid-cols-4 gap-1.5">
-              {(['customer', 'workshop', 'supplier', 'admin'] as UserRole[]).map((r) => (
+            <div className="grid grid-cols-3 gap-1.5">
+              {(['customer', 'workshop', 'supplier'] as UserRole[]).map((r) => (
                 <button
                   key={r}
                   type="button"
