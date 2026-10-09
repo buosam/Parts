@@ -187,18 +187,30 @@ export const AuthModal: React.FC = () => {
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!phone) {
+    if (!phone || !phone.trim()) {
       setErrorMessage(isArabic ? 'يرجى إدخال رقم الهاتف' : 'Please enter your phone number.');
       return;
+    }
+
+    const cleanDigits = phone.replace(/\D/g, '');
+    let formattedPhone = phone.trim();
+    if (!formattedPhone.startsWith('+')) {
+      if (cleanDigits.startsWith('964')) {
+        formattedPhone = `+${cleanDigits}`;
+      } else if (cleanDigits.startsWith('0')) {
+        formattedPhone = `+964${cleanDigits.slice(1)}`;
+      } else {
+        formattedPhone = `+964${cleanDigits}`;
+      }
     }
 
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      const res = await requestOtp(phone);
+      const res = await requestOtp(formattedPhone);
       if (res.success) {
-        setOtpSentPhone(phone);
+        setOtpSentPhone(formattedPhone);
         setOtpSandboxCode(res.sandboxCode || null);
         setOtpTimer(60);
       }
@@ -630,17 +642,18 @@ export const AuthModal: React.FC = () => {
             <div className="space-y-3">
               {!otpSentPhone ? (
                 <form onSubmit={handleRequestOtp} className="space-y-3">
-                  <div className="relative">
-                    <div className={iconLeft}>
-                      <Phone className="w-3.5 h-3.5" />
+                  <div className="flex items-stretch rounded-xl bg-zinc-900/60 border border-zinc-800 focus-within:border-zinc-500 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden">
+                    <div className="flex items-center gap-1.5 px-3 py-2.5 bg-zinc-900 border-r border-zinc-800 rtl:border-r-0 rtl:border-l text-zinc-300 select-none shrink-0">
+                      <span className="text-sm leading-none">🇮🇶</span>
+                      <span className="text-xs font-mono font-medium text-zinc-300" dir="ltr">+964</span>
                     </div>
                     <input
                       type="tel"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+964 770 123 4567"
-                      className={inputWithIcon}
+                      placeholder="770 123 4567"
+                      className="w-full bg-transparent py-2.5 px-3.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none font-mono tracking-wide"
                     />
                   </div>
 
