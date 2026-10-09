@@ -1,32 +1,22 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- * IQAutoMarket Auth Modal - Multi-Role Registration, WhatsApp OTP, Reset Password & Demo Switcher
+ * IQAutoMarket Auth Modal - Minimalist, Modern, Streamlined Interface
  */
 
 import React, { useState, useEffect } from 'react';
 import {
   X,
-  User,
-  Store,
-  Wrench,
-  ShieldCheck,
-  Lock,
   Mail,
+  Lock,
   Phone,
-  Building2,
-  MapPin,
   Eye,
   EyeOff,
   ArrowRight,
-  CheckCircle2,
-  Sparkles,
-  Car,
-  Key,
   MessageSquare,
   AlertCircle,
+  CheckCircle2,
   RefreshCw,
-  Check,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
@@ -67,9 +57,6 @@ export const AuthModal: React.FC = () => {
   const [phone, setPhone] = useState<string>('');
   const [companyName, setCompanyName] = useState<string>('');
   const [city, setCity] = useState<string>('Baghdad');
-  const [address, setAddress] = useState<string>('');
-  const [businessType, setBusinessType] = useState<string>('Authorized Distributor');
-  const [termsAccepted, setTermsAccepted] = useState<boolean>(true);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
 
   // WhatsApp OTP State
@@ -85,7 +72,7 @@ export const AuthModal: React.FC = () => {
   const [resetStep, setResetStep] = useState<'request' | 'verify'>('request');
   const [resetSandboxCode, setResetSandboxCode] = useState<string | null>(null);
 
-  // Synchronize initial state when modal opens
+  // Synchronize on modal open
   useEffect(() => {
     if (activeModal === 'auth') {
       setMode(authModalTab || 'signin');
@@ -112,7 +99,7 @@ export const AuthModal: React.FC = () => {
     }
   }, [activeModal, authModalTab, authTargetRole]);
 
-  // Countdown timer for OTP resend
+  // Resend Timer
   useEffect(() => {
     if (otpTimer > 0) {
       const interval = setInterval(() => setOtpTimer((t) => t - 1), 1000);
@@ -122,106 +109,24 @@ export const AuthModal: React.FC = () => {
 
   if (activeModal !== 'auth') return null;
 
-  const roleMeta: Record<
-    UserRole,
-    {
-      title: string;
-      titleAr: string;
-      badge: string;
-      desc: string;
-      descAr: string;
-      icon: React.ReactNode;
-      demoUser: { email: string; name: string; pass: string };
-    }
-  > = {
-    customer: {
-      title: 'Customer / Buyer',
-      titleAr: 'المشتري ومالك المركبة',
-      badge: 'INDIVIDUAL',
-      desc: 'Order parts, receive dealer bids & live quotes',
-      descAr: 'طلب قطع غيار، استلام عروض الأسعار والمزايدة',
-      icon: <Car className="w-4 h-4 text-emerald-400" />,
-      demoUser: { email: 'ahmed@iqautomarket.iq', name: 'Ahmed Al-Tikriti', pass: 'buyer1234' },
-    },
-    supplier: {
-      title: 'Dealer / Store',
-      titleAr: 'الوكلاء ومتاجر قطع الغيار',
-      badge: 'COMMERCIAL',
-      desc: 'Sync inventory, submit bids & manage store',
-      descAr: 'ربط المخزون، تقديم عروض الأسعار وإدارة المتجر',
-      icon: <Store className="w-4 h-4 text-amber-400" />,
-      demoUser: { email: 'sales@mansourparts.iq', name: 'Al-Mansour Genuine Parts', pass: 'dealer1234' },
-    },
-    workshop: {
-      title: 'Workshop / Garage',
-      titleAr: 'الورش ومراكز الصيانة',
-      badge: 'B2B FLEET',
-      desc: 'Repair orders, fleet procurement & diagnostics',
-      descAr: 'أوامر الصيانة، مشتريات الأساطيل والفحص',
-      icon: <Wrench className="w-4 h-4 text-blue-400" />,
-      demoUser: { email: 'service@babilauto.iq', name: 'Babil Performance Garage', pass: 'workshop1234' },
-    },
-    admin: {
-      title: 'Platform Admin',
-      titleAr: 'إدارة المنصة والامتثال',
-      badge: 'OPERATIONS',
-      desc: 'Compliance, fraud filters & catalog governance',
-      descAr: 'إدارة السوق، مطابقة الكتالوج والرقابة المالية',
-      icon: <ShieldCheck className="w-4 h-4 text-indigo-400" />,
-      demoUser: { email: 'admin@iqautomarket.iq', name: 'IQAutoMarket Admin HQ', pass: 'admin1234' },
-    },
+  const demoAccounts: Record<UserRole, { label: string; labelAr: string; email: string; pass: string }> = {
+    customer: { label: 'Buyer', labelAr: 'مشتري', email: 'ahmed@iqautomarket.iq', pass: 'buyer1234' },
+    supplier: { label: 'Dealer', labelAr: 'تاجر', email: 'sales@mansourparts.iq', pass: 'dealer1234' },
+    workshop: { label: 'Workshop', labelAr: 'ورشة', email: 'service@babilauto.iq', pass: 'workshop1234' },
+    admin: { label: 'Admin', labelAr: 'إدارة', email: 'admin@iqautomarket.iq', pass: 'admin1234' },
   };
 
-  const iraqiCities = [
-    'Baghdad',
-    'Erbil',
-    'Basra',
-    'Mosul',
-    'Sulaymaniyah',
-    'Najaf',
-    'Karbala',
-    'Kirkuk',
-    'Hillah (Babil)',
-    'Nasiriyah (Dhi Qar)',
-    'Duhok',
-    'Ramadi (Anbar)',
-    'Amarah (Maysan)',
-    'Kut (Wasit)',
-    'Diwaniyah (Qadisiyyah)',
-  ];
-
-  // Password strength calculation
-  const getPasswordStrength = (pass: string) => {
-    let score = 0;
-    if (pass.length >= 6) score += 1;
-    if (pass.length >= 8) score += 1;
-    if (/[0-9]/.test(pass)) score += 1;
-    if (/[^A-Za-z0-9]/.test(pass)) score += 1;
-    return score;
-  };
-
-  const passwordStrength = getPasswordStrength(password);
-
-  const handleQuickDemoLogin = async (targetRole: UserRole) => {
-    const demo = roleMeta[targetRole].demoUser;
-    setEmail(demo.email);
-    setPassword(demo.pass);
-    setSelectedRole(targetRole);
-    setIsLoading(true);
-    setErrorMessage(null);
-    try {
-      await login(demo.email, demo.pass, targetRole);
-    } catch (err: any) {
-      setErrorMessage(err?.message || 'Login failed.');
-    } finally {
-      setIsLoading(false);
-    }
+  const handleDemoClick = (role: UserRole) => {
+    const acc = demoAccounts[role];
+    setSelectedRole(role);
+    setEmail(acc.email);
+    setPassword(acc.pass);
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      setErrorMessage(isArabic ? 'يرجى إدخال البريد الإلكتروني وكلمة المرور' : 'Please provide email/phone and password.');
+      setErrorMessage(isArabic ? 'يرجى إدخال البريد الإلكتروني وكلمة المرور' : 'Email and password are required.');
       return;
     }
     setIsLoading(true);
@@ -230,9 +135,7 @@ export const AuthModal: React.FC = () => {
     try {
       const res = await login(email, password, selectedRole);
       if (res.success) {
-        setSuccessMessage(
-          isArabic ? 'مرحباً بك مجدداً!' : 'Welcome back to IQAutoMarket!'
-        );
+        setSuccessMessage(isArabic ? 'تم تسجيل الدخول بنجاح!' : 'Signed in successfully!');
       }
     } catch (err: any) {
       setErrorMessage(err?.message || (isArabic ? 'بيانات الدخول غير صحيحة.' : 'Invalid credentials.'));
@@ -244,7 +147,7 @@ export const AuthModal: React.FC = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !password) {
-      setErrorMessage(isArabic ? 'يرجى ملء جميع الحقول الإلزامية' : 'Please fill all required fields.');
+      setErrorMessage(isArabic ? 'يرجى ملء جميع الحقول' : 'Please fill all required fields.');
       return;
     }
 
@@ -255,11 +158,6 @@ export const AuthModal: React.FC = () => {
 
     if (confirmPassword && password !== confirmPassword) {
       setErrorMessage(isArabic ? 'كلمات المرور غير متطابقة' : 'Passwords do not match.');
-      return;
-    }
-
-    if (!termsAccepted) {
-      setErrorMessage(isArabic ? 'يرجى الموافقة على الشروط والأحكام' : 'Please agree to the Terms of Service.');
       return;
     }
 
@@ -275,19 +173,13 @@ export const AuthModal: React.FC = () => {
         role: selectedRole === 'admin' ? 'customer' : selectedRole,
         companyName: companyName || (selectedRole !== 'customer' ? name : undefined),
         city,
-        address,
-        businessType: selectedRole !== 'customer' ? businessType : undefined,
       });
 
       if (res.success) {
-        setSuccessMessage(
-          isArabic
-            ? 'تم إنشاء الحساب وتسجيل الدخول بنجاح!'
-            : 'Account registered and logged in successfully!'
-        );
+        setSuccessMessage(isArabic ? 'تم إنشاء الحساب بنجاح!' : 'Account created successfully!');
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || (isArabic ? 'فشل إنشاء الحساب.' : 'Signup failed.'));
+      setErrorMessage(err?.message || (isArabic ? 'فشل إنشاء الحساب.' : 'Failed to create account.'));
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +188,7 @@ export const AuthModal: React.FC = () => {
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) {
-      setErrorMessage(isArabic ? 'يرجى إدخال رقم الهاتف' : 'Please enter a valid phone number.');
+      setErrorMessage(isArabic ? 'يرجى إدخال رقم الهاتف' : 'Please enter your phone number.');
       return;
     }
 
@@ -309,14 +201,9 @@ export const AuthModal: React.FC = () => {
         setOtpSentPhone(phone);
         setOtpSandboxCode(res.sandboxCode || null);
         setOtpTimer(60);
-        setSuccessMessage(
-          isArabic
-            ? `تم إرسال رمز التحقق إلى ${phone}`
-            : `Verification code dispatched to ${phone}`
-        );
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Failed to send OTP code.');
+      setErrorMessage(err?.message || 'Failed to dispatch code.');
     } finally {
       setIsLoading(false);
     }
@@ -324,8 +211,8 @@ export const AuthModal: React.FC = () => {
 
   const handleVerifyOtpLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpCode || otpCode.length < 4) {
-      setErrorMessage(isArabic ? 'يرجى إدخال رمز التحقق كاملاً' : 'Please enter valid OTP code.');
+    if (!otpCode) {
+      setErrorMessage(isArabic ? 'يرجى إدخال رمز التحقق' : 'Please enter code.');
       return;
     }
 
@@ -335,12 +222,10 @@ export const AuthModal: React.FC = () => {
     try {
       const res = await loginWithOtp(otpSentPhone || phone, otpCode, selectedRole);
       if (res.success) {
-        setSuccessMessage(
-          isArabic ? 'تم التحقق وتسجيل الدخول بنجاح!' : 'Phone verified. Logged in successfully!'
-        );
+        setSuccessMessage(isArabic ? 'تم التحقق بنجاح!' : 'Verified successfully!');
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || (isArabic ? 'رمز التحقق غير صحيح أو منتهي الصلاحية.' : 'Invalid or expired OTP.'));
+      setErrorMessage(err?.message || (isArabic ? 'رمز غير صالح.' : 'Invalid code.'));
     } finally {
       setIsLoading(false);
     }
@@ -349,7 +234,7 @@ export const AuthModal: React.FC = () => {
   const handleForgotPasswordRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetIdentifier) {
-      setErrorMessage(isArabic ? 'يرجى إدخال البريد الإلكتروني أو رقم الهاتف' : 'Please enter your email or phone.');
+      setErrorMessage(isArabic ? 'يرجى إدخال البريد الإلكتروني' : 'Please enter email.');
       return;
     }
 
@@ -361,14 +246,9 @@ export const AuthModal: React.FC = () => {
       if (res.success) {
         setResetStep('verify');
         setResetSandboxCode(res.sandboxCode || null);
-        setSuccessMessage(
-          isArabic
-            ? 'تم إرسال رمز إعادة تعيين كلمة المرور!'
-            : 'Password reset code has been dispatched!'
-        );
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || 'Password reset request failed.');
+      setErrorMessage(err?.message || 'Failed to send reset code.');
     } finally {
       setIsLoading(false);
     }
@@ -377,12 +257,7 @@ export const AuthModal: React.FC = () => {
   const handleResetPasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!resetCode || !newPassword) {
-      setErrorMessage(isArabic ? 'يرجى إدخال رمز التحقق وكلمة المرور الجديدة' : 'Please enter code and new password.');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setErrorMessage(isArabic ? 'كلمة المرور الجديدة يجب أن تكون 6 أحرف على الأقل' : 'New password must be at least 6 characters.');
+      setErrorMessage(isArabic ? 'يرجى ملء جميع الحقول' : 'Please fill all fields.');
       return;
     }
 
@@ -397,91 +272,58 @@ export const AuthModal: React.FC = () => {
       });
 
       if (res.success) {
-        setSuccessMessage(
-          isArabic
-            ? 'تم تغيير كلمة المرور بنجاح! تم تسجيل دخولك الآن.'
-            : 'Password updated successfully! You are now signed in.'
-        );
-        setTimeout(() => setActiveModal(null), 1500);
+        setSuccessMessage(isArabic ? 'تم تحديث كلمة المرور!' : 'Password updated!');
+        setTimeout(() => setActiveModal(null), 1200);
       }
     } catch (err: any) {
-      setErrorMessage(err?.message || (isArabic ? 'رمز التحقق غير صحيح أو منتهي الصلاحية.' : 'Invalid reset code.'));
+      setErrorMessage(err?.message || (isArabic ? 'رمز غير صالح.' : 'Invalid code.'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Explicit padding classes to guarantee icons and placeholders never overlap in LTR or RTL
-  const inputWithIconClass = isArabic
-    ? 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pr-11 pl-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all'
-    : 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pl-11 pr-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all';
-
-  const inputWithIconAndToggleClass = isArabic
-    ? 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pr-11 pl-11 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all'
-    : 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pl-11 pr-11 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all';
-
-  const leftIconPositionClass = isArabic
-    ? 'absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400'
-    : 'absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-400';
-
-  const rightTogglePositionClass = isArabic
-    ? 'absolute inset-y-0 left-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer'
-    : 'absolute inset-y-0 right-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer';
+  const inputBase =
+    'w-full bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 transition-all';
+  const inputWithIcon = isArabic ? `${inputBase} pr-10 pl-4` : `${inputBase} pl-10 pr-4`;
+  const inputWithBoth = isArabic ? `${inputBase} pr-10 pl-10` : `${inputBase} pl-10 pr-10`;
+  const iconLeft = isArabic ? 'absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-zinc-500' : 'absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-zinc-500';
+  const iconRight = isArabic ? 'absolute inset-y-0 left-3.5 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer' : 'absolute inset-y-0 right-3.5 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
       <div
-        className="glass-panel border border-white/10 bg-slate-900/95 text-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-200"
+        className="bg-zinc-950 border border-zinc-800 text-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         dir={isArabic ? 'rtl' : 'ltr'}
       >
-        {/* Header Bar */}
-        <div className="bg-slate-950/90 p-5 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-white/[0.04] border border-white/10 flex items-center justify-center p-2 shadow-lg shadow-blue-900/30 shrink-0">
+        {/* Minimal Header */}
+        <div className="p-5 pb-0 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center p-1.5 shrink-0">
               <Logo variant="mark" size="sm" showBadge={false} showSubtitle={false} />
             </div>
             <div>
-              <h2 className="text-base font-black text-white flex items-center gap-2">
-                {isArabic ? 'بوابة دخول منصة IQAutoMarket' : 'IQAutoMarket Portal Gateway'}
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  {isArabic ? 'آمن وموثق' : 'SECURE 256-BIT'}
-                </span>
-              </h2>
-              <p className="text-xs text-slate-400">
-                {isArabic
-                  ? 'دخول مباشر للمشترين، المتاجر، الورش والإدارة'
-                  : 'Single sign-on for Buyers, Dealers, Garages, and Operations'}
-              </p>
+              <h3 className="text-sm font-semibold text-white tracking-tight">
+                {mode === 'signin'
+                  ? isArabic ? 'تسجيل الدخول' : 'Sign in to IQAutoMarket'
+                  : mode === 'signup'
+                    ? isArabic ? 'إنشاء حساب جديد' : 'Create an account'
+                    : mode === 'whatsapp_otp'
+                      ? isArabic ? 'تسجيل عبر واتساب' : 'WhatsApp Sign-in'
+                      : isArabic ? 'استعادة كلمة المرور' : 'Reset password'}
+              </h3>
             </div>
           </div>
           <button
             onClick={() => setActiveModal(null)}
-            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/5 transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-900 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Modal Main Content */}
-        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-          {/* Success Notification Alert */}
-          {successMessage && (
-            <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-3 text-emerald-300 text-xs animate-in fade-in">
-              <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-              <span className="font-medium">{successMessage}</span>
-            </div>
-          )}
-
-          {/* Error Notification Alert */}
-          {errorMessage && (
-            <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center gap-3 text-red-300 text-xs animate-in fade-in">
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-              <span className="font-medium">{errorMessage}</span>
-            </div>
-          )}
-
-          {/* Mode Switcher Buttons */}
-          <div className="flex p-1 bg-slate-950/70 border border-white/10 rounded-2xl gap-1">
+        {/* Minimal Mode Tabs */}
+        <div className="px-5 pt-4">
+          <div className="flex bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/80">
             <button
               type="button"
               onClick={() => {
@@ -489,13 +331,11 @@ export const AuthModal: React.FC = () => {
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                mode === 'signin'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                mode === 'signin' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              {isArabic ? 'تسجيل الدخول' : 'Sign In'}
+              {isArabic ? 'دخول' : 'Sign In'}
             </button>
             <button
               type="button"
@@ -504,13 +344,11 @@ export const AuthModal: React.FC = () => {
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                mode === 'signup'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                mode === 'signup' ? 'bg-zinc-800 text-white shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              {isArabic ? 'إنشاء حساب جديد' : 'Create Account'}
+              {isArabic ? 'حساب جديد' : 'Sign Up'}
             </button>
             <button
               type="button"
@@ -519,188 +357,156 @@ export const AuthModal: React.FC = () => {
                 setErrorMessage(null);
                 setSuccessMessage(null);
               }}
-              className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                mode === 'whatsapp_otp'
-                  ? 'bg-emerald-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-emerald-400 hover:bg-white/5'
+              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                mode === 'whatsapp_otp' ? 'bg-zinc-800 text-emerald-400 shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'واتساب OTP' : 'WhatsApp OTP'}</span>
+              <MessageSquare className="w-3 h-3" />
+              <span>OTP</span>
             </button>
           </div>
+        </div>
 
-          {/* ROLE SELECTOR CARDS (Shown in Sign In & Sign Up) */}
-          {(mode === 'signin' || mode === 'signup') && (
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                  {isArabic ? 'نوع الحساب / البوابة' : 'Select Account Type / Portal'}
-                </label>
-                {mode === 'signup' && selectedRole === 'admin' && (
-                  <span className="text-[10px] text-amber-400 font-bold">
-                    {isArabic ? 'تسجيل الإدارة محجوز داخلياً' : 'Admin accounts are invite-only'}
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {(['customer', 'supplier', 'workshop', 'admin'] as UserRole[]).map((r) => {
-                  const meta = roleMeta[r];
-                  const isSelected = selectedRole === r;
-                  const isDisabled = mode === 'signup' && r === 'admin';
+        {/* Minimal Role Selector for Sign In / Sign Up */}
+        {(mode === 'signin' || mode === 'signup') && (
+          <div className="px-5 pt-3">
+            <div className="flex items-center gap-1.5 p-1 bg-zinc-900/40 border border-zinc-800/50 rounded-xl">
+              {(['customer', 'supplier', 'workshop'] as UserRole[]).map((r) => {
+                const isSelected = selectedRole === r;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => {
+                      setSelectedRole(r);
+                      if (mode === 'signin') {
+                        setEmail(demoAccounts[r].email);
+                        setPassword(demoAccounts[r].pass);
+                      }
+                    }}
+                    className={`flex-1 py-1.5 px-2 rounded-lg text-[11px] font-medium transition-all cursor-pointer text-center ${
+                      isSelected
+                        ? 'bg-zinc-800 text-white border border-zinc-700'
+                        : 'text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    {isArabic ? demoAccounts[r].labelAr : demoAccounts[r].label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
-                  return (
-                    <button
-                      key={r}
-                      type="button"
-                      disabled={isDisabled}
-                      onClick={() => {
-                        if (isDisabled) return;
-                        setSelectedRole(r);
-                        if (mode === 'signin') {
-                          setEmail(meta.demoUser.email);
-                          setPassword(meta.demoUser.pass);
-                        }
-                      }}
-                      className={`p-2.5 rounded-2xl border text-left rtl:text-right transition-all flex flex-col justify-between ${
-                        isDisabled
-                          ? 'opacity-40 cursor-not-allowed bg-slate-950/20 border-white/5'
-                          : isSelected
-                            ? 'bg-slate-800/90 border-blue-500 ring-2 ring-blue-500/40 shadow-md cursor-pointer'
-                            : 'bg-slate-950/50 border-white/10 hover:border-white/20 hover:bg-white/[0.04] cursor-pointer'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1 mb-1.5">
-                        <div className="p-1.5 rounded-xl bg-white/[0.06] border border-white/10">
-                          {meta.icon}
-                        </div>
-                        <span className="text-[8px] font-black uppercase text-slate-400 px-1.5 py-0.5 rounded bg-white/5">
-                          {meta.badge}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-bold text-xs text-white leading-tight">
-                          {isArabic ? meta.titleAr : meta.title}
-                        </div>
-                        <div className="text-[10px] text-slate-400 line-clamp-1 mt-0.5">
-                          {isArabic ? meta.descAr : meta.desc}
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+        {/* Form Body */}
+        <div className="p-5 space-y-3.5">
+          {/* Alerts */}
+          {successMessage && (
+            <div className="p-2.5 bg-emerald-950/40 border border-emerald-800/50 rounded-xl flex items-center gap-2 text-emerald-300 text-xs">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+              <span>{successMessage}</span>
             </div>
           )}
 
-          {/* VIEW 1: SIGN IN */}
+          {errorMessage && (
+            <div className="p-2.5 bg-red-950/40 border border-red-800/50 rounded-xl flex items-center gap-2 text-red-300 text-xs">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0 text-red-400" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* VIEW: SIGN IN */}
           {mode === 'signin' && (
-            <form onSubmit={handleSignIn} className="space-y-3.5 animate-in fade-in">
+            <form onSubmit={handleSignIn} className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                  {isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email Address or Phone Number'}
-                </label>
                 <div className="relative">
-                  <div className={leftIconPositionClass}>
-                    <Mail className="w-4 h-4" />
+                  <div className={iconLeft}>
+                    <Mail className="w-3.5 h-3.5" />
                   </div>
                   <input
                     type="text"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@iqautomarket.iq or +964 770 000 0000"
-                    className={inputWithIconClass}
+                    placeholder={isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email or phone number'}
+                    className={inputWithIcon}
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-slate-300">
-                    {isArabic ? 'كلمة المرور' : 'Password'}
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResetIdentifier(email);
-                      setMode('forgot_password');
-                    }}
-                    className="text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
-                  >
-                    {isArabic ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
-                  </button>
-                </div>
                 <div className="relative">
-                  <div className={leftIconPositionClass}>
-                    <Lock className="w-4 h-4" />
+                  <div className={iconLeft}>
+                    <Lock className="w-3.5 h-3.5" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className={inputWithIconAndToggleClass}
+                    placeholder={isArabic ? 'كلمة المرور' : 'Password'}
+                    className={inputWithBoth}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className={rightTogglePositionClass}
+                    className={iconRight}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-400">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-0.5">
+                <label className="flex items-center gap-1.5 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-white/20 bg-slate-950 text-blue-500 focus:ring-blue-500"
+                    className="rounded border-zinc-800 bg-zinc-900 text-zinc-200 focus:ring-0"
                   />
-                  <span>{isArabic ? 'تذكر بيانات الدخول' : 'Remember me on this device'}</span>
+                  <span>{isArabic ? 'تذكرني' : 'Remember me'}</span>
                 </label>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResetIdentifier(email);
+                    setMode('forgot_password');
+                  }}
+                  className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  {isArabic ? 'نسيت كلمة المرور؟' : 'Forgot password?'}
+                </button>
               </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
               >
                 {isLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <>
-                    <span>
-                      {isArabic
-                        ? `دخول كـ ${roleMeta[selectedRole].titleAr}`
-                        : `Sign In as ${roleMeta[selectedRole].title}`}
-                    </span>
-                    <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                    <span>{isArabic ? 'تسجيل الدخول' : 'Sign In'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </>
                 )}
               </button>
 
-              {/* 1-Click Quick Demo Profiles Switcher */}
-              <div className="pt-2 border-t border-white/10">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-amber-400" />
-                    {isArabic ? 'دخول تجريبي سريع بنقرة واحدة' : '1-Click Quick Demo Switcher'}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              {/* Minimal Demo Fast Click */}
+              <div className="pt-3 border-t border-zinc-900 flex items-center justify-between text-[10px] text-zinc-500">
+                <span>{isArabic ? 'تجربة سريعة:' : 'Quick test:'}</span>
+                <div className="flex gap-1.5">
                   {(['customer', 'supplier', 'workshop', 'admin'] as UserRole[]).map((r) => (
                     <button
                       key={r}
                       type="button"
-                      onClick={() => handleQuickDemoLogin(r)}
-                      className="py-1.5 px-2 rounded-xl bg-white/[0.03] border border-white/10 hover:bg-white/[0.08] hover:border-white/20 text-[10px] font-medium text-slate-300 hover:text-white transition-all text-center cursor-pointer"
+                      onClick={() => handleDemoClick(r)}
+                      className="px-1.5 py-0.5 rounded bg-zinc-900 hover:bg-zinc-800 hover:text-zinc-200 transition-all cursor-pointer"
                     >
-                      {roleMeta[r].badge}
+                      {demoAccounts[r].label}
                     </button>
                   ))}
                 </div>
@@ -708,409 +514,200 @@ export const AuthModal: React.FC = () => {
             </form>
           )}
 
-          {/* VIEW 2: SIGN UP */}
+          {/* VIEW: SIGN UP */}
           {mode === 'signup' && (
-            <form onSubmit={handleSignUp} className="space-y-3.5 animate-in fade-in">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    {isArabic ? 'الاسم الكامل' : 'Full Name'} *
-                  </label>
-                  <div className="relative">
-                    <div className={leftIconPositionClass}>
-                      <User className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={isArabic ? 'أحمد العراقي' : 'Ahmed Al-Iraqi'}
-                      className={inputWithIconClass}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    {isArabic ? 'البريد الإلكتروني' : 'Email Address'} *
-                  </label>
-                  <div className="relative">
-                    <div className={leftIconPositionClass}>
-                      <Mail className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="user@domain.iq"
-                      className={inputWithIconClass}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    {isArabic ? 'رقم الهاتف (العراق)' : 'Phone Number (Iraq)'}
-                  </label>
-                  <div className="relative">
-                    <div className={leftIconPositionClass}>
-                      <Phone className="w-4 h-4" />
-                    </div>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+964 770 123 4567"
-                      className={inputWithIconClass}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    {isArabic ? 'المدينة / المحافظة' : 'City / Governorate'}
-                  </label>
-                  <div className="relative">
-                    <div className={leftIconPositionClass}>
-                      <MapPin className="w-4 h-4" />
-                    </div>
-                    <select
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      className={inputWithIconClass}
-                    >
-                      {iraqiCities.map((c) => (
-                        <option key={c} value={c} className="bg-slate-900 text-white">
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Business Specific Fields for Supplier & Workshop */}
-              {(selectedRole === 'supplier' || selectedRole === 'workshop') && (
-                <div className="p-3 bg-white/[0.02] border border-white/10 rounded-2xl space-y-2.5">
-                  <div className="flex items-center gap-2 text-[11px] font-bold text-amber-400">
-                    <Building2 className="w-3.5 h-3.5" />
-                    <span>
-                      {selectedRole === 'supplier'
-                        ? isArabic
-                          ? 'بيانات المتجر والوكالة'
-                          : 'Store & Dealer Information'
-                        : isArabic
-                          ? 'بيانات الورشة ومركز الصيانة'
-                          : 'Workshop & Garage Information'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                      <input
-                        type="text"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder={
-                          selectedRole === 'supplier'
-                            ? isArabic
-                              ? 'اسم المتجر / الشركة'
-                              : 'Store / Company Name'
-                            : isArabic
-                              ? 'اسم مركز الصيانة'
-                              : 'Workshop Center Name'
-                        }
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl py-2 px-3 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <select
-                        value={businessType}
-                        onChange={(e) => setBusinessType(e.target.value)}
-                        className="w-full bg-slate-950/80 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-blue-500 cursor-pointer"
-                      >
-                        <option value="Authorized Distributor">Authorized Distributor (وكيل معتمد)</option>
-                        <option value="OEM Genuine Wholesaler">OEM Genuine Wholesaler (قطع أصلية جملة)</option>
-                        <option value="Aftermarket Retailer">Aftermarket Retailer (قطع تجارية ومفرد)</option>
-                        <option value="Dismantler / Salvage Yard">Salvage Yard (سوق التشليح والقطع المستعملة)</option>
-                        <option value="Specialized Garage">Specialized Garage (مركز صيانة تخصصي)</option>
-                        <option value="Fleet Maintenance">Fleet Service (خدمات أساطيل)</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Passwords */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    {isArabic ? 'كلمة المرور' : 'Password'} *
-                  </label>
-                  <div className="relative">
-                    <div className={leftIconPositionClass}>
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="At least 6 chars"
-                      className={inputWithIconAndToggleClass}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={rightTogglePositionClass}
-                    >
-                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    {isArabic ? 'تأكيد كلمة المرور' : 'Confirm Password'} *
-                  </label>
-                  <div className="relative">
-                    <div className={leftIconPositionClass}>
-                      <Lock className="w-4 h-4" />
-                    </div>
-                    <input
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm password"
-                      className={inputWithIconAndToggleClass}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className={rightTogglePositionClass}
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Password Strength Meter */}
-              {password && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-[10px] text-slate-400">
-                    <span>{isArabic ? 'قوة كلمة المرور' : 'Password Strength'}</span>
-                    <span
-                      className={`font-bold ${
-                        passwordStrength <= 1
-                          ? 'text-red-400'
-                          : passwordStrength <= 2
-                            ? 'text-amber-400'
-                            : 'text-emerald-400'
-                      }`}
-                    >
-                      {passwordStrength <= 1
-                        ? isArabic ? 'ضعيفة' : 'Weak'
-                        : passwordStrength <= 2
-                          ? isArabic ? 'متوسطة' : 'Fair'
-                          : isArabic ? 'قوية جداً' : 'Strong'}
-                    </span>
-                  </div>
-                  <div className="h-1.5 w-full bg-slate-950 rounded-full overflow-hidden flex gap-1">
-                    <div
-                      className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrength >= 1 ? 'bg-red-500' : 'bg-white/10'
-                      }`}
-                    />
-                    <div
-                      className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrength >= 2 ? 'bg-amber-500' : 'bg-white/10'
-                      }`}
-                    />
-                    <div
-                      className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrength >= 3 ? 'bg-emerald-500' : 'bg-white/10'
-                      }`}
-                    />
-                    <div
-                      className={`h-full flex-1 rounded-full transition-all ${
-                        passwordStrength >= 4 ? 'bg-emerald-400' : 'bg-white/10'
-                      }`}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Terms Checkbox */}
-              <label className="flex items-start gap-2 text-xs text-slate-400 cursor-pointer select-none pt-1">
+            <form onSubmit={handleSignUp} className="space-y-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 <input
-                  type="checkbox"
-                  checked={termsAccepted}
-                  onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="rounded border-white/20 bg-slate-950 text-blue-500 focus:ring-blue-500 mt-0.5"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={isArabic ? 'الاسم الكامل' : 'Full name'}
+                  className={`${inputBase} px-3`}
                 />
-                <span>
-                  {isArabic
-                    ? 'أوافق على شروط الخدمة، سياسة الخصوصية، وقواعد تداول قطع الغيار في العراق.'
-                    : 'I agree to the Terms of Service, Privacy Policy, and Automotive Trade Regulations.'}
-                </span>
-              </label>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={isArabic ? 'البريد الإلكتروني' : 'Email'}
+                  className={`${inputBase} px-3`}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={isArabic ? 'الهاتف (+964)' : 'Phone (+964)'}
+                  className={`${inputBase} px-3`}
+                />
+                <select
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className={`${inputBase} px-3 cursor-pointer`}
+                >
+                  {['Baghdad', 'Erbil', 'Basra', 'Mosul', 'Sulaymaniyah', 'Najaf', 'Karbala'].map((c) => (
+                    <option key={c} value={c} className="bg-zinc-900">
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedRole !== 'customer' && (
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder={
+                    selectedRole === 'supplier'
+                      ? isArabic ? 'اسم المتجر / الشركة' : 'Store name'
+                      : isArabic ? 'اسم مركز الصيانة' : 'Garage / Workshop name'
+                  }
+                  className={`${inputBase} px-3`}
+                />
+              )}
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={isArabic ? 'كلمة المرور' : 'Password (6+)'}
+                    className={`${inputBase} px-3 pr-8 rtl:pr-3 rtl:pl-8`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-2 rtl:right-auto rtl:left-2 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  </button>
+                </div>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={isArabic ? 'تأكيد المرور' : 'Confirm'}
+                    className={`${inputBase} px-3 pr-8 rtl:pr-3 rtl:pl-8`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-2 rtl:right-auto rtl:left-2 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  </button>
+                </div>
+              </div>
 
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
+                className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
               >
                 {isLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                 ) : (
                   <>
-                    <span>
-                      {isArabic
-                        ? `إنشاء حساب ${roleMeta[selectedRole].titleAr}`
-                        : `Complete Registration for ${roleMeta[selectedRole].title}`}
-                    </span>
-                    <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                    <span>{isArabic ? 'إنشاء الحساب' : 'Create Account'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                   </>
                 )}
               </button>
             </form>
           )}
 
-          {/* VIEW 3: WHATSAPP OTP QUICK SIGN-IN */}
+          {/* VIEW: WHATSAPP OTP */}
           {mode === 'whatsapp_otp' && (
-            <div className="space-y-4 animate-in fade-in">
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-start gap-3">
-                <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
-                  <MessageSquare className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-white">
-                    {isArabic ? 'تسجيل دخول فوري عبر واتساب' : 'Fast WhatsApp OTP Sign-In'}
-                  </h4>
-                  <p className="text-[11px] text-slate-400 mt-0.5">
-                    {isArabic
-                      ? 'أدخل رقم هاتفك العراقي لاستلام رمز تحقق فوري والدخول بدون كلمة مرور.'
-                      : 'Enter your phone number to receive a one-time login code without needing a password.'}
-                  </p>
-                </div>
-              </div>
-
+            <div className="space-y-3">
               {!otpSentPhone ? (
                 <form onSubmit={handleRequestOtp} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                      {isArabic ? 'رقم الهاتف العراقي (+964)' : 'Iraqi Phone Number (+964)'}
-                    </label>
-                    <div className="relative">
-                      <div className={leftIconPositionClass}>
-                        <Phone className="w-4 h-4" />
-                      </div>
-                      <input
-                        type="tel"
-                        required
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        placeholder="+964 770 123 4567"
-                        className={inputWithIconClass}
-                      />
+                  <div className="relative">
+                    <div className={iconLeft}>
+                      <Phone className="w-3.5 h-3.5" />
                     </div>
+                    <input
+                      type="tel"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="+964 770 123 4567"
+                      className={inputWithIcon}
+                    />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : (
                       <>
-                        <span>{isArabic ? 'إرسال رمز التحقق عبر واتساب' : 'Send WhatsApp Code'}</span>
-                        <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                        <span>{isArabic ? 'إرسال رمز الواتساب' : 'Send WhatsApp OTP'}</span>
+                        <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                       </>
                     )}
                   </button>
                 </form>
               ) : (
                 <form onSubmit={handleVerifyOtpLogin} className="space-y-3">
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-xs font-bold text-slate-300">
-                        {isArabic ? 'رمز التحقق (6 أرقام)' : '6-Digit Verification Code'}
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setOtpSentPhone('');
-                          setOtpSandboxCode(null);
-                        }}
-                        className="text-[11px] text-emerald-400 hover:underline cursor-pointer"
-                      >
-                        {isArabic ? 'تغيير الرقم' : 'Change Phone'}
-                      </button>
-                    </div>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      required
-                      autoFocus
-                      value={otpCode}
-                      onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                      placeholder="123456"
-                      className="w-full bg-slate-950/80 border border-emerald-500/50 rounded-2xl py-3 px-4 text-center text-lg font-black tracking-widest text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                    <span>{otpSentPhone}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpSentPhone('');
+                        setOtpSandboxCode(null);
+                      }}
+                      className="text-zinc-400 hover:text-white underline cursor-pointer text-[11px]"
+                    >
+                      {isArabic ? 'تغيير' : 'Change'}
+                    </button>
                   </div>
 
-                  {/* Sandbox Dev Code Display Helper */}
+                  <input
+                    type="text"
+                    maxLength={6}
+                    required
+                    autoFocus
+                    value={otpCode}
+                    onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-2.5 px-4 text-center text-base font-bold tracking-widest text-emerald-400 focus:outline-none focus:border-emerald-500"
+                  />
+
                   {otpSandboxCode && (
-                    <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between text-xs text-blue-300">
-                      <span className="font-mono font-bold">Sandbox Code: {otpSandboxCode}</span>
+                    <div className="p-2 bg-zinc-900 border border-zinc-800 rounded-lg flex items-center justify-between text-[11px] text-zinc-400">
+                      <span>Code: <b className="text-white">{otpSandboxCode}</b></span>
                       <button
                         type="button"
                         onClick={() => setOtpCode(otpSandboxCode)}
-                        className="px-2 py-0.5 bg-blue-600/40 hover:bg-blue-600 rounded text-[10px] font-bold text-white transition-all cursor-pointer"
+                        className="text-emerald-400 hover:underline cursor-pointer"
                       >
-                        {isArabic ? 'تعبئة تلقائية' : 'Auto Fill'}
+                        {isArabic ? 'تعبئة' : 'Auto Fill'}
                       </button>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>
-                      {otpTimer > 0
-                        ? isArabic
-                          ? `إعادة الإرسال خلال ${otpTimer} ثانية`
-                          : `Resend in ${otpTimer}s`
-                        : (
-                          <button
-                            type="button"
-                            onClick={handleRequestOtp}
-                            className="text-emerald-400 hover:underline cursor-pointer"
-                          >
-                            {isArabic ? 'إعادة إرسال الرمز' : 'Resend Code'}
-                          </button>
-                        )}
-                    </span>
-                  </div>
-
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <>
-                        <span>{isArabic ? 'تأكيد ودخول' : 'Verify & Sign In'}</span>
-                        <Check className="w-4 h-4" />
-                      </>
+                      <span>{isArabic ? 'تأكيد ودخول' : 'Verify & Continue'}</span>
                     )}
                   </button>
                 </form>
@@ -1118,116 +715,87 @@ export const AuthModal: React.FC = () => {
             </div>
           )}
 
-          {/* VIEW 4: FORGOT / RESET PASSWORD */}
+          {/* VIEW: FORGOT PASSWORD */}
           {mode === 'forgot_password' && (
-            <div className="space-y-4 animate-in fade-in">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                  <Key className="w-4 h-4 text-blue-400" />
-                  <span>{isArabic ? 'استعادة كلمة المرور' : 'Password Recovery'}</span>
-                </h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs text-zinc-400">
+                <span>{isArabic ? 'استعادة كلمة المرور' : 'Password Recovery'}</span>
                 <button
                   type="button"
                   onClick={() => setMode('signin')}
-                  className="text-xs text-slate-400 hover:text-white cursor-pointer"
+                  className="hover:text-white underline cursor-pointer text-[11px]"
                 >
-                  {isArabic ? 'العودة لتسجيل الدخول' : 'Back to Sign In'}
+                  {isArabic ? 'العودة للدخول' : 'Back to login'}
                 </button>
               </div>
 
               {resetStep === 'request' ? (
                 <form onSubmit={handleForgotPasswordRequest} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                      {isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email Address or Phone Number'}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={resetIdentifier}
-                      onChange={(e) => setResetIdentifier(e.target.value)}
-                      placeholder="name@domain.iq or +964 770 000 0000"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2.5 px-4 text-xs text-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
+                  <input
+                    type="text"
+                    required
+                    value={resetIdentifier}
+                    onChange={(e) => setResetIdentifier(e.target.value)}
+                    placeholder={isArabic ? 'البريد الإلكتروني' : 'Email or phone'}
+                    className={`${inputBase} px-3`}
+                  />
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30 transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <span>{isArabic ? 'إرسال رمز إعادة التعيين' : 'Send Reset Code'}</span>
+                      <span>{isArabic ? 'إرسال الرمز' : 'Send Reset Code'}</span>
                     )}
                   </button>
                 </form>
               ) : (
-                <form onSubmit={handleResetPasswordSubmit} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      {isArabic ? 'رمز إعادة التعيين' : 'Reset Code (6 digits)'}
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={resetCode}
-                      onChange={(e) => setResetCode(e.target.value)}
-                      placeholder="123456"
-                      className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2 px-4 text-xs text-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
+                <form onSubmit={handleResetPasswordSubmit} className="space-y-2.5">
+                  <input
+                    type="text"
+                    required
+                    value={resetCode}
+                    onChange={(e) => setResetCode(e.target.value)}
+                    placeholder={isArabic ? 'رمز التحقق' : '6-digit code'}
+                    className={`${inputBase} px-3`}
+                  />
                   {resetSandboxCode && (
-                    <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between text-xs text-blue-300">
-                      <span className="font-mono">Sandbox Code: {resetSandboxCode}</span>
+                    <div className="p-1.5 bg-zinc-900 rounded text-[11px] text-zinc-400 flex justify-between">
+                      <span>Code: <b className="text-white">{resetSandboxCode}</b></span>
                       <button
                         type="button"
                         onClick={() => setResetCode(resetSandboxCode)}
-                        className="px-2 py-0.5 bg-blue-600/40 hover:bg-blue-600 rounded text-[10px] font-bold text-white transition-all cursor-pointer"
+                        className="text-zinc-200 underline cursor-pointer"
                       >
-                        {isArabic ? 'تعبئة تلقائية' : 'Auto Fill'}
+                        Auto Fill
                       </button>
                     </div>
                   )}
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">
-                      {isArabic ? 'كلمة المرور الجديدة' : 'New Password'}
-                    </label>
-                    <input
-                      type="password"
-                      required
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="At least 6 characters"
-                      className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2 px-4 text-xs text-white focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-
+                  <input
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={isArabic ? 'كلمة المرور الجديدة' : 'New password'}
+                    className={`${inputBase} px-3`}
+                  />
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/30 transition-all cursor-pointer disabled:opacity-50"
+                    className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
                     ) : (
-                      <span>{isArabic ? 'تحديث كلمة المرور والدخول' : 'Update Password & Sign In'}</span>
+                      <span>{isArabic ? 'تحديث كلمة المرور' : 'Update Password'}</span>
                     )}
                   </button>
                 </form>
               )}
             </div>
           )}
-        </div>
-
-        {/* Footer info bar */}
-        <div className="bg-slate-950/80 p-3.5 border-t border-white/10 text-center text-[10px] text-slate-500">
-          {isArabic
-            ? 'منصة IQAutoMarket مشفرة ومحمية ببروتوكولات TLS 1.3 وحماية RBAC المتقدمة.'
-            : 'IQAutoMarket is encrypted with TLS 1.3 & advanced Role-Based Access Controls.'}
         </div>
       </div>
     </div>
