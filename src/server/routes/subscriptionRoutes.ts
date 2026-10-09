@@ -16,7 +16,8 @@ import {
   SUBSCRIPTION_PLANS,
 } from '../../data/subscriptionPlans';
 
-export { SubscriptionPerks, SubscriptionPlan, ActiveUserSubscription, SUBSCRIPTION_PLANS };
+export type { SubscriptionPerks, SubscriptionPlan, ActiveUserSubscription };
+export { SUBSCRIPTION_PLANS };
 
 const router = express.Router();
 
@@ -112,7 +113,7 @@ router.get('/plans', (req, res) => {
 
 // 2. Get Current User Active Subscription
 router.get('/current', requireAuth, async (req: AuthenticatedRequest, res) => {
-  const userId = req.userId!;
+  const userId = req.user?.id || 'usr_buyer_default';
   const pool = getDbPool();
 
   if (pool) {
@@ -180,7 +181,7 @@ router.get('/current', requireAuth, async (req: AuthenticatedRequest, res) => {
 
 // 3. Subscribe or Upgrade Plan
 router.post('/subscribe', requireAuth, async (req: AuthenticatedRequest, res) => {
-  const userId = req.userId!;
+  const userId = req.user?.id || 'usr_buyer_default';
   const { planId, billingCycle = 'monthly', paymentMethod = 'ZainCash' } = req.body;
 
   if (!planId) {
@@ -293,7 +294,7 @@ router.post('/subscribe', requireAuth, async (req: AuthenticatedRequest, res) =>
 
 // 4. Cancel Subscription
 router.post('/cancel', requireAuth, async (req: AuthenticatedRequest, res) => {
-  const userId = req.userId!;
+  const userId = req.user?.id || 'usr_buyer_default';
   const existing = userSubscriptionsStore.get(userId);
 
   if (existing) {
@@ -330,7 +331,7 @@ router.post('/cancel', requireAuth, async (req: AuthenticatedRequest, res) => {
 
 // 5. Calculate Cart Benefits & Discounts for any Order
 router.post('/calculate-perks', requireAuth, (req: AuthenticatedRequest, res) => {
-  const userId = req.userId!;
+  const userId = req.user?.id || 'usr_buyer_default';
   const { subtotalUSD = 0, shippingCostUSD = 6 } = req.body;
 
   const currentSub = userSubscriptionsStore.get(userId);
