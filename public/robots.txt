@@ -1,0 +1,15 @@
+# Google & Search Engine Crawler Directives for IQAutoMarket
+User-agent: *
+Allow: /
+Allow: /marketplace
+Allow: /workshops
+Allow: /dealers
+Allow: /subscriptions
+Allow: /brand/
+Allow: /category/
+Disallow: /api/
+Disallow: /admin
+Disallow: /api/internal/
+
+# Sitemap Location
+Sitemap: https://iqautomarket.com/sitemap.xml
