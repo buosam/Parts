@@ -294,12 +294,8 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  const inputBase =
-    'w-full bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 transition-all';
-  const inputWithIcon = isArabic ? `${inputBase} pr-10 pl-4` : `${inputBase} pl-10 pr-4`;
-  const inputWithBoth = isArabic ? `${inputBase} pr-10 pl-10` : `${inputBase} pl-10 pr-10`;
-  const iconLeft = isArabic ? 'absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-zinc-500' : 'absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-zinc-500';
-  const iconRight = isArabic ? 'absolute inset-y-0 left-3.5 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer' : 'absolute inset-y-0 right-3.5 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer';
+  const inputBaseStyle =
+    'w-full bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl py-2.5 px-3 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-zinc-400 focus:ring-1 focus:ring-zinc-400/20 transition-all';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
@@ -430,43 +426,37 @@ export const AuthModal: React.FC = () => {
           {/* VIEW: SIGN IN */}
           {mode === 'signin' && (
             <form onSubmit={handleSignIn} className="space-y-3">
-              <div>
-                <div className="relative">
-                  <div className={iconLeft}>
-                    <Mail className="w-3.5 h-3.5" />
-                  </div>
-                  <input
-                    type="text"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email or phone number'}
-                    className={inputWithIcon}
-                  />
-                </div>
+              {/* Email / Identifier Flex Container */}
+              <div className="flex items-center rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden px-3">
+                <Mail className="w-4 h-4 text-zinc-500 shrink-0 me-2.5" />
+                <input
+                  type="text"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email or phone number'}
+                  className="w-full bg-transparent py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
+                />
               </div>
 
-              <div>
-                <div className="relative">
-                  <div className={iconLeft}>
-                    <Lock className="w-3.5 h-3.5" />
-                  </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder={isArabic ? 'كلمة المرور' : 'Password'}
-                    className={inputWithBoth}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className={iconRight}
-                  >
-                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
+              {/* Password Flex Container */}
+              <div className="flex items-center rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden px-3">
+                <Lock className="w-4 h-4 text-zinc-500 shrink-0 me-2.5" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={isArabic ? 'كلمة المرور' : 'Password'}
+                  className="w-full bg-transparent py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="p-1 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer shrink-0 ms-1"
+                >
+                  {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-0.5">
@@ -492,17 +482,19 @@ export const AuthModal: React.FC = () => {
                 </button>
               </div>
 
+              {/* Sign In Action Button */}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
+                className="w-full py-2.5 px-4 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
+                style={{ backgroundColor: '#f4f4f5', color: '#09090b' }}
               >
                 {isLoading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ color: '#09090b' }} />
                 ) : (
                   <>
-                    <span>{isArabic ? 'تسجيل الدخول' : 'Sign In'}</span>
-                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                    <span style={{ color: '#09090b', fontWeight: 700 }}>{isArabic ? 'تسجيل الدخول' : 'Sign In'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" style={{ color: '#09090b' }} />
                   </>
                 )}
               </button>
@@ -536,7 +528,7 @@ export const AuthModal: React.FC = () => {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={isArabic ? 'الاسم الكامل' : 'Full name'}
-                  className={`${inputBase} px-3`}
+                  className={inputBaseStyle}
                 />
                 <input
                   type="email"
@@ -544,25 +536,33 @@ export const AuthModal: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={isArabic ? 'البريد الإلكتروني' : 'Email'}
-                  className={`${inputBase} px-3`}
+                  className={inputBaseStyle}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder={isArabic ? 'الهاتف (+964)' : 'Phone (+964)'}
-                  className={`${inputBase} px-3`}
-                />
+                {/* Phone Input with Iraq Dial Badge */}
+                <div className="flex items-stretch rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden">
+                  <div className="flex items-center gap-1 px-2 py-2 bg-zinc-900 border-r border-zinc-800 rtl:border-r-0 rtl:border-l text-zinc-300 select-none shrink-0">
+                    <span className="text-xs">🇮🇶</span>
+                    <span className="text-[11px] font-mono font-medium text-zinc-400" dir="ltr">+964</span>
+                  </div>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="770 123 4567"
+                    className="w-full bg-transparent py-2 px-2 text-xs text-white placeholder:text-zinc-500 focus:outline-none font-mono"
+                  />
+                </div>
+
                 <select
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className={`${inputBase} px-3 cursor-pointer`}
+                  className={`${inputBaseStyle} cursor-pointer`}
                 >
                   {['Baghdad', 'Erbil', 'Basra', 'Mosul', 'Sulaymaniyah', 'Najaf', 'Karbala'].map((c) => (
-                    <option key={c} value={c} className="bg-zinc-900">
+                    <option key={c} value={c} className="bg-zinc-900 text-white">
                       {c}
                     </option>
                   ))}
@@ -576,44 +576,49 @@ export const AuthModal: React.FC = () => {
                   onChange={(e) => setCompanyName(e.target.value)}
                   placeholder={
                     selectedRole === 'supplier'
-                      ? isArabic ? 'اسم المتجر / الشركة' : 'Store name'
+                      ? isArabic ? 'اسم المتجر / الشركة' : 'Store / Company name'
                       : isArabic ? 'اسم مركز الصيانة' : 'Garage / Workshop name'
                   }
-                  className={`${inputBase} px-3`}
+                  className={inputBaseStyle}
                 />
               )}
 
               <div className="grid grid-cols-2 gap-2">
-                <div className="relative">
+                {/* Password Input */}
+                <div className="flex items-center rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden px-2.5">
+                  <Lock className="w-3.5 h-3.5 text-zinc-500 shrink-0 me-1.5" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder={isArabic ? 'كلمة المرور' : 'Password (6+)'}
-                    className={`${inputBase} px-3 pr-8 rtl:pr-3 rtl:pl-8`}
+                    className="w-full bg-transparent py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-2 rtl:right-auto rtl:left-2 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                    className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer shrink-0"
                   >
                     {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                   </button>
                 </div>
-                <div className="relative">
+
+                {/* Confirm Password Input */}
+                <div className="flex items-center rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden px-2.5">
+                  <Lock className="w-3.5 h-3.5 text-zinc-500 shrink-0 me-1.5" />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder={isArabic ? 'تأكيد المرور' : 'Confirm'}
-                    className={`${inputBase} px-3 pr-8 rtl:pr-3 rtl:pl-8`}
+                    className="w-full bg-transparent py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute inset-y-0 right-2 rtl:right-auto rtl:left-2 flex items-center text-zinc-500 hover:text-zinc-300 cursor-pointer"
+                    className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer shrink-0"
                   >
                     {showConfirmPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                   </button>
@@ -623,14 +628,15 @@ export const AuthModal: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
+                className="w-full py-2.5 px-4 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2 shadow-sm"
+                style={{ backgroundColor: '#f4f4f5', color: '#09090b' }}
               >
                 {isLoading ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ color: '#09090b' }} />
                 ) : (
                   <>
-                    <span>{isArabic ? 'إنشاء الحساب' : 'Create Account'}</span>
-                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                    <span style={{ color: '#09090b', fontWeight: 700 }}>{isArabic ? 'إنشاء الحساب' : 'Create Account'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" style={{ color: '#09090b' }} />
                   </>
                 )}
               </button>
@@ -642,7 +648,7 @@ export const AuthModal: React.FC = () => {
             <div className="space-y-3">
               {!otpSentPhone ? (
                 <form onSubmit={handleRequestOtp} className="space-y-3">
-                  <div className="flex items-stretch rounded-xl bg-zinc-900/60 border border-zinc-800 focus-within:border-zinc-500 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden">
+                  <div className="flex items-stretch rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-500 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden">
                     <div className="flex items-center gap-1.5 px-3 py-2.5 bg-zinc-900 border-r border-zinc-800 rtl:border-r-0 rtl:border-l text-zinc-300 select-none shrink-0">
                       <span className="text-sm leading-none">🇮🇶</span>
                       <span className="text-xs font-mono font-medium text-zinc-300" dir="ltr">+964</span>
@@ -660,14 +666,15 @@ export const AuthModal: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    style={{ color: '#ffffff' }}
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
                     ) : (
                       <>
-                        <span>{isArabic ? 'إرسال رمز الواتساب' : 'Send WhatsApp OTP'}</span>
-                        <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                        <span className="font-bold text-white">{isArabic ? 'إرسال رمز الواتساب' : 'Send WhatsApp OTP'}</span>
+                        <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180 text-white" />
                       </>
                     )}
                   </button>
@@ -675,7 +682,7 @@ export const AuthModal: React.FC = () => {
               ) : (
                 <form onSubmit={handleVerifyOtpLogin} className="space-y-3">
                   <div className="flex items-center justify-between text-xs text-zinc-400">
-                    <span>{otpSentPhone}</span>
+                    <span className="font-mono text-zinc-300">{otpSentPhone}</span>
                     <button
                       type="button"
                       onClick={() => {
@@ -705,7 +712,7 @@ export const AuthModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setOtpCode(otpSandboxCode)}
-                        className="text-emerald-400 hover:underline cursor-pointer"
+                        className="text-emerald-400 hover:underline cursor-pointer font-bold"
                       >
                         {isArabic ? 'تعبئة' : 'Auto Fill'}
                       </button>
@@ -715,12 +722,13 @@ export const AuthModal: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    style={{ color: '#ffffff' }}
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-white" />
                     ) : (
-                      <span>{isArabic ? 'تأكيد ودخول' : 'Verify & Continue'}</span>
+                      <span className="font-bold text-white">{isArabic ? 'تأكيد ودخول' : 'Verify & Continue'}</span>
                     )}
                   </button>
                 </form>
@@ -744,23 +752,27 @@ export const AuthModal: React.FC = () => {
 
               {resetStep === 'request' ? (
                 <form onSubmit={handleForgotPasswordRequest} className="space-y-3">
-                  <input
-                    type="text"
-                    required
-                    value={resetIdentifier}
-                    onChange={(e) => setResetIdentifier(e.target.value)}
-                    placeholder={isArabic ? 'البريد الإلكتروني' : 'Email or phone'}
-                    className={`${inputBase} px-3`}
-                  />
+                  <div className="flex items-center rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden px-3">
+                    <Mail className="w-4 h-4 text-zinc-500 shrink-0 me-2.5" />
+                    <input
+                      type="text"
+                      required
+                      value={resetIdentifier}
+                      onChange={(e) => setResetIdentifier(e.target.value)}
+                      placeholder={isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email or phone number'}
+                      className="w-full bg-transparent py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    className="w-full py-2.5 px-4 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    style={{ backgroundColor: '#f4f4f5', color: '#09090b' }}
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ color: '#09090b' }} />
                     ) : (
-                      <span>{isArabic ? 'إرسال الرمز' : 'Send Reset Code'}</span>
+                      <span style={{ color: '#09090b', fontWeight: 700 }}>{isArabic ? 'إرسال الرمز' : 'Send Reset Code'}</span>
                     )}
                   </button>
                 </form>
@@ -771,8 +783,8 @@ export const AuthModal: React.FC = () => {
                     required
                     value={resetCode}
                     onChange={(e) => setResetCode(e.target.value)}
-                    placeholder={isArabic ? 'رمز التحقق' : '6-digit code'}
-                    className={`${inputBase} px-3`}
+                    placeholder={isArabic ? 'رمز التحقق (6 أرقام)' : '6-digit code'}
+                    className={inputBaseStyle}
                   />
                   {resetSandboxCode && (
                     <div className="p-1.5 bg-zinc-900 rounded text-[11px] text-zinc-400 flex justify-between">
@@ -780,29 +792,33 @@ export const AuthModal: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setResetCode(resetSandboxCode)}
-                        className="text-zinc-200 underline cursor-pointer"
+                        className="text-zinc-200 underline cursor-pointer font-bold"
                       >
                         Auto Fill
                       </button>
                     </div>
                   )}
-                  <input
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder={isArabic ? 'كلمة المرور الجديدة' : 'New password'}
-                    className={`${inputBase} px-3`}
-                  />
+                  <div className="flex items-center rounded-xl bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 focus-within:border-zinc-400 focus-within:ring-1 focus-within:ring-zinc-400/20 transition-all overflow-hidden px-3">
+                    <Lock className="w-4 h-4 text-zinc-500 shrink-0 me-2.5" />
+                    <input
+                      type="password"
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder={isArabic ? 'كلمة المرور الجديدة' : 'New password'}
+                      className="w-full bg-transparent py-2.5 text-xs text-white placeholder:text-zinc-500 focus:outline-none"
+                    />
+                  </div>
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-2.5 px-4 bg-white hover:bg-zinc-200 text-zinc-950 rounded-xl font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    className="w-full py-2.5 px-4 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 shadow-sm"
+                    style={{ backgroundColor: '#f4f4f5', color: '#09090b' }}
                   >
                     {isLoading ? (
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" style={{ color: '#09090b' }} />
                     ) : (
-                      <span>{isArabic ? 'تحديث كلمة المرور' : 'Update Password'}</span>
+                      <span style={{ color: '#09090b', fontWeight: 700 }}>{isArabic ? 'تحديث كلمة المرور' : 'Update Password'}</span>
                     )}
                   </button>
                 </form>
