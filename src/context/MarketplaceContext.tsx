@@ -405,8 +405,12 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   };
 
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
-    const saved = localStorage.getItem('sp_current_user');
-    return saved ? JSON.parse(saved) : DEFAULT_PROFILES.customer;
+    try {
+      const saved = localStorage.getItem('sp_current_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
