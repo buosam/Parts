@@ -55,7 +55,22 @@ export const SupplierPortal: React.FC = () => {
   } = useMarketplace();
 
   const isArabic = language === 'ar';
-  const currentSupplier = suppliers.find((s) => s.id === 'sup-1') || suppliers[0];
+  const currentSupplier = suppliers.find((s) => s.id === 'sup-1') || suppliers[0] || {
+    id: 'sup-1',
+    name: 'Authorized Dealer',
+    companyName: 'My Dealership & Auto Parts Co.',
+    city: 'Baghdad',
+    address: 'Al-Sinak Commercial Hub',
+    phone: '+964 770 123 4567',
+    brands: ['Toyota Genuine', 'Hyundai OEM'],
+    isVerified: true,
+    verificationLevel: 3 as const,
+    rating: 5.0,
+    reviewCount: 0,
+    whatsapp: '+9647701234567',
+    deliverySLA: 'Same-day dispatch',
+    businessType: 'Distributor',
+  };
 
   const [activeTab, setActiveTab] = useState<'overview' | 'requests' | 'inventory' | 'orders' | 'branches'>('overview');
   const [staffRole, setStaffRole] = useState<'owner' | 'manager' | 'sales' | 'inventory' | 'finance'>('owner');

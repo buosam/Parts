@@ -40,7 +40,22 @@ export const SupplierStorefrontModal: React.FC = () => {
 
   if (activeModal !== 'supplier_store' || !selectedSupplierIdForStore) return null;
 
-  const supplier = suppliers.find((s) => s.id === selectedSupplierIdForStore) || suppliers[0];
+  const supplier = suppliers.find((s) => s.id === selectedSupplierIdForStore) || {
+    id: selectedSupplierIdForStore,
+    name: 'Dealer Storefront',
+    companyName: 'Authorized Parts Dealer',
+    city: 'Baghdad',
+    address: 'Commercial Parts Hub',
+    phone: '+964 770 000 0000',
+    brands: ['Toyota Genuine'],
+    isVerified: true,
+    verificationLevel: 3 as const,
+    rating: 5.0,
+    reviewCount: 0,
+    whatsapp: '+9647700000000',
+    deliverySLA: 'Same-day dispatch',
+    businessType: 'Distributor',
+  };
 
   // Dealer inventory items
   const supplierOffers = masterParts.flatMap((part) =>
