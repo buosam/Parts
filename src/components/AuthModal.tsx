@@ -21,7 +21,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Sparkles,
-  Zap,
   Car,
   Key,
   MessageSquare,
@@ -232,9 +231,7 @@ export const AuthModal: React.FC = () => {
       const res = await login(email, password, selectedRole);
       if (res.success) {
         setSuccessMessage(
-          isArabic
-            ? `مرحباً بك مجدداً!`
-            : `Welcome back to IQAutoMarket!`
+          isArabic ? 'مرحباً بك مجدداً!' : 'Welcome back to IQAutoMarket!'
         );
       }
     } catch (err: any) {
@@ -414,6 +411,23 @@ export const AuthModal: React.FC = () => {
     }
   };
 
+  // Explicit padding classes to guarantee icons and placeholders never overlap in LTR or RTL
+  const inputWithIconClass = isArabic
+    ? 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pr-11 pl-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all'
+    : 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pl-11 pr-4 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all';
+
+  const inputWithIconAndToggleClass = isArabic
+    ? 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pr-11 pl-11 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all'
+    : 'w-full bg-slate-950/80 border border-white/10 rounded-2xl py-2.5 pl-11 pr-11 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all';
+
+  const leftIconPositionClass = isArabic
+    ? 'absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-slate-400'
+    : 'absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-400';
+
+  const rightTogglePositionClass = isArabic
+    ? 'absolute inset-y-0 left-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer'
+    : 'absolute inset-y-0 right-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
       <div
@@ -587,7 +601,7 @@ export const AuthModal: React.FC = () => {
                   {isArabic ? 'البريد الإلكتروني أو رقم الهاتف' : 'Email Address or Phone Number'}
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className={leftIconPositionClass}>
                     <Mail className="w-4 h-4" />
                   </div>
                   <input
@@ -596,7 +610,7 @@ export const AuthModal: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@iqautomarket.iq or +964 770 000 0000"
-                    className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2.5 pl-10 pr-4 rtl:pl-4 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                    className={inputWithIconClass}
                   />
                 </div>
               </div>
@@ -618,7 +632,7 @@ export const AuthModal: React.FC = () => {
                   </button>
                 </div>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                  <div className={leftIconPositionClass}>
                     <Lock className="w-4 h-4" />
                   </div>
                   <input
@@ -627,12 +641,12 @@ export const AuthModal: React.FC = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2.5 pl-10 pr-10 rtl:pl-10 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                    className={inputWithIconAndToggleClass}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 pr-3.5 rtl:pr-0 rtl:pl-3.5 flex items-center text-slate-400 hover:text-white cursor-pointer"
+                    className={rightTogglePositionClass}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -703,7 +717,7 @@ export const AuthModal: React.FC = () => {
                     {isArabic ? 'الاسم الكامل' : 'Full Name'} *
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className={leftIconPositionClass}>
                       <User className="w-4 h-4" />
                     </div>
                     <input
@@ -712,7 +726,7 @@ export const AuthModal: React.FC = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder={isArabic ? 'أحمد العراقي' : 'Ahmed Al-Iraqi'}
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2 pl-10 pr-3 rtl:pl-3 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-all"
+                      className={inputWithIconClass}
                     />
                   </div>
                 </div>
@@ -722,7 +736,7 @@ export const AuthModal: React.FC = () => {
                     {isArabic ? 'البريد الإلكتروني' : 'Email Address'} *
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className={leftIconPositionClass}>
                       <Mail className="w-4 h-4" />
                     </div>
                     <input
@@ -731,7 +745,7 @@ export const AuthModal: React.FC = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="user@domain.iq"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2 pl-10 pr-3 rtl:pl-3 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-all"
+                      className={inputWithIconClass}
                     />
                   </div>
                 </div>
@@ -743,7 +757,7 @@ export const AuthModal: React.FC = () => {
                     {isArabic ? 'رقم الهاتف (العراق)' : 'Phone Number (Iraq)'}
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className={leftIconPositionClass}>
                       <Phone className="w-4 h-4" />
                     </div>
                     <input
@@ -751,7 +765,7 @@ export const AuthModal: React.FC = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+964 770 123 4567"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2 pl-10 pr-3 rtl:pl-3 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-all"
+                      className={inputWithIconClass}
                     />
                   </div>
                 </div>
@@ -761,13 +775,13 @@ export const AuthModal: React.FC = () => {
                     {isArabic ? 'المدينة / المحافظة' : 'City / Governorate'}
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className={leftIconPositionClass}>
                       <MapPin className="w-4 h-4" />
                     </div>
                     <select
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2 pl-10 pr-3 rtl:pl-3 rtl:pr-10 text-xs text-white focus:outline-none focus:border-blue-500 transition-all cursor-pointer"
+                      className={inputWithIconClass}
                     >
                       {iraqiCities.map((c) => (
                         <option key={c} value={c} className="bg-slate-900 text-white">
@@ -838,7 +852,7 @@ export const AuthModal: React.FC = () => {
                     {isArabic ? 'كلمة المرور' : 'Password'} *
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className={leftIconPositionClass}>
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -847,12 +861,12 @@ export const AuthModal: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="At least 6 chars"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2 pl-10 pr-9 rtl:pl-9 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-all"
+                      className={inputWithIconAndToggleClass}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 pr-3 rtl:pr-0 rtl:pl-3 flex items-center text-slate-400 hover:text-white cursor-pointer"
+                      className={rightTogglePositionClass}
                     >
                       {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -864,7 +878,7 @@ export const AuthModal: React.FC = () => {
                     {isArabic ? 'تأكيد كلمة المرور' : 'Confirm Password'} *
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                    <div className={leftIconPositionClass}>
                       <Lock className="w-4 h-4" />
                     </div>
                     <input
@@ -873,12 +887,12 @@ export const AuthModal: React.FC = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm password"
-                      className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2 pl-10 pr-9 rtl:pl-9 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-blue-500 transition-all"
+                      className={inputWithIconAndToggleClass}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute inset-y-0 right-0 rtl:right-auto rtl:left-0 pr-3 rtl:pr-0 rtl:pl-3 flex items-center text-slate-400 hover:text-white cursor-pointer"
+                      className={rightTogglePositionClass}
                     >
                       {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                     </button>
@@ -994,7 +1008,7 @@ export const AuthModal: React.FC = () => {
                       {isArabic ? 'رقم الهاتف العراقي (+964)' : 'Iraqi Phone Number (+964)'}
                     </label>
                     <div className="relative">
-                      <div className="absolute inset-y-0 left-0 rtl:left-auto rtl:right-0 pl-3.5 rtl:pl-0 rtl:pr-3.5 flex items-center pointer-events-none text-slate-400">
+                      <div className={leftIconPositionClass}>
                         <Phone className="w-4 h-4" />
                       </div>
                       <input
@@ -1003,7 +1017,7 @@ export const AuthModal: React.FC = () => {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+964 770 123 4567"
-                        className="w-full bg-slate-950/60 border border-white/10 rounded-2xl py-2.5 pl-10 pr-4 rtl:pl-4 rtl:pr-10 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-emerald-500 transition-all"
+                        className={inputWithIconClass}
                       />
                     </div>
                   </div>
