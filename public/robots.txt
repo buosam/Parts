@@ -1,4 +1,8 @@
-# Google & Search Engine Crawler Directives for IQAutoMarket
+# =============================================================
+# IQAutoMarket Crawler & AI Search Directives (GEO Optimization)
+# =============================================================
+
+# Standard Search Engines (Google, Bing, Yandex, Yahoo)
 User-agent: *
 Allow: /
 Allow: /marketplace
@@ -7,9 +11,41 @@ Allow: /dealers
 Allow: /subscriptions
 Allow: /brand/
 Allow: /category/
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /api/
 Disallow: /admin
 Disallow: /api/internal/
 
-# Sitemap Location
+# Generative AI & LLM Search Crawlers (OpenAI ChatGPT, Google Gemini, Anthropic Claude, Perplexity AI)
+User-agent: GPTBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: ChatGPT-User
+Allow: /
+Allow: /llms.txt
+
+User-agent: Google-Extended
+Allow: /
+Allow: /llms.txt
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /llms.txt
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /llms.txt
+
+User-agent: Cohere-ai
+Allow: /
+Allow: /llms.txt
+
+# Sitemaps & Semantic AI Knowledge Documents
 Sitemap: https://iqautomarket.com/sitemap.xml
+

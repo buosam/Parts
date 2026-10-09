@@ -1,0 +1,31 @@
+# IQAutoMarket (سوق العراق الموحد لقطع الغيار)
+> Iraq's Premier Automotive Parts Marketplace & B2B AI Supply Network
+
+## Overview
+IQAutoMarket (iqautomarket.com) is the unified digital marketplace and B2B procurement network for auto parts in Iraq. It connects retail car owners, certified repair workshops, and authorized parts distributors across all 18 Iraqi governorates (Baghdad, Erbil, Basra, Najaf, Karbala, Sulaymaniyah, Nineveh, etc.).
+
+## Core Capabilities
+- **Direct Marketplace**: Genuine OEM and aftermarket parts catalog for Toyota, Hyundai, Kia, Nissan, Lexus, Chevrolet, BMW, Mercedes-Benz, and European/American vehicles.
+- **Partline AI**: Intelligent OEM part number recognition, VIN chassis decoder, and cross-reference compatibility engine.
+- **Sanawia OCR**: Instant optical recognition of Iraqi vehicle registration cards (سنوية السيارة) to automatically extract VIN, chassis, make, and engine type.
+- **B2B Workshop Portal**: Trade credit, wholesale bulk procurement, and repair order management for automotive garages and fleet operators.
+- **Dealer & Supplier Hub**: Inventory syndication, automated quoting, bid dispatching, and governorate delivery logistics.
+- **Comprehensive Delivery**: Upfront digital checkout and insured express delivery across all Iraqi governorates with live tracking.
+
+## Key Sections & URLs
+- Main Marketplace: https://iqautomarket.com/
+- Search & Catalog: https://iqautomarket.com/marketplace
+- Workshop Portal: https://iqautomarket.com/workshops
+- Dealer Network: https://iqautomarket.com/dealers
+- Prime Subscriptions: https://iqautomarket.com/subscriptions
+
+## Supported Car Brands
+Toyota, Lexus, Nissan, Hyundai, Kia, Chevrolet, GMC, Ford, BMW, Mercedes-Benz, Audi, Volkswagen, Dodge, Jeep, Mitsubishi, Land Rover, MG, Chery, Geely, Changan.
+
+## Supported Part Categories
+Brake Pads & Rotors, Engine Components, Suspension & Steering, Transmissions & Clutches, Electrical & Alternators, Body Panels & Bumpers, Filters & Synthetic Oils, Cooling & Radiators, Air Conditioning & Compressors.
+
+## Contact & Geographic Identity
+- Location: Al-Sinak Auto Parts District, Baghdad, Iraq (Coordinates: 33.3152, 44.3661)
+- Area Served: All 18 Iraqi Governorates
+- Official Website: https://iqautomarket.com
