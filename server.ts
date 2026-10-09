@@ -987,7 +987,10 @@ app.patch('/api/users/:userId', requireAuth, (req: AuthenticatedRequest, res) =>
 });
 
 async function startServer() {
-  await initDatabase();
+  // Initialize database in background without blocking server startup
+  initDatabase().catch((err) => {
+    console.warn('⚠️ Background database initialization warning:', err?.message || err);
+  });
 
   const possibleDistPaths = [
     path.join(process.cwd(), 'dist'),
@@ -1016,7 +1019,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 IQAutoMarket Server running on http://0.0.0.0:${PORT}`);
+    console.log(`🚀 IQAutoMarket Server running on http://0.0.0.0:${PORT} (Node ENV: ${process.env.NODE_ENV || 'development'})`);
   });
 }
 
