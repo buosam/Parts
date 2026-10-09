@@ -25,12 +25,16 @@ import {
   Zap,
   Building,
   KeyRound,
+  Crown,
+  Package,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 import { UserRole } from '../types';
 import { Logo } from './Logo';
 
-type AuthViewMode = 'signin' | 'signup' | 'whatsapp_otp' | 'forgot_password';
+type AuthViewMode = 'signin' | 'signup' | 'whatsapp_otp' | 'forgot_password' | 'profile';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -38,6 +42,10 @@ export const AuthModal: React.FC = () => {
     setActiveModal,
     authModalTab,
     authTargetRole,
+    currentUser,
+    logout,
+    activeSubscription,
+    setRole,
     login,
     signup,
     loginWithOtp,
@@ -49,8 +57,10 @@ export const AuthModal: React.FC = () => {
 
   const isArabic = language === 'ar';
 
-  const [mode, setMode] = useState<AuthViewMode>(authModalTab || 'signin');
-  const [selectedRole, setSelectedRole] = useState<UserRole>(authTargetRole || 'customer');
+  const [mode, setMode] = useState<AuthViewMode>(
+    currentUser && (!authModalTab || authModalTab === 'profile') ? 'profile' : (authModalTab || 'signin')
+  );
+  const [selectedRole, setSelectedRole] = useState<UserRole>(authTargetRole || currentUser?.role || 'customer');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -83,8 +93,12 @@ export const AuthModal: React.FC = () => {
   // Sync on modal open
   useEffect(() => {
     if (activeModal === 'auth') {
-      setMode(authModalTab || 'signin');
-      setSelectedRole(authTargetRole || 'customer');
+      if (authModalTab === 'profile' || (currentUser && !authModalTab)) {
+        setMode('profile');
+      } else {
+        setMode(authModalTab || 'signin');
+      }
+      setSelectedRole(authTargetRole || currentUser?.role || 'customer');
       setSuccessMessage(null);
       setErrorMessage(null);
       setOtpSandboxCode(null);
@@ -93,7 +107,7 @@ export const AuthModal: React.FC = () => {
       setEmail('');
       setPassword('');
     }
-  }, [activeModal, authModalTab, authTargetRole]);
+  }, [activeModal, authModalTab, authTargetRole, currentUser]);
 
   // Resend Timer countdown
   useEffect(() => {
@@ -290,16 +304,20 @@ export const AuthModal: React.FC = () => {
             <Logo variant="light" size="sm" showBadge={false} showSubtitle={false} isArabic={isArabic} />
             <div className="border-s border-zinc-700/60 ps-3">
               <h3 className="font-bold text-sm text-white">
-                {mode === 'signin'
-                  ? (isArabic ? 'تسجيل الدخول' : 'Welcome Back')
-                  : mode === 'signup'
-                    ? (isArabic ? 'إنشاء حساب جديد' : 'Create an Account')
-                    : mode === 'whatsapp_otp'
-                      ? (isArabic ? 'التحقق عبر واتساب' : 'WhatsApp OTP Login')
-                      : (isArabic ? 'استعادة الحساب' : 'Account Recovery')}
+                {mode === 'profile'
+                  ? (isArabic ? 'الملف الشخصي والحساب' : 'My Account & Profile')
+                  : mode === 'signin'
+                    ? (isArabic ? 'تسجيل الدخول' : 'Welcome Back')
+                    : mode === 'signup'
+                      ? (isArabic ? 'إنشاء حساب جديد' : 'Create an Account')
+                      : mode === 'whatsapp_otp'
+                        ? (isArabic ? 'التحقق عبر واتساب' : 'WhatsApp OTP Login')
+                        : (isArabic ? 'استعادة الحساب' : 'Account Recovery')}
               </h3>
               <p className="text-[11px] text-zinc-400">
-                {isArabic ? 'سوق العراق الموحد لقطع الغيار المعتمدة' : 'Iraq’s Unified Auto Parts Network'}
+                {mode === 'profile' && currentUser
+                  ? (currentUser.email)
+                  : (isArabic ? 'سوق العراق الموحد لقطع الغيار المعتمدة' : 'Iraq’s Unified Auto Parts Network')}
               </p>
             </div>
           </div>
@@ -312,9 +330,26 @@ export const AuthModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Tab Switcher: Sign In vs Create Account */}
-        {(mode === 'signin' || mode === 'signup') && (
+        {/* Tab Switcher */}
+        {currentUser ? (
           <div className="grid grid-cols-2 p-1.5 bg-zinc-900/60 border-b border-zinc-800 text-xs font-bold">
+            <button
+              type="button"
+              onClick={() => {
+                setMode('profile');
+                setErrorMessage(null);
+                setSuccessMessage(null);
+              }}
+              className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                mode === 'profile'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>{isArabic ? 'الملف الشخصي' : 'My Profile'}</span>
+            </button>
+
             <button
               type="button"
               onClick={() => {
@@ -323,32 +358,53 @@ export const AuthModal: React.FC = () => {
                 setSuccessMessage(null);
               }}
               className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                mode === 'signin'
+                mode !== 'profile'
                   ? 'bg-zinc-800 text-white shadow-sm'
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
               <KeyRound className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'تسجيل الدخول' : 'Sign In'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMode('signup');
-                setErrorMessage(null);
-                setSuccessMessage(null);
-              }}
-              className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                mode === 'signup'
-                  ? 'bg-zinc-800 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'حساب جديد' : 'Create Account'}</span>
+              <span>{isArabic ? 'تبديل الحساب' : 'Switch Account'}</span>
             </button>
           </div>
+        ) : (
+          (mode === 'signin' || mode === 'signup') && (
+            <div className="grid grid-cols-2 p-1.5 bg-zinc-900/60 border-b border-zinc-800 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signin');
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  mode === 'signin'
+                    ? 'bg-zinc-800 text-white shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>{isArabic ? 'تسجيل الدخول' : 'Sign In'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('signup');
+                  setErrorMessage(null);
+                  setSuccessMessage(null);
+                }}
+                className={`py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  mode === 'signup'
+                    ? 'bg-zinc-800 text-white shadow-sm'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>{isArabic ? 'حساب جديد' : 'Create Account'}</span>
+              </button>
+            </div>
+          )
         )}
 
         {/* Body Container */}
@@ -365,6 +421,141 @@ export const AuthModal: React.FC = () => {
             <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-xs flex items-center gap-2 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* VIEW 0: LOGGED IN PROFILE MANAGEMENT */}
+          {mode === 'profile' && currentUser && (
+            <div className="space-y-4">
+              {/* User Identity Card */}
+              <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex items-start gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shrink-0 shadow-md">
+                  {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="font-extrabold text-sm text-white truncate">{currentUser.name}</h4>
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
+                      {currentUser.role === 'customer'
+                        ? (isArabic ? 'مشتري' : 'Buyer')
+                        : currentUser.role === 'workshop'
+                        ? (isArabic ? 'ورشة صيانة' : 'Workshop')
+                        : currentUser.role === 'supplier'
+                        ? (isArabic ? 'تاجر قطع' : 'Dealer')
+                        : (isArabic ? 'إدارة' : 'Admin')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-400 truncate mt-0.5">{currentUser.email}</div>
+                  {currentUser.phone && (
+                    <div className="text-[11px] text-zinc-500 font-mono mt-0.5">{currentUser.phone}</div>
+                  )}
+                  {currentUser.companyName && (
+                    <div className="text-[11px] text-zinc-400 mt-1 flex items-center gap-1">
+                      <Building className="w-3 h-3 text-zinc-500" />
+                      <span>{currentUser.companyName}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Prime & Membership Plan Card */}
+              <div className="p-4 rounded-2xl bg-gradient-to-br from-amber-950/40 via-zinc-900 to-zinc-900 border border-amber-500/30">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-400" />
+                    <span className="font-bold text-xs text-amber-300">
+                      {isArabic ? 'خطة العضوية الحالية' : 'Membership Plan'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-extrabold bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-400/30">
+                    {activeSubscription?.tierName || (isArabic ? 'العضوية الأساسية' : 'Basic Tier')}
+                  </span>
+                </div>
+                <p className="text-[11px] text-zinc-400 mb-3">
+                  {isArabic
+                    ? 'استمتع بخصومات الشحن السريع وأسعار الجملة وأولوية كونسول Partline AI.'
+                    : 'Access instant AI matching, verified suppliers, and discounted governorate express shipping.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveModal('subscription')}
+                  className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <Crown className="w-3.5 h-3.5" />
+                  <span>{isArabic ? 'ترقية الاشتراك وإدارة الباقات' : 'Upgrade & Manage Subscription'}</span>
+                </button>
+              </div>
+
+              {/* Quick Portals Switcher */}
+              <div>
+                <label className="text-xs text-zinc-400 font-bold block mb-2">
+                  {isArabic ? 'الانتقال إلى البوابة المخصصة:' : 'Switch Active Portal:'}
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRole('customer');
+                      setActiveModal(null);
+                    }}
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-terra text-start transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Car className="w-4 h-4 text-terra" />
+                    <div className="text-xs font-bold text-white">{isArabic ? 'سوق القطع' : 'Marketplace'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRole('workshop');
+                      setActiveModal(null);
+                    }}
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-indigo-500 text-start transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Wrench className="w-4 h-4 text-indigo-400" />
+                    <div className="text-xs font-bold text-white">{isArabic ? 'بوابة الورش' : 'Workshop'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRole('supplier');
+                      setActiveModal(null);
+                    }}
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-emerald-500 text-start transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <Store className="w-4 h-4 text-emerald-400" />
+                    <div className="text-xs font-bold text-white">{isArabic ? 'بوابة التجار' : 'Dealer Portal'}</div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRole('admin');
+                      setActiveModal(null);
+                    }}
+                    className="p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-amber-500 text-start transition-all cursor-pointer flex items-center gap-2"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <div className="text-xs font-bold text-white">{isArabic ? 'لوحة الإدارة' : 'Admin Console'}</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Action Buttons: Sign Out */}
+              <div className="pt-2 border-t border-zinc-800 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    logout();
+                    setActiveModal(null);
+                  }}
+                  className="w-full py-2.5 px-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/30 rounded-xl font-bold text-xs transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{isArabic ? 'تسجيل الخروج من الحساب' : 'Sign Out of Account'}</span>
+                </button>
+              </div>
             </div>
           )}
 

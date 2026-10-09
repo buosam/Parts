@@ -104,9 +104,9 @@ interface MarketplaceContextType {
   createRepairOrder: (ro: Omit<RepairOrder, 'id' | 'orderNumber' | 'status' | 'date'>) => RepairOrder;
   // Authentication & Profiles
   currentUser: UserProfile | null;
-  authModalTab: 'signin' | 'signup';
+  authModalTab: 'signin' | 'signup' | 'profile';
   authTargetRole: UserRole;
-  openAuthModal: (role?: UserRole, tab?: 'signin' | 'signup') => void;
+  openAuthModal: (role?: UserRole, tab?: 'signin' | 'signup' | 'profile') => void;
   login: (email: string, password: string, role?: UserRole) => Promise<{ success: boolean; message?: string }>;
   signup: (data: { name: string; email: string; phone: string; password: string; role: UserRole; companyName?: string; city?: string; address?: string; businessType?: string }) => Promise<{ success: boolean; message?: string }>;
   loginWithOtp: (phone: string, code: string, role?: UserRole) => Promise<{ success: boolean; message?: string }>;
@@ -413,10 +413,10 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   });
 
-  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin');
+  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | 'profile'>('signin');
   const [authTargetRole, setAuthTargetRole] = useState<UserRole>('customer');
 
-  const openAuthModal = (targetRole?: UserRole, tab: 'signin' | 'signup' = 'signin') => {
+  const openAuthModal = (targetRole?: UserRole, tab: 'signin' | 'signup' | 'profile' = 'signin') => {
     if (targetRole) setAuthTargetRole(targetRole);
     setAuthModalTab(tab);
     setActiveModal('auth');

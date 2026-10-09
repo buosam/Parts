@@ -73,16 +73,10 @@ export default function SiteHeader({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Clean profile click
+  const handleProfileClick = () => {
+    openAuthModal(currentUser?.role || 'customer', 'profile');
+  };
 
   const handleNavClick = (term: string) => {
     if (onSelectBrandCategory) {
@@ -183,15 +177,16 @@ export default function SiteHeader({
               {lang === "en" ? "العربية" : "EN"}
             </button>
 
-            {/* SEPARATED AUTHENTICATION AREA */}
+            {/* SEPARATED AUTHENTICATION AREA - NO FLOATING DROPDOWN OVERLAYS */}
             {currentUser ? (
-              /* User is Logged In: Show Clean Profile Pill & Dropdown */
-              <div className="relative" ref={userMenuRef}>
+              /* User is Logged In: Direct Profile Button + Direct Sign Out */
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-start transition-all cursor-pointer"
+                  onClick={handleProfileClick}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-start transition-all cursor-pointer group"
+                  title={isArabic ? "إدارة الحساب والملف الشخصي" : "Manage Account & Profile"}
                 >
-                  <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[11px] shrink-0 group-hover:scale-105 transition-transform">
                     {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : "U"}
                   </div>
                   <div className="hidden sm:block text-[11px] leading-tight max-w-[120px]">
@@ -202,74 +197,15 @@ export default function SiteHeader({
                        currentUser.role === 'supplier' ? (isArabic ? 'تاجر قطع' : 'Dealer') : 'Admin'}
                     </div>
                   </div>
-                  <ChevronDown className="size-3 text-gray-400" />
                 </button>
 
-                {/* Clean, User-Only Account Dropdown */}
-                {isUserMenuOpen && (
-                  <div className="absolute end-0 mt-2 w-60 rounded-2xl border border-zinc-800 bg-zinc-950 p-2 shadow-2xl text-white z-50 animate-in fade-in zoom-in-95 duration-100">
-                    <div className="p-3 border-b border-zinc-800 bg-zinc-900/40 rounded-xl mb-1">
-                      <div className="font-bold text-xs text-white truncate">{currentUser.name}</div>
-                      <div className="text-[11px] text-zinc-400 truncate">{currentUser.email}</div>
-                      <span className="inline-block mt-1.5 text-[9px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {currentUser.role}
-                      </span>
-                    </div>
-
-                    <div className="space-y-0.5 text-xs">
-                      <button
-                        onClick={() => {
-                          setActiveModal('subscription');
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-amber-300 hover:bg-zinc-900 transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Crown className="size-3.5 text-amber-400" />
-                          <span>{isArabic ? "عضوية Prime والاشتراك" : "Prime Membership"}</span>
-                        </div>
-                        <span className="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded font-bold">
-                          {activeSubscription?.tierName || "Basic"}
-                        </span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          onOpenCart?.();
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
-                      >
-                        <Package className="size-3.5 text-indigo-400" />
-                        <span>{isArabic ? "طلباتي ومشترياتي" : "My Orders"}</span>
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          openAuthModal(currentUser.role, 'signin');
-                          setIsUserMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-zinc-300 hover:text-white hover:bg-zinc-900 transition-colors cursor-pointer"
-                      >
-                        <Settings className="size-3.5 text-slate-400" />
-                        <span>{isArabic ? "إعدادات الحساب" : "Account Settings"}</span>
-                      </button>
-
-                      <div className="pt-1 border-t border-zinc-800">
-                        <button
-                          onClick={() => {
-                            logout();
-                            setIsUserMenuOpen(false);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer font-semibold"
-                        >
-                          <LogOut className="size-3.5" />
-                          <span>{isArabic ? "تسجيل الخروج" : "Sign Out"}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={() => logout()}
+                  className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-colors cursor-pointer"
+                  title={isArabic ? "تسجيل الخروج" : "Sign Out"}
+                >
+                  <LogOut className="size-3.5" />
+                </button>
               </div>
             ) : (
               /* User is NOT Logged In: Clean Sign In & Register Buttons */
