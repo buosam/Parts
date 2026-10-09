@@ -52,6 +52,13 @@ import {
   SubscriptionPlan,
   SUBSCRIPTION_PLANS,
 } from '../data/subscriptionPlans';
+import {
+  Coupon,
+  CityShippingRate,
+  ShippingSpeed,
+  DEFAULT_COUPONS,
+  DEFAULT_CITY_SHIPPING_RATES,
+} from '../data/ecommerceConfig';
 
 export interface CartItem {
   masterPart: MasterPart;
@@ -116,6 +123,31 @@ interface MarketplaceContextType {
   subscribeToPlan: (planId: string, billingCycle?: 'monthly' | 'yearly', paymentMethod?: string) => Promise<{ success: boolean; message?: string }>;
   cancelSubscription: () => Promise<{ success: boolean; message?: string }>;
   calculateCartPerks: (subtotalUSD: number, baseShippingUSD?: number) => { discountPercent: number; discountAmountUSD: number; freeShippingApplied: boolean; finalShippingUSD: number; totalUSD: number };
+  // Ecommerce: Coupons & City Shipping Rates
+  coupons: Coupon[];
+  shippingRates: CityShippingRate[];
+  appliedCoupon: Coupon | null;
+  applyCoupon: (code: string, subtotalUSD: number, city?: string) => Promise<{ success: boolean; discountUSD?: number; message?: string }>;
+  removeCoupon: () => void;
+  createCoupon: (couponData: Partial<Coupon>) => Promise<{ success: boolean; coupon?: Coupon; message?: string }>;
+  updateCoupon: (id: string, updates: Partial<Coupon>) => Promise<{ success: boolean; coupon?: Coupon; message?: string }>;
+  deleteCoupon: (id: string) => Promise<{ success: boolean; message?: string }>;
+  updateShippingRate: (id: string, updates: Partial<CityShippingRate>) => Promise<{ success: boolean; rate?: CityShippingRate; message?: string }>;
+  calculateCheckoutPricing: (subtotalUSD: number, city?: string, speed?: ShippingSpeed) => {
+    subtotalUSD: number;
+    membershipDiscountUSD: number;
+    membershipDiscountPercent: number;
+    couponDiscountUSD: number;
+    appliedCoupon: Coupon | null;
+    selectedCityRate: CityShippingRate | null;
+    shippingSpeed: ShippingSpeed;
+    baseShippingUSD: number;
+    freeShippingApplied: boolean;
+    finalShippingUSD: number;
+    totalUSD: number;
+    totalIQD: number;
+    estimatedDelivery: string;
+  };
   // Modals & Navigation triggers
   activeModal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | 'subscription' | null;
   setActiveModal: (modal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | 'subscription' | null) => void;
@@ -840,6 +872,273 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
       freeShippingApplied,
       finalShippingUSD,
       totalUSD,
+    };
+  };
+
+  // Ecommerce: Coupons & City Shipping Rates State
+  const [coupons, setCoupons] = useState<Coupon[]>(() => {
+    try {
+      const saved = localStorage.getItem('iqm_coupons');
+      return saved ? JSON.parse(saved) : DEFAULT_COUPONS;
+    } catch {
+      return DEFAULT_COUPONS;
+    }
+  });
+
+  const [shippingRates, setShippingRates] = useState<CityShippingRate[]>(() => {
+    try {
+      const saved = localStorage.getItem('iqm_shipping_rates');
+      return saved ? JSON.parse(saved) : DEFAULT_CITY_SHIPPING_RATES;
+    } catch {
+      return DEFAULT_CITY_SHIPPING_RATES;
+    }
+  });
+
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+
+  // Sync with backend API
+  useEffect(() => {
+    fetch('/api/ecommerce/coupons')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && data.coupons) {
+          setCoupons(data.coupons);
+          localStorage.setItem('iqm_coupons', JSON.stringify(data.coupons));
+        }
+      })
+      .catch((err) => console.warn('Coupons fetch error:', err));
+
+    fetch('/api/ecommerce/shipping-rates')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && data.rates) {
+          setShippingRates(data.rates);
+          localStorage.setItem('iqm_shipping_rates', JSON.stringify(data.rates));
+        }
+      })
+      .catch((err) => console.warn('Shipping rates fetch error:', err));
+  }, []);
+
+  const applyCoupon = async (
+    code: string,
+    subtotalUSD: number,
+    city?: string
+  ): Promise<{ success: boolean; discountUSD?: number; message?: string }> => {
+    if (!code || !code.trim()) {
+      return { success: false, message: 'Please enter a coupon code' };
+    }
+
+    try {
+      const res = await fetch('/api/ecommerce/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: code.trim(), subtotalUSD, city }),
+      });
+      const data = await res.json();
+      if (res.ok && data.valid && data.coupon) {
+        setAppliedCoupon(data.coupon);
+        return { success: true, discountUSD: data.discountUSD, message: data.message };
+      } else {
+        throw new Error(data.message || 'Invalid coupon');
+      }
+    } catch (e: any) {
+      // Local fallback validation
+      const matched = coupons.find(
+        (c) => c.code.toUpperCase() === code.toUpperCase().trim() && c.isActive
+      );
+      if (matched) {
+        if (matched.minOrderUSD && subtotalUSD < matched.minOrderUSD) {
+          return {
+            success: false,
+            message: `Minimum order amount of $${matched.minOrderUSD} required for coupon ${matched.code}`,
+          };
+        }
+        setAppliedCoupon(matched);
+        let disc =
+          matched.discountType === 'percentage'
+            ? (subtotalUSD * matched.discountValue) / 100
+            : matched.discountValue;
+        if (matched.maxDiscountUSD && disc > matched.maxDiscountUSD) {
+          disc = matched.maxDiscountUSD;
+        }
+        return { success: true, discountUSD: Math.min(disc, subtotalUSD), message: `Coupon ${matched.code} applied!` };
+      }
+      return { success: false, message: e.message || 'Invalid or expired coupon code' };
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
+
+  const createCoupon = async (couponData: Partial<Coupon>): Promise<{ success: boolean; coupon?: Coupon; message?: string }> => {
+    try {
+      const res = await fetch('/api/ecommerce/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(couponData),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.coupon) {
+        const updated = [data.coupon, ...coupons.filter((c) => c.id !== data.coupon.id)];
+        setCoupons(updated);
+        localStorage.setItem('iqm_coupons', JSON.stringify(updated));
+        return { success: true, coupon: data.coupon, message: 'Coupon created successfully' };
+      }
+    } catch {
+      // Fallback
+    }
+
+    const fallbackCoupon: Coupon = {
+      id: `cpn_${Date.now()}`,
+      code: (couponData.code || 'COUPON').toUpperCase(),
+      description: couponData.description || 'Special Discount',
+      descriptionAr: couponData.descriptionAr || 'خصم خاص',
+      discountType: couponData.discountType || 'percentage',
+      discountValue: Number(couponData.discountValue || 10),
+      minOrderUSD: Number(couponData.minOrderUSD || 0),
+      maxDiscountUSD: Number(couponData.maxDiscountUSD || 50),
+      usageLimit: Number(couponData.usageLimit || 500),
+      usedCount: 0,
+      expiresAt: couponData.expiresAt || '2027-12-31',
+      applicableCities: couponData.applicableCities || [],
+      isActive: couponData.isActive !== false,
+    };
+    const updated = [fallbackCoupon, ...coupons];
+    setCoupons(updated);
+    localStorage.setItem('iqm_coupons', JSON.stringify(updated));
+    return { success: true, coupon: fallbackCoupon, message: 'Coupon created successfully' };
+  };
+
+  const updateCoupon = async (id: string, updates: Partial<Coupon>): Promise<{ success: boolean; coupon?: Coupon; message?: string }> => {
+    try {
+      await fetch(`/api/ecommerce/coupons/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+    } catch {
+      // Continue locally
+    }
+
+    const updated = coupons.map((c) => (c.id === id ? { ...c, ...updates } : c));
+    setCoupons(updated);
+    localStorage.setItem('iqm_coupons', JSON.stringify(updated));
+    if (appliedCoupon && appliedCoupon.id === id) {
+      setAppliedCoupon({ ...appliedCoupon, ...updates });
+    }
+    return { success: true, message: 'Coupon updated' };
+  };
+
+  const deleteCoupon = async (id: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      await fetch(`/api/ecommerce/coupons/${id}`, { method: 'DELETE' });
+    } catch {
+      // Continue locally
+    }
+
+    const updated = coupons.filter((c) => c.id !== id);
+    setCoupons(updated);
+    localStorage.setItem('iqm_coupons', JSON.stringify(updated));
+    if (appliedCoupon && appliedCoupon.id === id) {
+      setAppliedCoupon(null);
+    }
+    return { success: true, message: 'Coupon deleted' };
+  };
+
+  const updateShippingRate = async (id: string, updates: Partial<CityShippingRate>): Promise<{ success: boolean; rate?: CityShippingRate; message?: string }> => {
+    try {
+      await fetch(`/api/ecommerce/shipping-rates/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      });
+    } catch {
+      // Continue locally
+    }
+
+    const updated = shippingRates.map((r) => (r.id === id ? { ...r, ...updates } : r));
+    setShippingRates(updated);
+    localStorage.setItem('iqm_shipping_rates', JSON.stringify(updated));
+    return { success: true, message: 'Shipping rate updated' };
+  };
+
+  const calculateCheckoutPricing = (
+    subtotalUSD: number,
+    city: string = 'Baghdad',
+    speed: ShippingSpeed = 'standard'
+  ) => {
+    const rate =
+      shippingRates.find(
+        (r) =>
+          r.city.toLowerCase() === city.toLowerCase() ||
+          r.cityAr === city ||
+          city.toLowerCase().includes(r.city.toLowerCase())
+      ) || shippingRates[0] || DEFAULT_CITY_SHIPPING_RATES[0];
+
+    // Membership perks
+    const perks = activeSubscription?.perks || {};
+    const membershipDiscountPercent = perks.discountPercent || 0;
+    const membershipDiscountUSD = (subtotalUSD * membershipDiscountPercent) / 100;
+
+    // Free shipping threshold check (from Prime or City free shipping threshold)
+    const isPrimeFree = Boolean(perks.freeShipping && (subtotalUSD >= 30 || activeSubscription?.role === 'workshop'));
+    const isThresholdFree = subtotalUSD >= (rate.freeShippingThresholdUSD || 120);
+    const freeShippingApplied = isPrimeFree || isThresholdFree;
+
+    let baseShippingUSD = 0;
+    let finalShippingUSD = 0;
+    let estimatedDelivery = rate.standardDeliveryDays;
+
+    if (speed === 'pickup') {
+      baseShippingUSD = 0;
+      finalShippingUSD = 0;
+      estimatedDelivery = 'Instant (Ready within 1 hour)';
+    } else if (speed === 'express') {
+      baseShippingUSD = rate.expressShippingUSD;
+      estimatedDelivery = rate.expressDeliveryHours;
+      // If free shipping is applied, express shipping receives a heavy 50% discount
+      finalShippingUSD = freeShippingApplied ? Math.round(rate.expressShippingUSD * 0.5) : rate.expressShippingUSD;
+    } else {
+      // Standard courier delivery
+      baseShippingUSD = rate.standardShippingUSD;
+      estimatedDelivery = rate.standardDeliveryDays;
+      finalShippingUSD = freeShippingApplied ? 0 : rate.standardShippingUSD;
+    }
+
+    // Coupon discount calculation
+    let couponDiscountUSD = 0;
+    if (appliedCoupon && appliedCoupon.isActive) {
+      if (!appliedCoupon.minOrderUSD || subtotalUSD >= appliedCoupon.minOrderUSD) {
+        if (appliedCoupon.discountType === 'percentage') {
+          couponDiscountUSD = (subtotalUSD * appliedCoupon.discountValue) / 100;
+        } else {
+          couponDiscountUSD = appliedCoupon.discountValue;
+        }
+        if (appliedCoupon.maxDiscountUSD && couponDiscountUSD > appliedCoupon.maxDiscountUSD) {
+          couponDiscountUSD = appliedCoupon.maxDiscountUSD;
+        }
+      }
+    }
+
+    const totalDiscounts = Math.min(subtotalUSD, membershipDiscountUSD + couponDiscountUSD);
+    const totalUSD = Math.max(0, subtotalUSD - totalDiscounts) + finalShippingUSD;
+    const totalIQD = Math.round(totalUSD * 1500);
+
+    return {
+      subtotalUSD,
+      membershipDiscountUSD: Math.round(membershipDiscountUSD * 100) / 100,
+      membershipDiscountPercent,
+      couponDiscountUSD: Math.round(couponDiscountUSD * 100) / 100,
+      appliedCoupon,
+      selectedCityRate: rate,
+      shippingSpeed: speed,
+      baseShippingUSD,
+      freeShippingApplied,
+      finalShippingUSD,
+      totalUSD: Math.round(totalUSD * 100) / 100,
+      totalIQD,
+      estimatedDelivery,
     };
   };
 
@@ -1944,6 +2243,17 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         subscribeToPlan,
         cancelSubscription,
         calculateCartPerks,
+        // Ecommerce: Coupons & Shipping
+        coupons,
+        shippingRates,
+        appliedCoupon,
+        applyCoupon,
+        removeCoupon,
+        createCoupon,
+        updateCoupon,
+        deleteCoupon,
+        updateShippingRate,
+        calculateCheckoutPricing,
         activeModal,
         setActiveModal,
         selectedSupplierIdForStore,

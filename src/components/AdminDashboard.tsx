@@ -1,7 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- * IQAutoMarket Platform Administration - Multi-Role Hierarchy, Dealer Verification, User Moderation & Audit Logs
+ * IQAutoMarket Platform Administration - Governance, Verification, User Moderation, Coupons & City Shipping Rates
  */
 
 import React, { useState } from 'react';
@@ -33,8 +33,17 @@ import {
   UserCheck,
   UserX,
   Lock,
+  Tag,
+  Truck,
+  Edit3,
+  Trash2,
+  Percent,
+  MapPin,
+  Save,
+  RefreshCw,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
+import { Coupon, CityShippingRate } from '../data/ecommerceConfig';
 
 export const AdminDashboard: React.FC = () => {
   const {
@@ -44,6 +53,12 @@ export const AdminDashboard: React.FC = () => {
     language,
     orders,
     partRequests,
+    coupons,
+    shippingRates,
+    createCoupon,
+    updateCoupon,
+    deleteCoupon,
+    updateShippingRate,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
@@ -53,7 +68,9 @@ export const AdminDashboard: React.FC = () => {
     'super_admin' | 'ops_admin' | 'dealer_admin' | 'support_admin' | 'finance_admin' | 'content_admin'
   >('super_admin');
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'dealers' | 'users' | 'audit' | 'commercial' | 'disputes'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'coupons' | 'shipping' | 'dealers' | 'users' | 'audit' | 'commercial' | 'disputes'
+  >('overview');
 
   // Platform Users state for moderation
   const [mockUsers, setMockUsers] = useState([
@@ -77,6 +94,28 @@ export const AdminDashboard: React.FC = () => {
   const [commissionRate, setCommissionRate] = useState(4.5);
   const [savedCommercialNotice, setSavedCommercialNotice] = useState(false);
 
+  // New Coupon Form state
+  const [isCreatingCoupon, setIsCreatingCoupon] = useState(false);
+  const [newCouponCode, setNewCouponCode] = useState('');
+  const [newCouponDesc, setNewCouponDesc] = useState('');
+  const [newCouponDescAr, setNewCouponDescAr] = useState('');
+  const [newCouponType, setNewCouponType] = useState<'percentage' | 'fixed_usd'>('percentage');
+  const [newCouponValue, setNewCouponValue] = useState(15);
+  const [newCouponMinOrder, setNewCouponMinOrder] = useState(50);
+  const [newCouponMaxDiscount, setNewCouponMaxDiscount] = useState(30);
+  const [newCouponUsageLimit, setNewCouponUsageLimit] = useState(500);
+  const [newCouponExpiresAt, setNewCouponExpiresAt] = useState('2027-12-31');
+
+  // Shipping Rates Filter & Edit state
+  const [shippingCitySearch, setShippingCitySearch] = useState('');
+  const [editingRateId, setEditingRateId] = useState<string | null>(null);
+  const [editStandardUSD, setEditStandardUSD] = useState<number>(5);
+  const [editStandardDays, setEditStandardDays] = useState<string>('1-2 Days');
+  const [editExpressUSD, setEditExpressUSD] = useState<number>(12);
+  const [editExpressHours, setEditExpressHours] = useState<string>('2-4 Hours');
+  const [editThresholdUSD, setEditThresholdUSD] = useState<number>(120);
+  const [shippingSaveSuccess, setShippingSaveSuccess] = useState<string | null>(null);
+
   const totalGMV = orders.reduce((acc, o) => acc + (o.totalUSD || 0), 0) + 128500;
   const pendingVerifications = suppliers.filter((s) => !s.isVerified);
   const openDisputes = disputes.filter((d) => d.status === 'open' || d.status === 'under_investigation');
@@ -86,7 +125,6 @@ export const AdminDashboard: React.FC = () => {
       prev.map((u) => {
         if (u.id === userId) {
           const newStatus = u.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
-          // Record in audit log
           setAuditLogs((a) => [
             {
               id: `aud_${Date.now()}`,
@@ -123,6 +161,86 @@ export const AdminDashboard: React.FC = () => {
     ]);
   };
 
+  const handleCreateCouponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCouponCode.trim()) return;
+
+    await createCoupon({
+      code: newCouponCode.trim().toUpperCase(),
+      description: newCouponDesc || `${newCouponValue}${newCouponType === 'percentage' ? '%' : '$'} discount code`,
+      descriptionAr: newCouponDescAr || `خصم بقيمة ${newCouponValue}${newCouponType === 'percentage' ? '%' : ' دولار'}`,
+      discountType: newCouponType,
+      discountValue: Number(newCouponValue),
+      minOrderUSD: Number(newCouponMinOrder),
+      maxDiscountUSD: Number(newCouponMaxDiscount),
+      usageLimit: Number(newCouponUsageLimit),
+      expiresAt: newCouponExpiresAt,
+      isActive: true,
+    });
+
+    setAuditLogs((a) => [
+      {
+        id: `aud_${Date.now()}`,
+        actor: 'admin@iqautomarket.iq',
+        role: adminSubRole,
+        action: 'COUPON_CREATED',
+        resource: newCouponCode.toUpperCase(),
+        ip: '127.0.0.1',
+        time: 'Just now',
+        status: 'SUCCESS',
+      },
+      ...a,
+    ]);
+
+    setIsCreatingCoupon(false);
+    setNewCouponCode('');
+    setNewCouponDesc('');
+    setNewCouponDescAr('');
+  };
+
+  const handleStartEditRate = (rate: CityShippingRate) => {
+    setEditingRateId(rate.id);
+    setEditStandardUSD(rate.standardShippingUSD);
+    setEditStandardDays(rate.standardDeliveryDays);
+    setEditExpressUSD(rate.expressShippingUSD);
+    setEditExpressHours(rate.expressDeliveryHours);
+    setEditThresholdUSD(rate.freeShippingThresholdUSD);
+  };
+
+  const handleSaveRate = async (rateId: string) => {
+    await updateShippingRate(rateId, {
+      standardShippingUSD: Number(editStandardUSD),
+      standardDeliveryDays: editStandardDays,
+      expressShippingUSD: Number(editExpressUSD),
+      expressDeliveryHours: editExpressHours,
+      freeShippingThresholdUSD: Number(editThresholdUSD),
+    });
+
+    setAuditLogs((a) => [
+      {
+        id: `aud_${Date.now()}`,
+        actor: 'admin@iqautomarket.iq',
+        role: adminSubRole,
+        action: 'SHIPPING_RATE_UPDATE',
+        resource: rateId,
+        ip: '127.0.0.1',
+        time: 'Just now',
+        status: 'SUCCESS',
+      },
+      ...a,
+    ]);
+
+    setEditingRateId(null);
+    setShippingSaveSuccess(isArabic ? 'تم حفظ وتحديث تسعيرة الشحن بنجاح' : 'Shipping matrix updated successfully');
+    setTimeout(() => setShippingSaveSuccess(null), 3500);
+  };
+
+  const filteredShippingRates = shippingRates.filter(
+    (r) =>
+      r.city.toLowerCase().includes(shippingCitySearch.toLowerCase()) ||
+      r.cityAr.includes(shippingCitySearch)
+  );
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:py-8" dir={isArabic ? 'rtl' : 'ltr'}>
       {/* Top Banner with Admin Role Hierarchy (Section 15) */}
@@ -135,7 +253,7 @@ export const AdminDashboard: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-black text-white">
-                  {isArabic ? 'مركز الإدارة والأمان للمنصة' : 'Platform Administration & Security Center'}
+                  {isArabic ? 'مركز الإدارة والتجارة الإلكترونية للمنصة' : 'Platform Administration & Ecommerce HQ'}
                 </h1>
                 <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
                   /admin/*
@@ -143,8 +261,8 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <p className="text-xs text-slate-400 mt-1">
                 {isArabic
-                  ? 'التحكم بالشبكة، توثيق الوكلاء، إدارة المستخدمين، وسجل التدقيق الأمني غير القابل للتعديل'
-                  : 'Zero-trust governance, dealer verification, user moderation & immutable security audit trail'}
+                  ? 'إدارة الكوبونات، أسعار الشحن للمحافظات، توثيق الوكلاء، وسجل التدقيق الأمني'
+                  : 'Ecommerce coupon campaigns, city logistics matrix, dealer verification & immutable audit trail'}
               </p>
             </div>
           </div>
@@ -182,6 +300,8 @@ export const AdminDashboard: React.FC = () => {
       <div className="flex border-b border-white/10 mb-6 gap-2 text-xs font-bold overflow-x-auto">
         {[
           { id: 'overview', label: isArabic ? 'نظرة عامة' : 'Overview', icon: TrendingUp },
+          { id: 'coupons', label: isArabic ? 'الكوبونات والخصومات' : 'Coupons & Discounts', count: coupons.filter(c => c.isActive).length, icon: Tag },
+          { id: 'shipping', label: isArabic ? 'أسعار شحن المحافظات' : 'City Shipping & Rates', count: shippingRates.length, icon: Truck },
           { id: 'dealers', label: isArabic ? 'توثيق الوكلاء' : 'Dealer Verification', count: pendingVerifications.length, icon: Store },
           { id: 'users', label: isArabic ? 'إدارة المستخدمين' : 'Users & Moderation', count: mockUsers.length, icon: Users },
           { id: 'audit', label: isArabic ? 'سجل التدقيق الأمني' : 'Audit Logs', count: auditLogs.length, icon: ShieldAlert },
@@ -223,21 +343,21 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
-              <span className="text-xs font-bold text-slate-400 block">{isArabic ? 'الطلبات' : 'Orders'}</span>
+              <span className="text-xs font-bold text-slate-400 block">{isArabic ? 'الطلبات المسددة' : 'Paid Orders'}</span>
               <div className="text-2xl font-black text-white mt-1">{orders.length + 84}</div>
-              <span className="text-[11px] font-bold text-indigo-400">99.2% fulfillment</span>
+              <span className="text-[11px] font-bold text-indigo-400">100% Upfront Paid</span>
             </div>
 
             <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
-              <span className="text-xs font-bold text-slate-400 block">{isArabic ? 'الوكلاء' : 'Active Dealers'}</span>
-              <div className="text-2xl font-black text-white mt-1">{suppliers.length}</div>
-              <span className="text-[11px] font-bold text-emerald-400">Baghdad, Erbil, Basra</span>
+              <span className="text-xs font-bold text-slate-400 block">{isArabic ? 'الكوبونات النشطة' : 'Active Coupons'}</span>
+              <div className="text-2xl font-black text-white mt-1">{coupons.filter(c => c.isActive).length}</div>
+              <span className="text-[11px] font-bold text-amber-400">Across 18 Governorates</span>
             </div>
 
             <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
-              <span className="text-xs font-bold text-slate-400 block">{isArabic ? 'طلبات التسعير' : 'RFQs'}</span>
-              <div className="text-2xl font-black text-white mt-1">{partRequests.length + 140}</div>
-              <span className="text-[11px] font-bold text-amber-400">3.4 bids/req avg</span>
+              <span className="text-xs font-bold text-slate-400 block">{isArabic ? 'تغطية الشحن' : 'Shipping Cities'}</span>
+              <div className="text-2xl font-black text-white mt-1">{shippingRates.length}</div>
+              <span className="text-[11px] font-bold text-emerald-400">Standard + Express 2-4h</span>
             </div>
 
             <div className="bg-[#0e1424] rounded-2xl p-5 border border-white/10 shadow-md">
@@ -247,52 +367,475 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Needs Attention Triage Bar */}
-          <div className="bg-[#0e1424] rounded-2xl border border-amber-500/20 p-5 shadow-md">
+          {/* Quick Actions Triage */}
+          <div className="bg-[#0e1424] rounded-2xl border border-indigo-500/20 p-5 shadow-md">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-400" />
-              <span>{isArabic ? 'يتطلب إجراء إداري عاجل' : 'Needs Attention'}</span>
+              <Zap className="w-4 h-4 text-indigo-400" />
+              <span>{isArabic ? 'إدارة المبيعات والتجارة السريعة' : 'Ecommerce Control Hub'}</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div
+                onClick={() => setActiveTab('coupons')}
+                className="p-3.5 bg-black/40 rounded-xl border border-white/5 hover:border-indigo-500 transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-xs font-bold text-white">{coupons.length} {isArabic ? 'كوبونات خصم مسجلة' : 'Promotional Coupons'}</p>
+                  <p className="text-[11px] text-slate-400">{isArabic ? 'إضافة وتعديل قسائم الخصم' : 'Manage discount codes & usage'}</p>
+                </div>
+                <Tag className="w-4 h-4 text-amber-400" />
+              </div>
+
+              <div
+                onClick={() => setActiveTab('shipping')}
+                className="p-3.5 bg-black/40 rounded-xl border border-white/5 hover:border-indigo-500 transition-colors cursor-pointer flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-xs font-bold text-white">{shippingRates.length} {isArabic ? 'محافظات في شبكة الشحن' : 'Governorates Configured'}</p>
+                  <p className="text-[11px] text-slate-400">{isArabic ? 'تعديل أسعار الشحن العادي والسريع' : 'Standard & Express 2-4h rates'}</p>
+                </div>
+                <Truck className="w-4 h-4 text-indigo-400" />
+              </div>
+
               <div
                 onClick={() => setActiveTab('dealers')}
                 className="p-3.5 bg-black/40 rounded-xl border border-white/5 hover:border-indigo-500 transition-colors cursor-pointer flex items-center justify-between"
               >
                 <div>
                   <p className="text-xs font-bold text-white">{pendingVerifications.length || 1} {isArabic ? 'وكلاء بانتظار التوثيق' : 'Dealers awaiting verification'}</p>
-                  <p className="text-[11px] text-slate-400">{isArabic ? 'مراجعة السجل التجاري والموافقة' : 'Review business registration & approve'}</p>
+                  <p className="text-[11px] text-slate-400">{isArabic ? 'مراجعة السجل التجاري' : 'Review commercial licenses'}</p>
                 </div>
-                <button className="text-xs font-bold text-indigo-400">{isArabic ? 'مراجعة' : 'Review'}</button>
-              </div>
-
-              <div
-                onClick={() => setActiveTab('users')}
-                className="p-3.5 bg-black/40 rounded-xl border border-white/5 hover:border-indigo-500 transition-colors cursor-pointer flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-xs font-bold text-white">1 {isArabic ? 'حساب معلق' : 'Suspended Account'}</p>
-                  <p className="text-[11px] text-slate-400">{isArabic ? 'مراجعة حالة الحظر' : 'Review suspended dealer'}</p>
-                </div>
-                <button className="text-xs font-bold text-amber-400">{isArabic ? 'إدارة' : 'Manage'}</button>
-              </div>
-
-              <div
-                onClick={() => setActiveTab('audit')}
-                className="p-3.5 bg-black/40 rounded-xl border border-white/5 hover:border-indigo-500 transition-colors cursor-pointer flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-xs font-bold text-white">{auditLogs.length} {isArabic ? 'أحداث تدقيق أمني' : 'Security Audit Events'}</p>
-                  <p className="text-[11px] text-emerald-400 font-bold">{isArabic ? 'سجل محمي وغير قابل للتعديل' : 'Immutable tamper-proof logs'}</p>
-                </div>
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <Store className="w-4 h-4 text-emerald-400" />
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* TAB 2: DEALER VERIFICATION QUEUE (Section 20) */}
+      {/* TAB 2: COUPONS & DISCOUNTS */}
+      {activeTab === 'coupons' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Tag className="w-5 h-5 text-amber-400" />
+                <span>{isArabic ? 'إدارة الكوبونات وقسائم الخصم' : 'Coupons & Discount Promotions'}</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {isArabic
+                  ? 'إنشاء حملات الخصم، تحديد سقف الاستخدام، وتطبيق الخصم على مستوى المدن'
+                  : 'Create promotional voucher codes, minimum spend rules, and city-targeted discounts'}
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsCreatingCoupon(!isCreatingCoupon)}
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0 shadow-md"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isCreatingCoupon ? (isArabic ? 'إغلاق النموذج' : 'Cancel') : (isArabic ? 'إنشاء كوبون جديد' : 'Create New Coupon')}</span>
+            </button>
+          </div>
+
+          {/* Create New Coupon Form */}
+          {isCreatingCoupon && (
+            <form onSubmit={handleCreateCouponSubmit} className="bg-[#0e1424] rounded-2xl border border-indigo-500/30 p-5 shadow-xl space-y-4 animate-in fade-in duration-200">
+              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                <Plus className="w-4 h-4 text-indigo-400" />
+                <span>{isArabic ? 'بيانات الكوبون الجديد' : 'New Promotion Configuration'}</span>
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'رمز الكوبون (Code):' : 'Coupon Code (Unique):'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newCouponCode}
+                    onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. SUMMER25"
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white font-mono text-xs uppercase"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'نوع الخصم:' : 'Discount Type:'}
+                  </label>
+                  <select
+                    value={newCouponType}
+                    onChange={(e) => setNewCouponType(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs cursor-pointer"
+                  >
+                    <option value="percentage">Percentage Discount (%)</option>
+                    <option value="fixed_usd">Fixed USD Amount ($)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'قيمة الخصم:' : 'Discount Value:'}
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    value={newCouponValue}
+                    onChange={(e) => setNewCouponValue(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white font-black text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'الحد الأدنى للطلب ($):' : 'Min. Order Amount ($):'}
+                  </label>
+                  <input
+                    type="number"
+                    value={newCouponMinOrder}
+                    onChange={(e) => setNewCouponMinOrder(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'الحد الأقصى للخصم ($):' : 'Max Discount Cap ($):'}
+                  </label>
+                  <input
+                    type="number"
+                    value={newCouponMaxDiscount}
+                    onChange={(e) => setNewCouponMaxDiscount(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'العدد المتاح للاستخدام:' : 'Total Usage Limit:'}
+                  </label>
+                  <input
+                    type="number"
+                    value={newCouponUsageLimit}
+                    onChange={(e) => setNewCouponUsageLimit(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'تاريخ الانتهاء:' : 'Expiry Date:'}
+                  </label>
+                  <input
+                    type="date"
+                    value={newCouponExpiresAt}
+                    onChange={(e) => setNewCouponExpiresAt(e.target.value)}
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'الوصف بالإنجليزية:' : 'English Description:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={newCouponDesc}
+                    onChange={(e) => setNewCouponDesc(e.target.value)}
+                    placeholder="e.g. 15% discount on cooling system parts"
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-300 font-bold block mb-1">
+                    {isArabic ? 'الوصف بالعربية:' : 'Arabic Description:'}
+                  </label>
+                  <input
+                    type="text"
+                    value={newCouponDescAr}
+                    onChange={(e) => setNewCouponDescAr(e.target.value)}
+                    placeholder="مثال: خصم 15% على قطع التبريد"
+                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-white text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCreatingCoupon(false)}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  {isArabic ? 'إلغاء' : 'Cancel'}
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition-colors cursor-pointer"
+                >
+                  {isArabic ? 'حفظ ونشر الكوبون ✓' : 'Save & Publish Coupon ✓'}
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* Coupons Table */}
+          <div className="bg-[#0e1424] rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <h4 className="text-xs font-bold uppercase text-white tracking-wider">
+                {isArabic ? 'قائمة الكوبونات النشطة والمنتهية' : 'Active & Scheduled Coupon Campaigns'}
+              </h4>
+              <span className="text-xs text-slate-400 font-mono">{coupons.length} total codes</span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left rtl:text-right">
+                <thead className="bg-black/40 text-[10px] uppercase text-slate-400 border-b border-white/10">
+                  <tr>
+                    <th className="p-3.5">Code</th>
+                    <th className="p-3.5">Discount</th>
+                    <th className="p-3.5">Min. Order</th>
+                    <th className="p-3.5">Max Cap</th>
+                    <th className="p-3.5">Usage / Limit</th>
+                    <th className="p-3.5">Expiry</th>
+                    <th className="p-3.5">Status</th>
+                    <th className="p-3.5 text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 font-sans">
+                  {coupons.map((cpn) => {
+                    const usagePercent = Math.round((cpn.usedCount / (cpn.usageLimit || 1)) * 100);
+                    return (
+                      <tr key={cpn.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-3.5">
+                          <div className="font-mono font-bold text-amber-300 text-sm">{cpn.code}</div>
+                          <div className="text-[11px] text-slate-400">{isArabic ? cpn.descriptionAr : cpn.description}</div>
+                        </td>
+                        <td className="p-3.5 font-bold text-white">
+                          {cpn.discountType === 'percentage' ? `${cpn.discountValue}% OFF` : `$${cpn.discountValue} OFF`}
+                        </td>
+                        <td className="p-3.5 text-slate-300 font-mono">${cpn.minOrderUSD || 0}</td>
+                        <td className="p-3.5 text-slate-300 font-mono">${cpn.maxDiscountUSD || 'No Cap'}</td>
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[11px] text-white">{cpn.usedCount} / {cpn.usageLimit}</span>
+                            <div className="w-16 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-indigo-500 rounded-full"
+                                style={{ width: `${Math.min(100, usagePercent)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-3.5 text-slate-400 font-mono">{cpn.expiresAt || '2027-12-31'}</td>
+                        <td className="p-3.5">
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            cpn.isActive ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {cpn.isActive ? 'ACTIVE' : 'PAUSED'}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-end">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => updateCoupon(cpn.id, { isActive: !cpn.isActive })}
+                              className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                                cpn.isActive ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300' : 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300'
+                              }`}
+                            >
+                              {cpn.isActive ? (isArabic ? 'إيقاف' : 'Pause') : (isArabic ? 'تفعيل' : 'Activate')}
+                            </button>
+                            <button
+                              onClick={() => deleteCoupon(cpn.id)}
+                              className="p-1 text-slate-400 hover:text-red-400 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                              title="Delete coupon"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: CITY SHIPPING RATES & LOGISTICS */}
+      {activeTab === 'shipping' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <Truck className="w-5 h-5 text-indigo-400" />
+                <span>{isArabic ? 'أسعار وسرعات الشحن لجميع المحافظات' : 'City Shipping Matrix & Logistics SLAs'}</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                {isArabic
+                  ? 'ضبط أسعار الشحن العادي والسريع (2-4 ساعات) وحد الشحن المجاني لكل محافظة في العراق'
+                  : 'Configure Standard & Express same-day courier rates, SLA delivery windows, and free shipping thresholds for Iraqi governorates'}
+              </p>
+            </div>
+
+            {/* City Search Bar */}
+            <div className="relative min-w-[240px]">
+              <Search className="w-4 h-4 absolute left-3 rtl:right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={shippingCitySearch}
+                onChange={(e) => setShippingCitySearch(e.target.value)}
+                placeholder={isArabic ? 'بحث عن محافظة...' : 'Filter governorates...'}
+                className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 bg-[#0e1424] border border-white/10 rounded-xl text-white text-xs focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          {shippingSaveSuccess && (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl text-xs flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{shippingSaveSuccess}</span>
+            </div>
+          )}
+
+          {/* City Shipping Rates Table */}
+          <div className="bg-[#0e1424] rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left rtl:text-right">
+                <thead className="bg-black/40 text-[10px] uppercase text-slate-400 border-b border-white/10">
+                  <tr>
+                    <th className="p-3.5">Governorate (City)</th>
+                    <th className="p-3.5">Standard Rate ($)</th>
+                    <th className="p-3.5">Standard SLA</th>
+                    <th className="p-3.5">Express 2-4h Rate ($)</th>
+                    <th className="p-3.5">Express SLA</th>
+                    <th className="p-3.5">Free Shipping Min ($)</th>
+                    <th className="p-3.5 text-end">Edit / Save</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredShippingRates.map((rate) => {
+                    const isEditing = editingRateId === rate.id;
+                    return (
+                      <tr key={rate.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-3.5 font-bold text-white">
+                          <div className="flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
+                            <span>{rate.city}</span>
+                            <span className="text-slate-400 font-normal">({rate.cityAr})</span>
+                          </div>
+                        </td>
+
+                        <td className="p-3.5">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editStandardUSD}
+                              onChange={(e) => setEditStandardUSD(Number(e.target.value))}
+                              className="w-16 px-2 py-1 bg-black/60 border border-indigo-500 rounded-lg text-white font-mono text-xs"
+                            />
+                          ) : (
+                            <span className="font-mono font-bold text-white">${rate.standardShippingUSD}</span>
+                          )}
+                        </td>
+
+                        <td className="p-3.5">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editStandardDays}
+                              onChange={(e) => setEditStandardDays(e.target.value)}
+                              className="w-24 px-2 py-1 bg-black/60 border border-indigo-500 rounded-lg text-white text-xs"
+                            />
+                          ) : (
+                            <span className="text-slate-300">{rate.standardDeliveryDays}</span>
+                          )}
+                        </td>
+
+                        <td className="p-3.5">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editExpressUSD}
+                              onChange={(e) => setEditExpressUSD(Number(e.target.value))}
+                              className="w-16 px-2 py-1 bg-black/60 border border-amber-500 rounded-lg text-amber-300 font-mono text-xs"
+                            />
+                          ) : (
+                            <span className="font-mono font-bold text-amber-300">${rate.expressShippingUSD}</span>
+                          )}
+                        </td>
+
+                        <td className="p-3.5">
+                          {isEditing ? (
+                            <input
+                              type="text"
+                              value={editExpressHours}
+                              onChange={(e) => setEditExpressHours(e.target.value)}
+                              className="w-28 px-2 py-1 bg-black/60 border border-amber-500 rounded-lg text-white text-xs"
+                            />
+                          ) : (
+                            <span className="text-amber-400/90 font-medium">{rate.expressDeliveryHours}</span>
+                          )}
+                        </td>
+
+                        <td className="p-3.5">
+                          {isEditing ? (
+                            <input
+                              type="number"
+                              value={editThresholdUSD}
+                              onChange={(e) => setEditThresholdUSD(Number(e.target.value))}
+                              className="w-20 px-2 py-1 bg-black/60 border border-emerald-500 rounded-lg text-emerald-300 font-mono text-xs"
+                            />
+                          ) : (
+                            <span className="font-mono text-emerald-400 font-bold">${rate.freeShippingThresholdUSD}</span>
+                          )}
+                        </td>
+
+                        <td className="p-3.5 text-end">
+                          {isEditing ? (
+                            <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => handleSaveRate(rate.id)}
+                                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer"
+                              >
+                                <Save className="w-3 h-3" />
+                                <span>{isArabic ? 'حفظ' : 'Save'}</span>
+                              </button>
+                              <button
+                                onClick={() => setEditingRateId(null)}
+                                className="px-2 py-1 bg-white/5 hover:bg-white/10 text-slate-400 rounded-lg text-xs cursor-pointer"
+                              >
+                                {isArabic ? 'إلغاء' : 'Cancel'}
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleStartEditRate(rate)}
+                              className="px-3 py-1 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white font-semibold rounded-lg text-xs flex items-center gap-1 ml-auto rtl:mr-auto cursor-pointer"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                              <span>{isArabic ? 'تعديل' : 'Edit'}</span>
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: DEALER VERIFICATION QUEUE (Section 20) */}
       {activeTab === 'dealers' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -355,7 +898,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: USERS & MODERATION (Section 47) */}
+      {/* TAB 5: USERS & MODERATION (Section 47) */}
       {activeTab === 'users' && (
         <div className="space-y-4">
           <div className="bg-[#0e1424] rounded-2xl border border-white/10 overflow-hidden shadow-xl">
@@ -398,7 +941,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: IMMUTABLE AUDIT LOGS (Section 43) */}
+      {/* TAB 6: IMMUTABLE AUDIT LOGS (Section 43) */}
       {activeTab === 'audit' && (
         <div className="space-y-4">
           <div className="bg-[#0e1424] rounded-2xl border border-white/10 overflow-hidden shadow-xl">
@@ -450,7 +993,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 5: COMMERCIAL MODEL CONFIGURATION (Section 27) */}
+      {/* TAB 7: COMMERCIAL MODEL CONFIGURATION (Section 27) */}
       {activeTab === 'commercial' && (
         <div className="space-y-4">
           <div className="bg-[#0e1424] rounded-2xl border border-white/10 p-6 shadow-xl space-y-6">
@@ -536,7 +1079,7 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 6: DISPUTES */}
+      {/* TAB 8: DISPUTES */}
       {activeTab === 'disputes' && (
         <div className="space-y-4">
           <div className="bg-[#0e1424] rounded-2xl border border-white/10 p-5 shadow-md">

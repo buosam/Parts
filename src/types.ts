@@ -269,6 +269,11 @@ export interface Order {
   totalIQD: number;
   deliveryMethod: 'pickup' | 'supplier_delivery' | 'express_delivery';
   deliveryAddress?: string;
+  city?: string;
+  shippingSpeed?: 'standard' | 'express' | 'pickup';
+  shippingFeeUSD?: number;
+  couponCode?: string;
+  couponDiscountUSD?: number;
   paymentMethod: 'zain_cash' | 'asia_hawala' | 'fib_bank' | 'credit_card' | 'paytabs' | 'cash_on_delivery' | 'pay_at_pickup';
   paymentStatus?: 'PAID' | 'ESCROW_HELD' | 'REFUNDED';
   transactionId?: string;

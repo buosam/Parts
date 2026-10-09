@@ -1,7 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
- * IQAutoMarket Cart & 100% Upfront Payment Checkout
+ * IQAutoMarket Cart, Dynamic City Shipping, Promo Coupons & 100% Upfront Checkout
  */
 
 import React, { useState } from 'react';
@@ -30,8 +30,11 @@ import {
   QrCode,
   Smartphone,
   Receipt,
+  Tag,
+  AlertCircle,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
+import { ShippingSpeed } from '../data/ecommerceConfig';
 
 export const CartModal: React.FC = () => {
   const {
@@ -46,17 +49,28 @@ export const CartModal: React.FC = () => {
     formatPrice,
     language,
     activeSubscription,
-    calculateCartPerks,
+    shippingRates,
+    appliedCoupon,
+    applyCoupon,
+    removeCoupon,
+    calculateCheckoutPricing,
   } = useMarketplace();
 
   const isArabic = language === 'ar';
   const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
 
-  // Delivery state
-  const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'supplier_delivery'>('supplier_delivery');
-  const [deliveryAddress, setDeliveryAddress] = useState('Erbil, Gulan Street, Building 42');
+  // Ecommerce Delivery & Location state
+  const [selectedCity, setSelectedCity] = useState<string>('Baghdad');
+  const [shippingSpeed, setShippingSpeed] = useState<ShippingSpeed>('standard');
+  const [deliveryAddress, setDeliveryAddress] = useState('Karrada, District 903, Street 14');
   const [customerName, setCustomerName] = useState('Ahmed Al-Tikriti');
   const [customerPhone, setCustomerPhone] = useState('+964 770 551 2299');
+
+  // Coupon state
+  const [couponInput, setCouponInput] = useState('');
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponSuccessMsg, setCouponSuccessMsg] = useState<string | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
   // 100% Digital Payment State
   const [paymentMethod, setPaymentMethod] = useState<'zain_cash' | 'asia_hawala' | 'fib_bank' | 'credit_card'>('zain_cash');
@@ -72,12 +86,7 @@ export const CartModal: React.FC = () => {
   if (activeModal !== 'cart') return null;
 
   const subtotalUSD = cart.reduce((sum, item) => sum + item.offer.priceUSD * item.quantity, 0);
-  const baseShippingUSD = deliveryMethod === 'supplier_delivery' ? 8 : 0;
-  const perksResult = calculateCartPerks(subtotalUSD, baseShippingUSD);
-  const deliveryFeeUSD = perksResult.finalShippingUSD;
-  const discountAmountUSD = perksResult.discountAmountUSD;
-  const totalUSD = perksResult.totalUSD;
-  const totalIQD = Math.round(totalUSD * 1500);
+  const pricing = calculateCheckoutPricing(subtotalUSD, selectedCity, shippingSpeed);
 
   const paymentGateways = [
     {
@@ -118,6 +127,25 @@ export const CartModal: React.FC = () => {
     },
   ];
 
+  const handleApplyCouponSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim()) return;
+
+    setIsApplyingCoupon(true);
+    setCouponError(null);
+    setCouponSuccessMsg(null);
+
+    const res = await applyCoupon(couponInput.trim(), subtotalUSD, selectedCity);
+    setIsApplyingCoupon(false);
+
+    if (res.success) {
+      setCouponSuccessMsg(isArabic ? 'تم تطبيق كود الخصم بنجاح!' : res.message || 'Coupon applied successfully!');
+      setCouponInput('');
+    } else {
+      setCouponError(res.message || 'Invalid coupon code');
+    }
+  };
+
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
@@ -137,12 +165,24 @@ export const CartModal: React.FC = () => {
             : 'TXN-CC';
     const txnId = `${txnPrefix}-${Date.now().toString().slice(-6)}`;
 
+    const deliveryMethod =
+      shippingSpeed === 'pickup'
+        ? 'pickup'
+        : shippingSpeed === 'express'
+          ? 'express_delivery'
+          : 'supplier_delivery';
+
     const newOrd = createOrder({
       customerId: 'cust-1',
       customerName,
       customerPhone,
+      city: selectedCity,
+      shippingSpeed,
+      shippingFeeUSD: pricing.finalShippingUSD,
+      couponCode: appliedCoupon?.code,
+      couponDiscountUSD: pricing.couponDiscountUSD,
       deliveryMethod,
-      deliveryAddress: deliveryMethod === 'supplier_delivery' ? deliveryAddress : 'Pickup from Dealer Counter',
+      deliveryAddress: shippingSpeed === 'pickup' ? 'Pickup from Dealer Counter' : `${selectedCity} - ${deliveryAddress}`,
       paymentMethod,
       paymentStatus: 'PAID',
       transactionId: txnId,
@@ -159,8 +199,8 @@ export const CartModal: React.FC = () => {
         supplierId: c.offer.supplierId,
         supplierName: c.offer.supplierName,
       })),
-      totalUSD,
-      totalIQD,
+      totalUSD: pricing.totalUSD,
+      totalIQD: pricing.totalIQD,
       supplierId: cart[0]?.offer.supplierId,
       supplierName: cart[0]?.offer.supplierName,
     });
@@ -251,479 +291,639 @@ export const CartModal: React.FC = () => {
                   </span>
                   <span className="text-[11px] text-emerald-300/80">
                     {isArabic
-                      ? `رقم الحوالة: ${lastTxnId} • المبلغ محفوظ في حساب الضمان حتى استلام وفحص القطعة`
-                      : `Txn ID: ${lastTxnId} • Funds securely held in Escrow until fitment is verified.`}
+                      ? `رقم الحوالة: ${lastTxnId} • المدينة: ${selectedCity} • التوصيل: ${pricing.estimatedDelivery}`
+                      : `Txn ID: ${lastTxnId} • City: ${selectedCity} • SLA: ${pricing.estimatedDelivery}`}
                   </span>
                 </div>
               </div>
             </div>
           )}
 
-          {/* TAB 1: CART */}
-          {activeTab === 'cart' && (
-            <div>
-              {cart.length === 0 ? (
-                <div className="py-12 text-center text-zinc-400 space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 flex items-center justify-center mx-auto">
-                    <ShoppingBag className="w-6 h-6" />
-                  </div>
-                  <h4 className="font-bold text-white text-sm">
-                    {isArabic ? 'سلة المشتريات فارغة' : 'Your cart is empty'}
-                  </h4>
-                  <p className="text-xs text-zinc-400 max-w-xs mx-auto">
-                    {isArabic
-                      ? 'ابحث في الكتالوج المباشر وأضف القطع المتوافقة لتنفيذ الشراء والسداد.'
-                      : 'Browse the live catalog to add genuine parts with verified fitment.'}
-                  </p>
+          {activeTab === 'cart' ? (
+            cart.length === 0 ? (
+              <div className="py-12 text-center space-y-3">
+                <ShoppingBag className="w-12 h-12 text-zinc-600 mx-auto" />
+                <p className="text-zinc-400 text-sm font-medium">
+                  {isArabic ? 'سلة التسوق فارغة حالياً' : 'Your cart is empty'}
+                </p>
+                <button
+                  onClick={() => setActiveModal(null)}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  {isArabic ? 'تصفح قطع الغيار' : 'Browse Spare Parts'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Cart Items List */}
+                <div className="space-y-2.5">
+                  {cart.map((item) => (
+                    <div
+                      key={item.offer.id}
+                      className="p-3.5 bg-zinc-900/60 border border-zinc-800 rounded-xl flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-white truncate text-sm">
+                          {item.masterPart.partName}
+                        </div>
+                        <div className="text-[11px] text-zinc-400 flex flex-wrap gap-2 mt-0.5">
+                          <span className="font-mono text-indigo-400 font-semibold">{item.masterPart.partNumber}</span>
+                          <span>•</span>
+                          <span>{item.offer.brand}</span>
+                          <span>•</span>
+                          <span className="text-emerald-400 font-semibold">{item.offer.quality}</span>
+                        </div>
+                        <div className="text-[11px] text-zinc-500 mt-0.5">
+                          {isArabic ? 'المورد:' : 'Supplier:'} {item.offer.supplierName} ({item.offer.city})
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="text-end">
+                          <div className="font-extrabold text-white text-sm">
+                            {formatPrice(item.offer.priceUSD * item.quantity)}
+                          </div>
+                          <div className="text-[10px] text-zinc-400">
+                            {item.quantity} x {formatPrice(item.offer.priceUSD)}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => removeFromCart(item.offer.id)}
+                          className="p-2 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-lg transition-colors cursor-pointer"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Cart Items List */}
-                  <div className="space-y-2">
-                    {cart.map((item) => (
-                      <div
-                        key={item.offer.id}
-                        className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between gap-3 text-xs"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-indigo-300 text-[11px]">
-                              {item.masterPart.partNumber}
-                            </span>
-                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              {item.offer.quality}
-                            </span>
-                          </div>
-                          <h4 className="font-bold text-white truncate mt-0.5">
-                            {item.masterPart.partName}
-                          </h4>
-                          <div className="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
-                            <span>Supplier: <strong className="text-zinc-200">{item.offer.supplierName}</strong></span>
-                            <span>•</span>
-                            <span>Qty: <strong className="text-white">{item.quantity}</strong></span>
-                          </div>
-                        </div>
 
-                        <div className="text-end shrink-0">
-                          <div className="font-extrabold text-emerald-400 text-sm">
-                            {formatPrice(item.offer.priceUSD * item.quantity, item.offer.priceIQD * item.quantity)}
-                          </div>
-                          <button
-                            onClick={() => removeFromCart(item.offer.id)}
-                            className="text-red-400 hover:text-red-300 text-[11px] flex items-center gap-1 mt-1 font-semibold cursor-pointer ms-auto"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                            <span>{isArabic ? 'حذف' : 'Remove'}</span>
-                          </button>
-                        </div>
+                {/* Prime Subscription Perk Banner */}
+                {activeSubscription ? (
+                  <div className="p-3 bg-indigo-950/40 border border-indigo-800/60 rounded-xl flex items-center justify-between text-xs text-indigo-200">
+                    <div className="flex items-center gap-2">
+                      <Crown className="w-4 h-4 text-amber-400 shrink-0" />
+                      <div>
+                        <span className="font-bold text-white block">
+                          {activeSubscription.tierName} {isArabic ? 'مفعل' : 'Active'}
+                        </span>
+                        <span className="text-[10px] text-indigo-300">
+                          {pricing.membershipDiscountPercent}% {isArabic ? 'خصم على القطع + توصيل مجاني/مخفض' : 'parts discount + free/discounted shipping'}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                    <span className="text-[10px] font-bold bg-amber-400 text-zinc-950 px-2 py-0.5 rounded">
+                      VIP
+                    </span>
                   </div>
-
-                  {/* Subscription Banner & Active Perks */}
-                  {activeSubscription && activeSubscription.priceUSD > 0 ? (
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Crown className="w-4 h-4 text-amber-400 shrink-0" />
-                        <div>
-                          <span className="font-bold text-amber-300 block">
-                            {activeSubscription.tierName} {isArabic ? 'مفعل' : 'Active Member'}
-                          </span>
-                          <span className="text-[11px] text-zinc-400">
-                            {isArabic ? 'توصيل مجاني + خصم مشتريات وضمان ممتد' : 'Free Express Shipping + VIP Trade Discount & Warranty'}
-                          </span>
-                        </div>
+                ) : (
+                  <div className="p-3 bg-zinc-900/80 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+                      <div>
+                        <span className="font-bold text-white block">
+                          {isArabic ? 'وفر أكثر مع اشتراك Prime' : 'Upgrade to Buyer Prime'}
+                        </span>
+                        <span className="text-[10px] text-zinc-400">
+                          {isArabic ? 'احصل على توصيل مجاني وضمان سنة كاملة' : 'Get Free Courier Shipping + 1-Year Extended Warranty'}
+                        </span>
                       </div>
-                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">
-                        {isArabic ? 'مزايا مطبقة' : 'PERKS APPLIED'}
-                      </span>
                     </div>
-                  ) : (
-                    <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-amber-400 shrink-0" />
-                        <div>
-                          <span className="font-bold text-white block">
-                            {isArabic ? 'اشترك في IQAutoMarket Prime' : 'Join IQAutoMarket Prime'}
-                          </span>
-                          <span className="text-[11px] text-zinc-400">
-                            {isArabic ? 'احصل على توصيل مجاني وضمان سنة كاملة على كل طلب' : 'Get 100% Free Shipping + 1-Year Extended Warranty on every order'}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setActiveModal('subscription')}
-                        className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-[11px] rounded-lg transition-colors cursor-pointer shrink-0"
+                    <button
+                      type="button"
+                      onClick={() => setActiveModal('subscription')}
+                      className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-zinc-950 font-bold text-[11px] rounded-lg transition-colors cursor-pointer shrink-0"
+                    >
+                      {isArabic ? 'ترقية $9/شهر' : 'Upgrade $9/mo'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Checkout & 100% Payment Form */}
+                <form onSubmit={handlePlaceOrder} className="pt-4 border-t border-zinc-800 space-y-4 text-xs">
+                  {/* Step 1: Location & Governorate */}
+                  <div>
+                    <h4 className="font-bold text-white text-xs mb-2 flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-indigo-400" />
+                      <span>{isArabic ? '1. المحافظة وعنوان التوصيل' : '1. Governorate & Delivery Address'}</span>
+                    </h4>
+
+                    {/* City Selector Dropdown */}
+                    <div className="mb-2">
+                      <label className="text-[11px] text-zinc-400 block mb-1">
+                        {isArabic ? 'المحافظة / المدينة (تحدد تكلفة وسرعة التوصيل):' : 'Select City / Governorate (Calculates Shipping Rate & SLA):'}
+                      </label>
+                      <select
+                        value={selectedCity}
+                        onChange={(e) => setSelectedCity(e.target.value)}
+                        className="w-full px-3 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-xs font-semibold focus:outline-none focus:border-indigo-500 cursor-pointer"
                       >
-                        {isArabic ? 'ترقية الآن' : 'Upgrade $9/mo'}
-                      </button>
+                        {shippingRates.map((rate) => (
+                          <option key={rate.id} value={rate.city} className="bg-zinc-900 text-white">
+                            {isArabic ? rate.cityAr : rate.city} — Standard: ${rate.standardShippingUSD} ({rate.standardDeliveryDays}) | Express: ${rate.expressShippingUSD}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  )}
 
-                  {/* Checkout & 100% Payment Form */}
-                  <form onSubmit={handlePlaceOrder} className="pt-4 border-t border-zinc-800 space-y-4 text-xs">
-                    {/* Delivery Details */}
-                    <div>
-                      <h4 className="font-bold text-white text-xs mb-2 flex items-center gap-1.5">
-                        <Truck className="w-4 h-4 text-indigo-400" />
-                        <span>{isArabic ? '1. بيانات التوصيل والاستلام' : '1. Delivery & Recipient Details'}</span>
-                      </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                      <input
+                        type="text"
+                        required
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder={isArabic ? 'اسم المستلم' : 'Recipient Name'}
+                        className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
+                      />
+                      <input
+                        type="tel"
+                        required
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder={isArabic ? 'رقم الهاتف' : 'Phone Number'}
+                        className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
+                      />
+                    </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                        <input
-                          type="text"
-                          required
-                          value={customerName}
-                          onChange={(e) => setCustomerName(e.target.value)}
-                          placeholder={isArabic ? 'اسم المستلم' : 'Recipient Name'}
-                          className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
-                        />
-                        <input
-                          type="tel"
-                          required
-                          value={customerPhone}
-                          onChange={(e) => setCustomerPhone(e.target.value)}
-                          placeholder={isArabic ? 'رقم الهاتف' : 'Phone Number'}
-                          className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 mb-2">
+                    {/* Step 2: Shipping Tier Speed Selector */}
+                    <div className="mt-3">
+                      <label className="text-[11px] text-zinc-400 block mb-1 font-bold">
+                        {isArabic ? 'اختر طريقة وسرعة التوصيل:' : 'Choose Shipping Speed & Method:'}
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        {/* Standard Delivery */}
                         <button
                           type="button"
-                          onClick={() => setDeliveryMethod('supplier_delivery')}
+                          onClick={() => setShippingSpeed('standard')}
                           className={`p-2.5 rounded-xl border text-start cursor-pointer transition-all ${
-                            deliveryMethod === 'supplier_delivery'
-                              ? 'border-indigo-500 bg-indigo-500/10 text-white font-bold'
-                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400'
+                            shippingSpeed === 'standard'
+                              ? 'border-indigo-500 bg-indigo-500/10 text-white font-bold ring-1 ring-indigo-500/30'
+                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700'
                           }`}
                         >
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <Truck className="w-3.5 h-3.5 text-indigo-400" />
-                            <span>{isArabic ? 'توصيل كوريير للعنوان' : 'Courier Delivery'}</span>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="flex items-center gap-1.5 text-xs text-indigo-300">
+                              <Truck className="w-3.5 h-3.5" />
+                              <span>{isArabic ? 'توصيل قياسي' : 'Standard Delivery'}</span>
+                            </span>
+                            <span className="font-extrabold text-white text-xs">
+                              {pricing.freeShippingApplied ? (
+                                <span className="text-emerald-400">FREE</span>
+                              ) : (
+                                `$${pricing.selectedCityRate?.standardShippingUSD || 5}`
+                              )}
+                            </span>
                           </div>
-                          <span className="text-[10px] text-zinc-500 block mt-0.5">2-4 Hours in City</span>
+                          <span className="text-[10px] text-zinc-400 block">
+                            ⏱ {pricing.selectedCityRate?.standardDeliveryDays || '1-2 Days'}
+                          </span>
                         </button>
 
+                        {/* Express Delivery */}
                         <button
                           type="button"
-                          onClick={() => setDeliveryMethod('pickup')}
+                          onClick={() => setShippingSpeed('express')}
                           className={`p-2.5 rounded-xl border text-start cursor-pointer transition-all ${
-                            deliveryMethod === 'pickup'
-                              ? 'border-indigo-500 bg-indigo-500/10 text-white font-bold'
-                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400'
+                            shippingSpeed === 'express'
+                              ? 'border-amber-500 bg-amber-500/10 text-white font-bold ring-1 ring-amber-500/30'
+                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700'
                           }`}
                         >
-                          <div className="flex items-center gap-1.5 text-xs">
-                            <Building className="w-3.5 h-3.5 text-indigo-400" />
-                            <span>{isArabic ? 'استلام من كاونتر المورد' : 'Counter Pickup'}</span>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="flex items-center gap-1.5 text-xs text-amber-300">
+                              <Zap className="w-3.5 h-3.5 text-amber-400" />
+                              <span>{isArabic ? 'توصيل سريع فوري' : 'Express Rush'}</span>
+                            </span>
+                            <span className="font-extrabold text-amber-300 text-xs">
+                              ${pricing.selectedCityRate?.expressShippingUSD || 12}
+                            </span>
                           </div>
-                          <span className="text-[10px] text-zinc-500 block mt-0.5">Instant & Free</span>
+                          <span className="text-[10px] text-zinc-400 block">
+                            ⚡ {pricing.selectedCityRate?.expressDeliveryHours || '2-4 Hours'}
+                          </span>
+                        </button>
+
+                        {/* Counter Pickup */}
+                        <button
+                          type="button"
+                          onClick={() => setShippingSpeed('pickup')}
+                          className={`p-2.5 rounded-xl border text-start cursor-pointer transition-all ${
+                            shippingSpeed === 'pickup'
+                              ? 'border-emerald-500 bg-emerald-500/10 text-white font-bold ring-1 ring-emerald-500/30'
+                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="flex items-center gap-1.5 text-xs text-emerald-300">
+                              <Building className="w-3.5 h-3.5" />
+                              <span>{isArabic ? 'استلام من الكاونتر' : 'Counter Pickup'}</span>
+                            </span>
+                            <span className="font-extrabold text-emerald-400 text-xs">FREE</span>
+                          </div>
+                          <span className="text-[10px] text-zinc-400 block">
+                            {isArabic ? 'جاهز خلال ساعة' : 'Ready in 1 Hour'}
+                          </span>
                         </button>
                       </div>
+                    </div>
 
-                      {deliveryMethod === 'supplier_delivery' && (
+                    {shippingSpeed !== 'pickup' && (
+                      <div className="mt-2">
                         <input
                           type="text"
                           required
                           value={deliveryAddress}
                           onChange={(e) => setDeliveryAddress(e.target.value)}
-                          placeholder={isArabic ? 'عنوان التوصيل في العراق' : 'Delivery Address (City, District, Street)'}
+                          placeholder={isArabic ? 'المنطقة، الحي، رقم الشارع، أقرب نقطة دالة' : 'District, Street Name, Nearest Landmark'}
                           className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
                         />
-                      )}
-                    </div>
-
-                    {/* 100% Upfront Digital Payment Method Selector */}
-                    <div className="pt-3 border-t border-zinc-800">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
-                          <Lock className="w-4 h-4 text-emerald-400" />
-                          <span>{isArabic ? '2. سداد القيمة 100% مقدماً (دفع إلكتروني آمن)' : '2. 100% Upfront Digital Payment'}</span>
-                        </h4>
-                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                          {isArabic ? 'سداد إلزامي 100%' : '100% MANDATORY'}
-                        </span>
                       </div>
+                    )}
+                  </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                        {paymentGateways.map((gw) => (
+                  {/* Step 3: Promo Codes & Coupons */}
+                  <div className="pt-3 border-t border-zinc-800">
+                    <h4 className="font-bold text-white text-xs mb-2 flex items-center gap-1.5">
+                      <Tag className="w-4 h-4 text-indigo-400" />
+                      <span>{isArabic ? '2. كوبونات وقسائم الخصم' : '2. Promo Coupons & Discounts'}</span>
+                    </h4>
+
+                    {appliedCoupon ? (
+                      <div className="p-2.5 bg-emerald-950/40 border border-emerald-800/80 rounded-xl flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <div>
+                            <span className="font-mono font-bold text-emerald-300 uppercase">
+                              {appliedCoupon.code}
+                            </span>
+                            <span className="text-[10px] text-emerald-400/90 block">
+                              {isArabic ? appliedCoupon.descriptionAr : appliedCoupon.description} (-${pricing.couponDiscountUSD})
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removeCoupon}
+                          className="text-[11px] font-bold text-red-400 hover:text-red-300 underline cursor-pointer"
+                        >
+                          {isArabic ? 'إلغاء الكوبون' : 'Remove'}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-1.5">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={couponInput}
+                            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                            placeholder={isArabic ? 'أدخل كود الكوبون (مثل WELCOME10)' : 'Enter Coupon Code (e.g. WELCOME10)'}
+                            className="flex-1 px-3 py-2 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white font-mono placeholder:text-zinc-500 text-xs focus:outline-none focus:border-indigo-500 uppercase"
+                          />
                           <button
-                            key={gw.id}
                             type="button"
-                            onClick={() => setPaymentMethod(gw.id)}
-                            className={`p-2.5 rounded-xl border flex flex-col justify-between text-start transition-all cursor-pointer ${
-                              paymentMethod === gw.id
-                                ? `${gw.color} ring-1 ring-emerald-500/30 font-bold`
-                                : 'bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-700'
-                            }`}
+                            onClick={handleApplyCouponSubmit}
+                            disabled={isApplyingCoupon || !couponInput.trim()}
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-xl text-xs transition-colors cursor-pointer shrink-0"
                           >
-                            <div className="flex items-center justify-between w-full mb-1">
-                              <span className="text-base">{gw.icon}</span>
-                              {paymentMethod === gw.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
-                            </div>
-                            <div>
-                              <span className="font-bold text-white block text-[11px]">
-                                {isArabic ? gw.nameAr : gw.name}
-                              </span>
-                              <span className="text-[9px] text-zinc-500 block">
-                                {isArabic ? gw.badgeAr : gw.badge}
-                              </span>
-                            </div>
+                            {isApplyingCoupon ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : isArabic ? (
+                              'تطبيق'
+                            ) : (
+                              'Apply'
+                            )}
                           </button>
-                        ))}
-                      </div>
-
-                      {/* Payment Credential Inputs based on Gateway */}
-                      <div className="p-3 bg-zinc-900/70 border border-zinc-800 rounded-xl space-y-2">
-                        {paymentMethod === 'zain_cash' && (
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-[10px] text-zinc-400 block mb-1">
-                                {isArabic ? 'رقم محفظة زين كاش' : 'ZainCash Wallet Number'}
-                              </label>
-                              <input
-                                type="tel"
-                                required
-                                value={walletPhone}
-                                onChange={(e) => setWalletPhone(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] text-zinc-400 block mb-1">
-                                {isArabic ? 'رمز المحفظة (PIN)' : 'Wallet PIN'}
-                              </label>
-                              <input
-                                type="password"
-                                required
-                                maxLength={4}
-                                value={walletPin}
-                                onChange={(e) => setWalletPin(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {paymentMethod === 'asia_hawala' && (
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <label className="text-[10px] text-zinc-400 block mb-1">
-                                {isArabic ? 'رقم محفظة آسيا حوالة' : 'AsiaHawala Account'}
-                              </label>
-                              <input
-                                type="tel"
-                                required
-                                value={walletPhone}
-                                onChange={(e) => setWalletPhone(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-[10px] text-zinc-400 block mb-1">
-                                {isArabic ? 'رمز التأكيد (OTP/PIN)' : 'Security PIN'}
-                              </label>
-                              <input
-                                type="password"
-                                required
-                                maxLength={4}
-                                value={walletPin}
-                                onChange={(e) => setWalletPin(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {paymentMethod === 'fib_bank' && (
-                          <div className="flex items-center justify-between text-xs text-zinc-300">
-                            <div className="flex items-center gap-2">
-                              <QrCode className="w-6 h-6 text-indigo-400" />
-                              <div>
-                                <span className="font-bold text-white block">
-                                  {isArabic ? 'مسح QR عبر تطبيق FIB' : 'FIB Quick QR Checkout'}
-                                </span>
-                                <span className="text-[10px] text-zinc-400">
-                                  {isArabic ? 'خصم مباشر 100% من حسابك المصرفي' : 'Direct 100% debit from FIB checking account'}
-                                </span>
-                              </div>
-                            </div>
-                            <span className="text-emerald-400 text-[11px] font-mono font-bold">IBAN Linked</span>
-                          </div>
-                        )}
-
-                        {paymentMethod === 'credit_card' && (
-                          <div className="space-y-2">
-                            <div>
-                              <label className="text-[10px] text-zinc-400 block mb-1">
-                                {isArabic ? 'رقم البطاقة (16 رقم)' : 'Card Number'}
-                              </label>
-                              <input
-                                type="text"
-                                required
-                                value={cardNumber}
-                                onChange={(e) => setCardNumber(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
-                              />
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <input
-                                type="text"
-                                required
-                                placeholder="MM/YY"
-                                value={cardExpiry}
-                                onChange={(e) => setCardExpiry(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
-                              />
-                              <input
-                                type="password"
-                                required
-                                maxLength={4}
-                                placeholder="CVV"
-                                value={cardCvv}
-                                onChange={(e) => setCardCvv(e.target.value)}
-                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Escrow Protection Notice */}
-                        <div className="pt-2 border-t border-zinc-800/80 flex items-start gap-1.5 text-[10px] text-zinc-400">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-                          <span>
-                            {isArabic
-                              ? 'حماية الضمان 100%: أموالك تظل محفوظة في حساب الوساطة ولا يتم تسليمها للتاجر إلا بعد استلام وفحص القطعة.'
-                              : '100% Escrow Protection: Full payment is held securely in escrow and only released to the supplier after parts inspection & fitment verification.'}
-                          </span>
                         </div>
+
+                        {couponError && (
+                          <p className="text-[11px] text-red-400 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            <span>{couponError}</span>
+                          </p>
+                        )}
+                        {couponSuccessMsg && (
+                          <p className="text-[11px] text-emerald-400 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            <span>{couponSuccessMsg}</span>
+                          </p>
+                        )}
                       </div>
+                    )}
+                  </div>
+
+                  {/* Step 4: 100% Upfront Digital Payment Method Selector */}
+                  <div className="pt-3 border-t border-zinc-800">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                        <Lock className="w-4 h-4 text-emerald-400" />
+                        <span>{isArabic ? '3. سداد القيمة 100% مقدماً (دفع إلكتروني آمن)' : '3. 100% Upfront Digital Payment'}</span>
+                      </h4>
+                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                        {isArabic ? 'سداد إلزامي 100%' : '100% MANDATORY'}
+                      </span>
                     </div>
 
-                    {/* Pricing Summary */}
-                    <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
-                      <div className="flex justify-between text-zinc-400">
-                        <span>{isArabic ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
-                        <span className="font-bold text-white">{formatPrice(subtotalUSD)}</span>
-                      </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                      {paymentGateways.map((gw) => (
+                        <button
+                          key={gw.id}
+                          type="button"
+                          onClick={() => setPaymentMethod(gw.id)}
+                          className={`p-2.5 rounded-xl border flex flex-col justify-between text-start transition-all cursor-pointer ${
+                            paymentMethod === gw.id
+                              ? `${gw.color} ring-1 ring-emerald-500/30 font-bold`
+                              : 'bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full mb-1">
+                            <span className="text-base">{gw.icon}</span>
+                            {paymentMethod === gw.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                          </div>
+                          <div>
+                            <span className="font-bold text-white block text-[11px]">
+                              {isArabic ? gw.nameAr : gw.name}
+                            </span>
+                            <span className="text-[9px] text-zinc-500 block">
+                              {isArabic ? gw.badgeAr : gw.badge}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
 
-                      {discountAmountUSD > 0 && (
-                        <div className="flex justify-between text-emerald-400 font-bold">
-                          <span className="flex items-center gap-1">
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>{isArabic ? `خصم العضوية (${perksResult.discountPercent}%):` : `Membership Discount (${perksResult.discountPercent}%):`}</span>
-                          </span>
-                          <span>-{formatPrice(discountAmountUSD)}</span>
+                    {/* Payment Credential Inputs based on Gateway */}
+                    <div className="p-3 bg-zinc-900/70 border border-zinc-800 rounded-xl space-y-2">
+                      {paymentMethod === 'zain_cash' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">
+                              {isArabic ? 'رقم محفظة زين كاش' : 'ZainCash Wallet Number'}
+                            </label>
+                            <input
+                              type="tel"
+                              required
+                              value={walletPhone}
+                              onChange={(e) => setWalletPhone(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">
+                              {isArabic ? 'رمز المحفظة (PIN)' : 'Wallet PIN'}
+                            </label>
+                            <input
+                              type="password"
+                              required
+                              maxLength={4}
+                              value={walletPin}
+                              onChange={(e) => setWalletPin(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                            />
+                          </div>
                         </div>
                       )}
 
-                      <div className="flex justify-between text-zinc-400">
-                        <span>{isArabic ? 'رسوم التوصيل:' : 'Delivery Fee:'}</span>
-                        <span className="font-bold text-emerald-400">
-                          {deliveryFeeUSD === 0 ? (isArabic ? 'مجاناً (Prime)' : 'FREE (Prime Member)') : formatPrice(deliveryFeeUSD)}
+                      {paymentMethod === 'asia_hawala' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">
+                              {isArabic ? 'رقم محفظة آسيا حوالة' : 'AsiaHawala Account'}
+                            </label>
+                            <input
+                              type="tel"
+                              required
+                              value={walletPhone}
+                              onChange={(e) => setWalletPhone(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">
+                              {isArabic ? 'رمز التأكيد (OTP/PIN)' : 'Security PIN'}
+                            </label>
+                            <input
+                              type="password"
+                              required
+                              maxLength={4}
+                              value={walletPin}
+                              onChange={(e) => setWalletPin(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {paymentMethod === 'fib_bank' && (
+                        <div className="flex items-center justify-between text-xs text-zinc-300">
+                          <div className="flex items-center gap-2">
+                            <QrCode className="w-6 h-6 text-indigo-400" />
+                            <div>
+                              <span className="font-bold text-white block">
+                                {isArabic ? 'مسح QR عبر تطبيق FIB' : 'FIB Quick QR Checkout'}
+                              </span>
+                              <span className="text-[10px] text-zinc-400">
+                                {isArabic ? 'خصم مباشر 100% من حسابك المصرفي' : 'Direct 100% debit from FIB checking account'}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="text-emerald-400 text-[11px] font-mono font-bold">IBAN Linked</span>
+                        </div>
+                      )}
+
+                      {paymentMethod === 'credit_card' && (
+                        <div className="space-y-2">
+                          <div>
+                            <label className="text-[10px] text-zinc-400 block mb-1">
+                              {isArabic ? 'رقم البطاقة (16 رقم)' : 'Card Number'}
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={cardNumber}
+                              onChange={(e) => setCardNumber(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <input
+                              type="text"
+                              required
+                              placeholder="MM/YY"
+                              value={cardExpiry}
+                              onChange={(e) => setCardExpiry(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                            />
+                            <input
+                              type="password"
+                              required
+                              maxLength={4}
+                              placeholder="CVV"
+                              value={cardCvv}
+                              onChange={(e) => setCardCvv(e.target.value)}
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Escrow Protection Notice */}
+                      <div className="pt-2 border-t border-zinc-800/80 flex items-start gap-1.5 text-[10px] text-zinc-400">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                        <span>
+                          {isArabic
+                            ? 'حماية الضمان 100%: أموالك تظل محفوظة في حساب الوساطة ولا يتم تسليمها للتاجر إلا بعد استلام وفحص القطعة.'
+                            : '100% Escrow Protection: Full payment is held securely in escrow and only released to the supplier after parts inspection & fitment verification.'}
                         </span>
                       </div>
+                    </div>
+                  </div>
 
-                      <div className="flex justify-between text-sm sm:text-base font-extrabold text-white pt-2 border-t border-zinc-800">
-                        <span>{isArabic ? 'المبلغ المستحق سداده (100%):' : 'Amount to Pay (100% Upfront):'}</span>
-                        <span className="text-emerald-400">{formatPrice(totalUSD, totalIQD)}</span>
-                      </div>
+                  {/* Pricing Summary */}
+                  <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
+                    <div className="flex justify-between text-zinc-400">
+                      <span>{isArabic ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
+                      <span className="font-bold text-white">{formatPrice(pricing.subtotalUSD)}</span>
                     </div>
 
-                    {/* 100% Upfront Payment Submission Button */}
-                    <button
-                      type="submit"
-                      disabled={isProcessingPayment}
-                      className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-600/20 disabled:opacity-60"
-                      style={{ color: '#ffffff' }}
-                    >
-                      {isProcessingPayment ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
-                          <span>{isArabic ? 'جاري سداد المبلغ وتأكيد العملية...' : 'Authorizing 100% Digital Payment...'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-4 h-4 text-white" />
-                          <span>
-                            {isArabic
-                              ? `سداد 100% الآن (${formatPrice(totalUSD, totalIQD)})`
-                              : `Pay 100% Upfront (${formatPrice(totalUSD, totalIQD)})`}
-                          </span>
-                          <ArrowRight className="w-4 h-4 rtl:rotate-180 text-white" />
-                        </>
-                      )}
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-          )}
+                    {pricing.membershipDiscountUSD > 0 && (
+                      <div className="flex justify-between text-emerald-400 font-bold">
+                        <span className="flex items-center gap-1">
+                          <Crown className="w-3.5 h-3.5 text-amber-400" />
+                          <span>{isArabic ? `خصم العضوية (${pricing.membershipDiscountPercent}%):` : `Membership Discount (${pricing.membershipDiscountPercent}%):`}</span>
+                        </span>
+                        <span>-{formatPrice(pricing.membershipDiscountUSD)}</span>
+                      </div>
+                    )}
 
-          {/* TAB 2: PAID ORDERS */}
-          {activeTab === 'orders' && (
+                    {pricing.couponDiscountUSD > 0 && (
+                      <div className="flex justify-between text-amber-400 font-bold">
+                        <span className="flex items-center gap-1">
+                          <Tag className="w-3.5 h-3.5 text-amber-400" />
+                          <span>{isArabic ? `كود الخصم (${appliedCoupon?.code}):` : `Promo Code (${appliedCoupon?.code}):`}</span>
+                        </span>
+                        <span>-{formatPrice(pricing.couponDiscountUSD)}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-zinc-400">
+                      <span>{isArabic ? `رسوم التوصيل (${selectedCity} - ${pricing.estimatedDelivery}):` : `Delivery Fee (${selectedCity} - ${pricing.estimatedDelivery}):`}</span>
+                      <span className="font-bold text-emerald-400">
+                        {pricing.finalShippingUSD === 0
+                          ? isArabic
+                            ? 'مجاناً (Prime / Threshold)'
+                            : 'FREE (Prime/Free Threshold)'
+                          : formatPrice(pricing.finalShippingUSD)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm sm:text-base font-extrabold text-white pt-2 border-t border-zinc-800">
+                      <span>{isArabic ? 'المبلغ المستحق سداده (100%):' : 'Amount to Pay (100% Upfront):'}</span>
+                      <span className="text-emerald-400">{formatPrice(pricing.totalUSD, pricing.totalIQD)}</span>
+                    </div>
+                  </div>
+
+                  {/* 100% Upfront Payment Submission Button */}
+                  <button
+                    type="submit"
+                    disabled={isProcessingPayment}
+                    className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-600/20 disabled:opacity-60"
+                    style={{ color: '#ffffff' }}
+                  >
+                    {isProcessingPayment ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                        <span>{isArabic ? 'جاري سداد المبلغ وتأكيد العملية...' : 'Authorizing 100% Digital Payment...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Lock className="w-4 h-4 text-white" />
+                        <span>
+                          {isArabic
+                            ? `سداد 100% مقدماً (${formatPrice(pricing.totalUSD, pricing.totalIQD)}) وتأكيد الطلب`
+                            : `Pay 100% Upfront (${formatPrice(pricing.totalUSD, pricing.totalIQD)}) & Confirm`}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            )
+          ) : (
+            /* Paid Orders Tab */
             <div className="space-y-3">
               {orders.length === 0 ? (
-                <div className="py-10 text-center text-zinc-400 text-xs">
-                  {isArabic ? 'لا توجد طلبات مسددة سابقة.' : 'No paid orders found.'}
+                <div className="py-8 text-center text-zinc-400 text-xs">
+                  {isArabic ? 'لا توجد طلبات سابقة مسجلة' : 'No previous orders found'}
                 </div>
               ) : (
                 orders.map((ord) => (
                   <div
                     key={ord.id}
-                    className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3 text-xs"
+                    className="p-4 bg-zinc-900/60 border border-zinc-800 rounded-xl space-y-3 text-xs"
                   >
                     <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-indigo-300">{ord.orderNumber}</span>
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                          <Check className="w-3 h-3" />
-                          <span>{isArabic ? 'مسدد 100%' : '100% PAID'}</span>
+                      <div>
+                        <div className="font-extrabold text-white text-sm font-mono flex items-center gap-1.5">
+                          <span>#{ord.orderNumber}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            100% PAID
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-zinc-400 mt-0.5">
+                          {ord.createdAt?.slice(0, 10) || 'Recent'} • {ord.deliveryAddress || ord.city || 'Standard Delivery'}
+                        </div>
+                      </div>
+
+                      <div className="text-end">
+                        <span className="font-extrabold text-white text-sm block">
+                          {formatPrice(ord.totalUSD, ord.totalIQD)}
+                        </span>
+                        <span className="text-[10px] text-zinc-400 uppercase font-mono">
+                          {ord.paymentMethod?.replace('_', ' ')}
                         </span>
                       </div>
-                      <span className="text-[11px] text-zinc-400 font-mono">
-                        {ord.transactionId || 'TXN-PAID'}
-                      </span>
                     </div>
 
-                    <div className="space-y-1">
-                      {ord.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-zinc-300">
-                          <span>{item.partName} ({item.brand}) x{item.quantity}</span>
-                          <span className="font-bold text-white font-mono">
-                            {formatPrice(item.unitPriceUSD * item.quantity, item.unitPriceIQD * item.quantity)}
+                    <div className="space-y-1 text-zinc-300">
+                      {ord.items.map((item, idx) => (
+                        <div key={idx} className="flex justify-between text-[11px]">
+                          <span>
+                            {item.quantity}x {item.partName} ({item.brand})
+                          </span>
+                          <span className="text-zinc-400 font-mono">
+                            {formatPrice(item.unitPriceUSD * item.quantity)}
                           </span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800 text-zinc-400">
-                      <span>
-                        Paid via: <strong className="text-white capitalize">{ord.paymentMethod?.replace('_', ' ') || 'Digital Wallet'}</strong>
-                      </span>
-                      <span className="text-white font-extrabold text-xs">
-                        Total: <strong className="text-emerald-400">{formatPrice(ord.totalUSD, ord.totalIQD)}</strong>
-                      </span>
-                    </div>
+                    {ord.couponCode && (
+                      <div className="text-[10px] text-amber-300 flex items-center gap-1 bg-amber-500/10 px-2 py-1 rounded">
+                        <Tag className="w-3 h-3" />
+                        <span>Promo Code: {ord.couponCode} (-${ord.couponDiscountUSD || 0})</span>
+                      </div>
+                    )}
 
-                    <div className="flex items-center justify-between pt-1 text-[11px]">
+                    <div className="pt-2 border-t border-zinc-800 flex items-center justify-between text-[11px]">
                       <span className="text-emerald-400 flex items-center gap-1">
                         <ShieldCheck className="w-3.5 h-3.5" />
-                        <span>{isArabic ? 'أموالك مؤمنة بالكامل في حساب الضمان' : 'Funds Escrow Protected'}</span>
+                        <span>Escrow: Funds Secured</span>
                       </span>
 
-                      <button
-                        onClick={() => {
-                          setSelectedOrderForRating(ord);
-                          setActiveModal('rate_dealer');
-                        }}
-                        className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 cursor-pointer"
-                      >
-                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                        <span>{isArabic ? 'تقييم التاجر' : 'Review Dealer'}</span>
-                      </button>
+                      {!ord.isRated && (
+                        <button
+                          onClick={() => {
+                            setSelectedOrderForRating(ord);
+                            setActiveModal('rate_dealer');
+                          }}
+                          className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 text-amber-400 font-bold rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <Star className="w-3 h-3 fill-amber-400" />
+                          <span>{isArabic ? 'تقييم الوكيل' : 'Rate Dealer'}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))

@@ -245,6 +245,36 @@ export async function initDatabase(): Promise<boolean> {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS coupons (
+        id VARCHAR(64) PRIMARY KEY,
+        code VARCHAR(64) UNIQUE NOT NULL,
+        description TEXT,
+        description_ar TEXT,
+        discount_type VARCHAR(20) NOT NULL DEFAULT 'percentage',
+        discount_value NUMERIC(10, 2) NOT NULL,
+        min_order_usd NUMERIC(10, 2) DEFAULT 0,
+        max_discount_usd NUMERIC(10, 2) DEFAULT 100,
+        usage_limit INTEGER DEFAULT 500,
+        used_count INTEGER DEFAULT 0,
+        expires_at VARCHAR(50),
+        applicable_cities JSONB DEFAULT '[]'::jsonb,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS shipping_city_rates (
+        id VARCHAR(64) PRIMARY KEY,
+        city VARCHAR(100) UNIQUE NOT NULL,
+        city_ar VARCHAR(100),
+        standard_shipping_usd NUMERIC(10, 2) NOT NULL DEFAULT 5.0,
+        standard_delivery_days VARCHAR(50) DEFAULT '1-2 Days',
+        express_shipping_usd NUMERIC(10, 2) NOT NULL DEFAULT 12.0,
+        express_delivery_hours VARCHAR(50) DEFAULT '2-4 Hours',
+        free_shipping_threshold_usd NUMERIC(10, 2) DEFAULT 120.0,
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
     `);
 
     client.release();
