@@ -34,13 +34,4 @@ export const INITIAL_SYNC_JOBS: IntegrationSyncJob[] = [];
 export const INITIAL_SYNC_ERRORS: IntegrationSyncError[] = [];
 export const INITIAL_EXTERNAL_PRODUCTS: ExternalProduct[] = [];
 export const INITIAL_DEALER_BRANCHES: DealerBranch[] = [];
-
-export const DEFAULT_FIELD_MAPPINGS: IntegrationFieldMapping[] = [
-  { sourceField: 'ItemNumber', targetField: 'partNumber', isRequired: true, transformationType: 'uppercase' },
-  { sourceField: 'Description', targetField: 'name', isRequired: true, transformationType: 'trim' },
-  { sourceField: 'Manufacturer', targetField: 'brand', isRequired: true, transformationType: 'trim' },
-  { sourceField: 'UnitPrice', targetField: 'sellPrice', isRequired: true, transformationType: 'parse_number' },
-  { sourceField: 'AvailableQty', targetField: 'stockAvailable', isRequired: true, transformationType: 'parse_number' },
-  { sourceField: 'OEMReference', targetField: 'oemNumber', isRequired: false, transformationType: 'uppercase' },
-  { sourceField: 'CategoryName', targetField: 'category', isRequired: false, transformationType: 'trim' },
-];
+export const DEFAULT_FIELD_MAPPINGS: IntegrationFieldMapping[] = [];
