@@ -68,6 +68,70 @@ export async function initDatabase(): Promise<boolean> {
 
     // Initialize core relational tables if they don't already exist
     await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id VARCHAR(64) PRIMARY KEY,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone VARCHAR(50),
+        name VARCHAR(255) NOT NULL,
+        password_hash TEXT NOT NULL,
+        salt VARCHAR(64) NOT NULL,
+        role VARCHAR(50) NOT NULL DEFAULT 'customer',
+        admin_sub_role VARCHAR(50),
+        dealer_id VARCHAR(64),
+        dealer_staff_role VARCHAR(50),
+        status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+        company_name VARCHAR(255),
+        city VARCHAR(100),
+        address VARCHAR(255),
+        business_type VARCHAR(100),
+        avatar_url TEXT,
+        linked_identities JSONB DEFAULT '[]'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS sessions (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) REFERENCES users(id) ON DELETE CASCADE,
+        token VARCHAR(128) UNIQUE NOT NULL,
+        device VARCHAR(255),
+        ip_address VARCHAR(50),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        is_revoked BOOLEAN DEFAULT false
+      );
+
+      CREATE TABLE IF NOT EXISTS otp_challenges (
+        phone VARCHAR(50) PRIMARY KEY,
+        code VARCHAR(10) NOT NULL,
+        expires_at BIGINT NOT NULL,
+        attempts INTEGER DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) REFERENCES users(id) ON DELETE CASCADE,
+        code VARCHAR(10) NOT NULL,
+        expires_at BIGINT NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id VARCHAR(64) PRIMARY KEY,
+        actor_id VARCHAR(64),
+        actor_role VARCHAR(50),
+        action VARCHAR(100) NOT NULL,
+        resource_type VARCHAR(100) NOT NULL,
+        resource_id VARCHAR(100),
+        ip_address VARCHAR(50),
+        status VARCHAR(50) NOT NULL,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS dealer_branches (
         id VARCHAR(64) PRIMARY KEY,
         supplier_id VARCHAR(64) NOT NULL,

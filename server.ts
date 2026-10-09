@@ -60,6 +60,13 @@ app.use('/api/', (req, res, next) => {
 
 app.use(express.json({ limit: '15mb' }));
 
+// Mount Modular API Routers
+app.use('/api/auth', authRoutes);
+app.use('/api/buyer', buyerRoutes);
+app.use('/api/dealer', dealerRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/documents', documentRoutes);
+
 // Production Health & Readiness Probe
 app.get('/api/health', (req, res) => {
   res.json({

@@ -22,6 +22,11 @@ export interface UserAccount {
   adminSubRole?: AdminSubRole;
   dealerId?: string;
   dealerStaffRole?: DealerStaffRole;
+  companyName?: string;
+  city?: string;
+  address?: string;
+  businessType?: string;
+  avatarUrl?: string;
   status: AccountStatus;
   createdAt: string;
   updatedAt: string;
@@ -44,10 +49,19 @@ export interface UserSession {
   isRevoked: boolean;
 }
 
+export interface PasswordResetChallenge {
+  id: string;
+  userId: string;
+  code: string;
+  expiresAt: number;
+  used: boolean;
+}
+
 // In-Memory Fallback and Active Store for Fast Verification
 export const usersStore: Map<string, UserAccount> = new Map();
 export const sessionsStore: Map<string, UserSession> = new Map();
 export const otpChallengeStore: Map<string, { code: string; phone: string; expiresAt: number; attempts: number }> = new Map();
+export const passwordResetsStore: Map<string, PasswordResetChallenge> = new Map();
 
 // Helper: Hash Password securely using PBKDF2
 export function hashPassword(password: string, salt?: string): { hash: string; salt: string } {
@@ -160,6 +174,9 @@ export function seedDefaultAccounts(): void {
     passwordHash: buyerPass.hash,
     salt: buyerPass.salt,
     role: 'customer',
+    city: 'Baghdad',
+    address: 'Karrada, District 903, Street 14',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80',
     status: 'ACTIVE',
     createdAt: '2026-01-10T10:00:00Z',
     updatedAt: '2026-01-10T10:00:00Z',
@@ -181,6 +198,11 @@ export function seedDefaultAccounts(): void {
     role: 'supplier',
     dealerId: 'dlr_mansour_01',
     dealerStaffRole: 'owner',
+    companyName: 'Al-Mansour Genuine Auto Parts LLC',
+    city: 'Baghdad',
+    address: 'Sheikh Omar Industrial Zone, Hub 4',
+    businessType: 'Authorized Distributor & Importer',
+    avatarUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=120&q=80',
     status: 'ACTIVE',
     createdAt: '2026-01-05T09:00:00Z',
     updatedAt: '2026-01-05T09:00:00Z',
@@ -201,6 +223,10 @@ export function seedDefaultAccounts(): void {
     role: 'supplier',
     dealerId: 'dlr_erbil_02',
     dealerStaffRole: 'owner',
+    companyName: 'Erbil Auto Hub',
+    city: 'Erbil',
+    address: '100m Ring Road, Industrial Sector 2',
+    businessType: 'OEM Wholesaler',
     status: 'ACTIVE',
     createdAt: '2026-01-08T11:00:00Z',
     updatedAt: '2026-01-08T11:00:00Z',
@@ -209,23 +235,27 @@ export function seedDefaultAccounts(): void {
     ],
   });
 
-  // 4. Dealer A Staff: Inventory Staff (Limited permissions)
-  const dealerAStaffPass = hashPassword('staff1234');
-  usersStore.set('usr_dealer_a_inventory', {
-    id: 'usr_dealer_a_inventory',
-    email: 'warehouse@mansourparts.iq',
-    phone: '+9647805556677',
-    name: 'Ali Inventory Specialist',
-    passwordHash: dealerAStaffPass.hash,
-    salt: dealerAStaffPass.salt,
-    role: 'supplier',
-    dealerId: 'dlr_mansour_01',
-    dealerStaffRole: 'inventory',
+  // 4. Workshop / Garage Account (Babil Performance Garage)
+  const workshopPass = hashPassword('workshop1234');
+  usersStore.set('usr_workshop_01', {
+    id: 'usr_workshop_01',
+    email: 'service@babilauto.iq',
+    phone: '+9647705554433',
+    name: 'Hassan Al-Babili',
+    passwordHash: workshopPass.hash,
+    salt: workshopPass.salt,
+    role: 'workshop',
+    companyName: 'Babil Performance Auto Garage',
+    city: 'Baghdad',
+    address: 'Al-Zafraniya Industrial Estate, Complex 7',
+    businessType: 'Fleet Maintenance & Engine Overhaul',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
     status: 'ACTIVE',
-    createdAt: '2026-02-01T10:00:00Z',
-    updatedAt: '2026-02-01T10:00:00Z',
+    createdAt: '2026-01-15T08:00:00Z',
+    updatedAt: '2026-01-15T08:00:00Z',
     linkedIdentities: [
-      { provider: 'email', providerId: 'warehouse@mansourparts.iq', verifiedAt: '2026-02-01T10:00:00Z' },
+      { provider: 'email', providerId: 'service@babilauto.iq', verifiedAt: '2026-01-15T08:00:00Z' },
+      { provider: 'whatsapp', providerId: '+9647705554433', verifiedAt: '2026-01-15T08:00:00Z' },
     ],
   });
 
@@ -235,11 +265,15 @@ export function seedDefaultAccounts(): void {
     id: 'usr_super_admin',
     email: 'admin@iqautomarket.iq',
     phone: '+9647719988776',
-    name: 'IQAutoMarket SuperAdmin',
+    name: 'Zaid Al-Rawi',
     passwordHash: adminPass.hash,
     salt: adminPass.salt,
     role: 'admin',
     adminSubRole: 'super_admin',
+    companyName: 'IQAutoMarket Operations HQ',
+    city: 'Baghdad',
+    address: 'Baghdad Tech Tower, Level 18',
+    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&q=80',
     status: 'ACTIVE',
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',

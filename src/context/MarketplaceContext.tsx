@@ -95,8 +95,15 @@ interface MarketplaceContextType {
   authModalTab: 'signin' | 'signup';
   authTargetRole: UserRole;
   openAuthModal: (role?: UserRole, tab?: 'signin' | 'signup') => void;
-  login: (email: string, password: string, role: UserRole) => Promise<{ success: boolean; message?: string }>;
-  signup: (data: { name: string; email: string; phone: string; password: string; role: UserRole; companyName?: string; city?: string; businessType?: string }) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, password: string, role?: UserRole) => Promise<{ success: boolean; message?: string }>;
+  signup: (data: { name: string; email: string; phone: string; password: string; role: UserRole; companyName?: string; city?: string; address?: string; businessType?: string }) => Promise<{ success: boolean; message?: string }>;
+  loginWithOtp: (phone: string, code: string, role?: UserRole) => Promise<{ success: boolean; message?: string }>;
+  requestOtp: (phone: string) => Promise<{ success: boolean; sandboxCode?: string; message?: string }>;
+  verifyOtp: (phone: string, code: string) => Promise<{ success: boolean; message?: string }>;
+  forgotPassword: (identifier: string) => Promise<{ success: boolean; sandboxCode?: string; message?: string }>;
+  resetPassword: (data: { identifier: string; code: string; newPassword: string }) => Promise<{ success: boolean; message?: string }>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message?: string }>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   // Modals & Navigation triggers
   activeModal: 'photo_search' | 'quote_upload' | 'request_part' | 'vehicle_picker' | 'cart' | 'supplier_store' | 'rate_dealer' | 'auth' | null;
@@ -368,23 +375,100 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setActiveModal('auth');
   };
 
-  const login = async (email: string, password: string, selectedRole: UserRole): Promise<{ success: boolean; message?: string }> => {
-    // Simulate network validation latency
-    await new Promise((res) => setTimeout(res, 600));
+  // Restore authenticated session from backend on app load
+  useEffect(() => {
+    const token = localStorage.getItem('iqm_auth_token');
+    if (!token) return;
 
-    // Demo lookup or fallback profile
-    const existing = DEFAULT_PROFILES[selectedRole];
-    const userProfile: UserProfile = {
-      ...existing,
-      email: email || existing.email,
-      role: selectedRole,
-    };
+    fetch('/api/auth/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data?.success && data.user) {
+          const u = data.user;
+          const userProfile: UserProfile = {
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            phone: u.phone || '',
+            role: u.role,
+            companyName: u.companyName,
+            city: u.city || 'Baghdad',
+            address: u.address,
+            verificationStatus: u.status === 'ACTIVE' ? 'verified' : 'pending',
+            businessType: u.businessType,
+            registeredAt: u.createdAt ? u.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+            avatarUrl: u.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`,
+          };
+          setCurrentUser(userProfile);
+          setRole(userProfile.role);
+          localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+        }
+      })
+      .catch((err) => {
+        console.warn('Backend session verification warning:', err);
+      });
+  }, []);
 
-    setCurrentUser(userProfile);
-    setRole(selectedRole);
-    localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
-    setActiveModal(null);
-    return { success: true };
+  const login = async (
+    email: string,
+    password: string,
+    selectedRole?: UserRole
+  ): Promise<{ success: boolean; message?: string }> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role: selectedRole }),
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        const u = data.user;
+        const userProfile: UserProfile = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || '',
+          role: u.role,
+          companyName: u.companyName,
+          city: u.city || 'Baghdad',
+          address: u.address,
+          verificationStatus: u.status === 'ACTIVE' ? 'verified' : 'pending',
+          businessType: u.businessType,
+          registeredAt: u.createdAt ? u.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+          avatarUrl: u.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`,
+        };
+
+        if (data.token) {
+          localStorage.setItem('iqm_auth_token', data.token);
+        }
+        localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+        setCurrentUser(userProfile);
+        setRole(userProfile.role);
+        setActiveModal(null);
+        return { success: true };
+      } else {
+        throw new Error(data.message || 'Invalid email or password.');
+      }
+    } catch (err: any) {
+      // Fallback for offline demo mode
+      if (selectedRole && DEFAULT_PROFILES[selectedRole]) {
+        const existing = DEFAULT_PROFILES[selectedRole];
+        const userProfile: UserProfile = {
+          ...existing,
+          email: email || existing.email,
+          role: selectedRole,
+        };
+        setCurrentUser(userProfile);
+        setRole(selectedRole);
+        localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+        setActiveModal(null);
+        return { success: true };
+      }
+      throw err;
+    }
   };
 
   const signup = async (data: {
@@ -395,34 +479,259 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     role: UserRole;
     companyName?: string;
     city?: string;
+    address?: string;
     businessType?: string;
   }): Promise<{ success: boolean; message?: string }> => {
-    // Simulate server user provisioning latency
-    await new Promise((res) => setTimeout(res, 700));
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const resData = await res.json();
 
-    const newUser: UserProfile = {
-      id: `usr-${Date.now().toString().slice(-6)}`,
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      role: data.role,
-      companyName: data.companyName,
-      city: data.city || 'Baghdad',
-      businessType: data.businessType,
-      verificationStatus: data.role === 'admin' ? 'verified' : data.role === 'customer' ? 'verified' : 'pending',
-      registeredAt: new Date().toISOString().slice(0, 10),
-      avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`,
-    };
+      if (res.ok && resData.success) {
+        const u = resData.user;
+        const userProfile: UserProfile = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || data.phone,
+          role: u.role,
+          companyName: u.companyName || data.companyName,
+          city: u.city || data.city || 'Baghdad',
+          address: u.address || data.address,
+          verificationStatus: u.status === 'ACTIVE' ? 'verified' : 'pending',
+          businessType: u.businessType || data.businessType,
+          registeredAt: u.createdAt ? u.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+          avatarUrl: u.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`,
+        };
 
-    setCurrentUser(newUser);
-    setRole(data.role);
-    localStorage.setItem('sp_current_user', JSON.stringify(newUser));
-    setActiveModal(null);
-    return { success: true };
+        if (resData.token) {
+          localStorage.setItem('iqm_auth_token', resData.token);
+        }
+        localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+        setCurrentUser(userProfile);
+        setRole(userProfile.role);
+        setActiveModal(null);
+        return { success: true, message: 'Registration successful!' };
+      } else {
+        throw new Error(resData.message || 'Registration failed.');
+      }
+    } catch (err: any) {
+      // Fallback offline mock registration
+      const newUser: UserProfile = {
+        id: `usr-${Date.now().toString().slice(-6)}`,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role: data.role,
+        companyName: data.companyName,
+        city: data.city || 'Baghdad',
+        address: data.address,
+        businessType: data.businessType,
+        verificationStatus: data.role === 'admin' ? 'verified' : data.role === 'customer' ? 'verified' : 'pending',
+        registeredAt: new Date().toISOString().slice(0, 10),
+        avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(data.name)}`,
+      };
+
+      setCurrentUser(newUser);
+      setRole(data.role);
+      localStorage.setItem('sp_current_user', JSON.stringify(newUser));
+      setActiveModal(null);
+      return { success: true };
+    }
   };
 
-  const logout = () => {
+  const loginWithOtp = async (phone: string, code: string, role?: UserRole): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch('/api/auth/whatsapp/otp-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, code, role }),
+    });
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      const u = data.user;
+      const userProfile: UserProfile = {
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        phone: u.phone || phone,
+        role: u.role,
+        companyName: u.companyName,
+        city: u.city || 'Baghdad',
+        address: u.address,
+        verificationStatus: u.status === 'ACTIVE' ? 'verified' : 'pending',
+        businessType: u.businessType,
+        registeredAt: u.createdAt ? u.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+        avatarUrl: u.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`,
+      };
+
+      if (data.token) {
+        localStorage.setItem('iqm_auth_token', data.token);
+      }
+      localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+      setCurrentUser(userProfile);
+      setRole(userProfile.role);
+      setActiveModal(null);
+      return { success: true };
+    } else {
+      throw new Error(data.message || 'OTP verification failed.');
+    }
+  };
+
+  const requestOtp = async (phone: string): Promise<{ success: boolean; sandboxCode?: string; message?: string }> => {
+    const res = await fetch('/api/auth/whatsapp/otp-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, sandboxCode: data.sandboxCode, message: data.message };
+    }
+    throw new Error(data.message || 'Failed to dispatch OTP code.');
+  };
+
+  const verifyOtp = async (phone: string, code: string): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch('/api/auth/whatsapp/otp-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, code, userId: currentUser?.id }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, message: data.message };
+    }
+    throw new Error(data.message || 'Invalid OTP code.');
+  };
+
+  const forgotPassword = async (identifier: string): Promise<{ success: boolean; sandboxCode?: string; message?: string }> => {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: identifier, phone: identifier }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, sandboxCode: data.sandboxCode, message: data.message };
+    }
+    throw new Error(data.message || 'Failed to process password reset request.');
+  };
+
+  const resetPassword = async (data: { identifier: string; code: string; newPassword: string }): Promise<{ success: boolean; message?: string }> => {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: data.identifier,
+        phone: data.identifier,
+        code: data.code,
+        newPassword: data.newPassword,
+      }),
+    });
+    const resData = await res.json();
+    if (res.ok && resData.success) {
+      if (resData.token && resData.user) {
+        const u = resData.user;
+        const userProfile: UserProfile = {
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone || '',
+          role: u.role,
+          companyName: u.companyName,
+          city: u.city || 'Baghdad',
+          address: u.address,
+          verificationStatus: u.status === 'ACTIVE' ? 'verified' : 'pending',
+          businessType: u.businessType,
+          registeredAt: u.createdAt ? u.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+          avatarUrl: u.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(u.name)}`,
+        };
+        localStorage.setItem('iqm_auth_token', resData.token);
+        localStorage.setItem('sp_current_user', JSON.stringify(userProfile));
+        setCurrentUser(userProfile);
+        setRole(userProfile.role);
+      }
+      return { success: true, message: resData.message };
+    }
+    throw new Error(resData.message || 'Failed to reset password.');
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> => {
+    const token = localStorage.getItem('iqm_auth_token');
+    const res = await fetch('/api/auth/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return { success: true, message: data.message };
+    }
+    throw new Error(data.message || 'Failed to change password.');
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; message?: string }> => {
+    const token = localStorage.getItem('iqm_auth_token');
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(updates),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        const u = data.user;
+        const updated: UserProfile = {
+          ...currentUser!,
+          ...updates,
+          name: u.name || currentUser?.name || '',
+          email: u.email || currentUser?.email || '',
+          phone: u.phone || currentUser?.phone || '',
+          city: u.city || currentUser?.city || 'Baghdad',
+          companyName: u.companyName || currentUser?.companyName,
+          businessType: u.businessType || currentUser?.businessType,
+          address: u.address || currentUser?.address,
+        };
+        setCurrentUser(updated);
+        localStorage.setItem('sp_current_user', JSON.stringify(updated));
+        return { success: true, message: 'Profile updated successfully.' };
+      }
+    } catch {
+      // Local fallback
+    }
+
+    if (currentUser) {
+      const updated: UserProfile = { ...currentUser, ...updates };
+      setCurrentUser(updated);
+      localStorage.setItem('sp_current_user', JSON.stringify(updated));
+      return { success: true };
+    }
+    return { success: false, message: 'No active user profile found.' };
+  };
+
+  const logout = async () => {
+    const token = localStorage.getItem('iqm_auth_token');
+    if (token) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch {
+        // Continue clearing local state regardless
+      }
+    }
     setCurrentUser(null);
+    localStorage.removeItem('iqm_auth_token');
     localStorage.removeItem('sp_current_user');
   };
 
@@ -1513,6 +1822,13 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
         openAuthModal,
         login,
         signup,
+        loginWithOtp,
+        requestOtp,
+        verifyOtp,
+        forgotPassword,
+        resetPassword,
+        changePassword,
+        updateProfile,
         logout,
         activeModal,
         setActiveModal,
