@@ -24,6 +24,41 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 // Enable gzip/brotli compression for ultra-fast asset transfers
 app.use(compression());
 
+// Process crash & unhandled exception loggers for Railway
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('🔥 [RAILWAY LOG - UNHANDLED REJECTION]', reason);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('💥 [RAILWAY LOG - UNCAUGHT EXCEPTION]', error);
+});
+
+// Production & Railway HTTP Request Logging Middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  const ip = req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1';
+
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const status = res.statusCode;
+    const statusIcon = status >= 500 ? '🔴' : status >= 400 ? '🟡' : '🟢';
+
+    // Avoid cluttering logs with frequent static asset requests, focus on APIs and document/page hits
+    if (
+      req.path.startsWith('/api/') ||
+      status >= 400 ||
+      req.path === '/' ||
+      req.method !== 'GET'
+    ) {
+      console.log(
+        `${statusIcon} [HTTP] ${req.method} ${req.originalUrl || req.path} -> ${status} (${duration}ms) [IP: ${ip}]`
+      );
+    }
+  });
+
+  next();
+});
+
 // Security Headers (Defense in Depth)
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -1019,7 +1054,25 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 IQAutoMarket Server running on http://0.0.0.0:${PORT} (Node ENV: ${process.env.NODE_ENV || 'development'})`);
+    const hasDb = Boolean(process.env.DATABASE_URL || process.env.PGHOST);
+    const hasGemini = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'MY_GEMINI_API_KEY');
+    const hasJwt = Boolean(process.env.JWT_SECRET);
+
+    console.log(`
+=============================================================
+🚗 IQAutoMarket Production Server Engine (Railway Node)
+=============================================================
+• Environment     : ${process.env.NODE_ENV || 'production'}
+• Bound Port      : ${PORT}
+• Listening Host  : 0.0.0.0 (Publicly Accessible)
+• App Domain      : ${process.env.APP_URL || 'https://iqautomarket.com'}
+• PostgreSQL DB   : ${hasDb ? 'Configured (${{Postgres.DATABASE_URL}})' : 'In-Memory Fallback'}
+• Gemini AI Key   : ${hasGemini ? 'Configured ✅' : 'Missing / Demo Fallback ⚠️'}
+• JWT & Secrets   : ${hasJwt ? 'Configured ✅' : 'Default Salted PBKDF2'}
+• Static Frontend : ${distPath ? `Loaded from ${distPath}` : 'Vite Middleware Mode'}
+=============================================================
+⚡ Server is healthy, accepting connections, and ready for traffic.
+    `);
   });
 }
 
