@@ -1,6 +1,7 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * IQAutoMarket Cart & 100% Upfront Payment Checkout
  */
 
 import React, { useState } from 'react';
@@ -24,6 +25,11 @@ import {
   Crown,
   Zap,
   Sparkles,
+  Lock,
+  RefreshCw,
+  QrCode,
+  Smartphone,
+  Receipt,
 } from 'lucide-react';
 import { useMarketplace } from '../context/MarketplaceContext';
 
@@ -46,13 +52,22 @@ export const CartModal: React.FC = () => {
   const isArabic = language === 'ar';
   const [activeTab, setActiveTab] = useState<'cart' | 'orders'>('cart');
 
-  // Checkout form state
+  // Delivery state
   const [deliveryMethod, setDeliveryMethod] = useState<'pickup' | 'supplier_delivery'>('supplier_delivery');
   const [deliveryAddress, setDeliveryAddress] = useState('Erbil, Gulan Street, Building 42');
   const [customerName, setCustomerName] = useState('Ahmed Al-Tikriti');
   const [customerPhone, setCustomerPhone] = useState('+964 770 551 2299');
-  const [paymentMethod, setPaymentMethod] = useState<'cash_on_delivery' | 'pay_at_pickup' | 'zain_cash'>('cash_on_delivery');
+
+  // 100% Digital Payment State
+  const [paymentMethod, setPaymentMethod] = useState<'zain_cash' | 'asia_hawala' | 'fib_bank' | 'credit_card'>('zain_cash');
+  const [walletPhone, setWalletPhone] = useState('0770 123 4567');
+  const [walletPin, setWalletPin] = useState('••••');
+  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
+  const [cardExpiry, setCardExpiry] = useState('12/28');
+  const [cardCvv, setCardCvv] = useState('888');
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [orderCreatedSuccess, setOrderCreatedSuccess] = useState<string | null>(null);
+  const [lastTxnId, setLastTxnId] = useState<string | null>(null);
 
   if (activeModal !== 'cart') return null;
 
@@ -64,9 +79,63 @@ export const CartModal: React.FC = () => {
   const totalUSD = perksResult.totalUSD;
   const totalIQD = Math.round(totalUSD * 1500);
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const paymentGateways = [
+    {
+      id: 'zain_cash' as const,
+      name: 'ZainCash',
+      nameAr: 'محفظة زين كاش',
+      icon: '📱',
+      badge: 'POPULAR IN IRAQ',
+      badgeAr: 'الأكثر استخداماً',
+      color: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-300',
+    },
+    {
+      id: 'asia_hawala' as const,
+      name: 'AsiaHawala',
+      nameAr: 'آسيا حوالة',
+      icon: '⚡',
+      badge: 'INSTANT WALLET',
+      badgeAr: 'دفع فوري',
+      color: 'border-amber-500/50 bg-amber-500/10 text-amber-300',
+    },
+    {
+      id: 'fib_bank' as const,
+      name: 'FIB / QI Card',
+      nameAr: 'المصرف الأول FIB / كي كارد',
+      icon: '🏦',
+      badge: 'DIRECT BANK',
+      badgeAr: 'حساب بنكي مباشر',
+      color: 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300',
+    },
+    {
+      id: 'credit_card' as const,
+      name: 'Visa / Mastercard',
+      nameAr: 'بطاقة فيزا / ماستركارد',
+      icon: '💳',
+      badge: '3D SECURE',
+      badgeAr: 'حماية بنكية',
+      color: 'border-blue-500/50 bg-blue-500/10 text-blue-300',
+    },
+  ];
+
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+
+    setIsProcessingPayment(true);
+
+    // Simulate real-time 100% digital payment authorization & escrow reservation
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+
+    const txnPrefix =
+      paymentMethod === 'zain_cash'
+        ? 'TXN-ZC'
+        : paymentMethod === 'asia_hawala'
+          ? 'TXN-AH'
+          : paymentMethod === 'fib_bank'
+            ? 'TXN-FIB'
+            : 'TXN-CC';
+    const txnId = `${txnPrefix}-${Date.now().toString().slice(-6)}`;
 
     const newOrd = createOrder({
       customerId: 'cust-1',
@@ -75,6 +144,9 @@ export const CartModal: React.FC = () => {
       deliveryMethod,
       deliveryAddress: deliveryMethod === 'supplier_delivery' ? deliveryAddress : 'Pickup from Dealer Counter',
       paymentMethod,
+      paymentStatus: 'PAID',
+      transactionId: txnId,
+      status: 'confirmed',
       items: cart.map((c) => ({
         masterPartId: c.masterPart.id,
         partName: c.masterPart.partName,
@@ -93,51 +165,58 @@ export const CartModal: React.FC = () => {
       supplierName: cart[0]?.offer.supplierName,
     });
 
+    setIsProcessingPayment(false);
+    setLastTxnId(txnId);
     setOrderCreatedSuccess(newOrd.orderNumber);
     setActiveTab('orders');
-    setTimeout(() => {
-      setOrderCreatedSuccess(null);
-    }, 4000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
-      <div className="glass-panel rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-hidden shadow-2xl border border-white/15 flex flex-col animate-in zoom-in-95">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+      <div
+        className="bg-zinc-950 border border-zinc-800 text-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150"
+        dir={isArabic ? 'rtl' : 'ltr'}
+      >
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+        <div className="p-4 sm:p-5 border-b border-zinc-800 flex items-center justify-between bg-zinc-900/40">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 shadow-sm">
               <ShoppingBag className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-extrabold text-white text-base sm:text-lg">
-                {isArabic ? 'سلة الطلبات' : 'Cart'}
+              <h2 className="font-bold text-white text-base sm:text-lg">
+                {isArabic ? 'سلة المشتريات والدفع الإلكتروني' : 'Cart & 100% Upfront Checkout'}
               </h2>
-              <p className="text-xs text-slate-400">
-                {cart.length} {isArabic ? 'قطع محددة' : 'items selected'} • {isArabic ? 'الدفع عند الاستلام أو الاستلام من الفرع' : 'Cash on delivery or counter pickup'}
-              </p>
+              <div className="flex items-center gap-2 text-xs text-zinc-400">
+                <span>{cart.length} {isArabic ? 'قطع محددة' : 'items'}</span>
+                <span>•</span>
+                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  {isArabic ? 'دفع إلكتروني مؤمن 100% مع ضمان استرداد' : '100% Upfront Payment with Escrow Protection'}
+                </span>
+              </div>
             </div>
           </div>
           <button
             onClick={() => setActiveModal(null)}
-            className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-zinc-800 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Tab switcher */}
-        <div className="flex border-b border-white/10 px-5 pt-2 gap-4 text-xs font-bold bg-white/[0.02]">
+        {/* Tab Switcher */}
+        <div className="flex border-b border-zinc-800 px-5 pt-2 gap-4 text-xs font-semibold bg-zinc-900/20">
           <button
             onClick={() => setActiveTab('cart')}
             className={`pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'cart'
-                ? 'border-indigo-500 text-indigo-400 font-black'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-indigo-500 text-indigo-400 font-bold'
+                : 'border-transparent text-zinc-400 hover:text-white'
             }`}
           >
             <span>{isArabic ? 'سلة المشتريات' : 'My Cart'}</span>
-            <span className="bg-white/10 text-white text-[10px] px-2 py-0.5 rounded-full">
+            <span className="bg-zinc-800 text-white text-[10px] px-2 py-0.5 rounded-full font-mono">
               {cart.length}
             </span>
           </button>
@@ -146,29 +225,36 @@ export const CartModal: React.FC = () => {
             onClick={() => setActiveTab('orders')}
             className={`pb-2.5 border-b-2 transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'orders'
-                ? 'border-indigo-500 text-indigo-400 font-black'
-                : 'border-transparent text-slate-400 hover:text-white'
+                ? 'border-indigo-500 text-indigo-400 font-bold'
+                : 'border-transparent text-zinc-400 hover:text-white'
             }`}
           >
-            <span>{isArabic ? 'الطلبات السابقة والتتبع' : 'Active Orders & Tracking'}</span>
-            <span className="bg-white/10 text-white text-[10px] px-2 py-0.5 rounded-full">
+            <span>{isArabic ? 'الطلبات المسددة' : 'Paid Orders'}</span>
+            <span className="bg-zinc-800 text-white text-[10px] px-2 py-0.5 rounded-full font-mono">
               {orders.length}
             </span>
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-5 overflow-y-auto flex-1 space-y-4">
+        <div className="p-5 overflow-y-auto max-h-[75vh] space-y-4">
+          {/* Order Paid Success Receipt Banner */}
           {orderCreatedSuccess && (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2.5 shadow-sm">
-              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-              <div>
-                <span className="font-bold block">
-                  {isArabic ? `تم تأكيد طلبك بنجاح! رقم الطلب: #${orderCreatedSuccess}` : `Order placed successfully! PO #${orderCreatedSuccess}`}
-                </span>
-                <span className="text-[11px] text-emerald-200/80">
-                  {isArabic ? 'تم إشعار المورد لتجهيز الشحنة والتوصيل.' : 'Dealer has been alerted to prepare your items for immediate dispatch.'}
-                </span>
+            <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-800 text-emerald-300 text-xs space-y-2 shadow-lg">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                <div>
+                  <span className="font-bold text-sm text-white block">
+                    {isArabic
+                      ? `تم سداد المبلغ 100% وتأكيد الطلب #${orderCreatedSuccess}`
+                      : `100% Payment Confirmed! PO #${orderCreatedSuccess}`}
+                  </span>
+                  <span className="text-[11px] text-emerald-300/80">
+                    {isArabic
+                      ? `رقم الحوالة: ${lastTxnId} • المبلغ محفوظ في حساب الضمان حتى استلام وفحص القطعة`
+                      : `Txn ID: ${lastTxnId} • Funds securely held in Escrow until fitment is verified.`}
+                  </span>
+                </div>
               </div>
             </div>
           )}
@@ -177,52 +263,54 @@ export const CartModal: React.FC = () => {
           {activeTab === 'cart' && (
             <div>
               {cart.length === 0 ? (
-                <div className="py-12 text-center text-slate-400 space-y-3">
-                  <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/10 text-slate-400 flex items-center justify-center mx-auto">
+                <div className="py-12 text-center text-zinc-400 space-y-3">
+                  <div className="w-14 h-14 rounded-2xl bg-zinc-900 border border-zinc-800 text-zinc-400 flex items-center justify-center mx-auto">
                     <ShoppingBag className="w-6 h-6" />
                   </div>
                   <h4 className="font-bold text-white text-sm">
                     {isArabic ? 'سلة المشتريات فارغة' : 'Your cart is empty'}
                   </h4>
-                  <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                    {isArabic ? 'ابحث في الكتالوج المباشر وأضف القطع المتوافقة لتنفيذ الشراء.' : 'Browse the live catalog to add genuine parts with verified fitment.'}
+                  <p className="text-xs text-zinc-400 max-w-xs mx-auto">
+                    {isArabic
+                      ? 'ابحث في الكتالوج المباشر وأضف القطع المتوافقة لتنفيذ الشراء والسداد.'
+                      : 'Browse the live catalog to add genuine parts with verified fitment.'}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {/* Cart Items List */}
-                  <div className="space-y-2.5">
+                  <div className="space-y-2">
                     {cart.map((item) => (
                       <div
                         key={item.offer.id}
-                        className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-between gap-3 text-xs"
+                        className="p-3.5 rounded-xl bg-zinc-900/60 border border-zinc-800 flex items-center justify-between gap-3 text-xs"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-bold text-indigo-300 text-[11px]">
                               {item.masterPart.partNumber}
                             </span>
-                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                               {item.offer.quality}
                             </span>
                           </div>
                           <h4 className="font-bold text-white truncate mt-0.5">
                             {item.masterPart.partName}
                           </h4>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
-                            <span>Supplier: <strong className="text-slate-200">{item.offer.supplierName}</strong></span>
+                          <div className="text-[11px] text-zinc-400 flex items-center gap-2 mt-0.5">
+                            <span>Supplier: <strong className="text-zinc-200">{item.offer.supplierName}</strong></span>
                             <span>•</span>
                             <span>Qty: <strong className="text-white">{item.quantity}</strong></span>
                           </div>
                         </div>
 
-                        <div className="text-right shrink-0">
-                          <div className="font-black text-emerald-400 text-sm">
+                        <div className="text-end shrink-0">
+                          <div className="font-extrabold text-emerald-400 text-sm">
                             {formatPrice(item.offer.priceUSD * item.quantity, item.offer.priceIQD * item.quantity)}
                           </div>
                           <button
                             onClick={() => removeFromCart(item.offer.id)}
-                            className="text-rose-400 hover:text-rose-300 text-[11px] flex items-center gap-1 mt-1 font-semibold cursor-pointer"
+                            className="text-red-400 hover:text-red-300 text-[11px] flex items-center gap-1 mt-1 font-semibold cursor-pointer ms-auto"
                           >
                             <Trash2 className="w-3 h-3" />
                             <span>{isArabic ? 'حذف' : 'Remove'}</span>
@@ -234,7 +322,7 @@ export const CartModal: React.FC = () => {
 
                   {/* Subscription Banner & Active Perks */}
                   {activeSubscription && activeSubscription.priceUSD > 0 ? (
-                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs">
+                    <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <Crown className="w-4 h-4 text-amber-400 shrink-0" />
                         <div>
@@ -251,7 +339,7 @@ export const CartModal: React.FC = () => {
                       </span>
                     </div>
                   ) : (
-                    <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-2xl flex items-center justify-between text-xs">
+                    <div className="p-3 bg-zinc-900/60 border border-zinc-800 rounded-xl flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
                         <Zap className="w-4 h-4 text-amber-400 shrink-0" />
                         <div>
@@ -273,89 +361,250 @@ export const CartModal: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Checkout Form */}
-                  <form onSubmit={handlePlaceOrder} className="pt-4 border-t border-white/10 space-y-4 text-xs">
-                    <h4 className="font-extrabold text-white text-sm flex items-center gap-1.5">
-                      <Truck className="w-4 h-4 text-indigo-400" />
-                      <span>{isArabic ? 'بيانات التوصيل والاستلام' : 'Delivery & Recipient Details'}</span>
-                    </h4>
+                  {/* Checkout & 100% Payment Form */}
+                  <form onSubmit={handlePlaceOrder} className="pt-4 border-t border-zinc-800 space-y-4 text-xs">
+                    {/* Delivery Details */}
+                    <div>
+                      <h4 className="font-bold text-white text-xs mb-2 flex items-center gap-1.5">
+                        <Truck className="w-4 h-4 text-indigo-400" />
+                        <span>{isArabic ? '1. بيانات التوصيل والاستلام' : '1. Delivery & Recipient Details'}</span>
+                      </h4>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-slate-300 font-bold mb-1">{isArabic ? 'اسم المستلم' : 'Recipient Name'}</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                         <input
                           type="text"
                           required
                           value={customerName}
                           onChange={(e) => setCustomerName(e.target.value)}
-                          className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                          placeholder={isArabic ? 'اسم المستلم' : 'Recipient Name'}
+                          className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
                         />
-                      </div>
-                      <div>
-                        <label className="block text-slate-300 font-bold mb-1">{isArabic ? 'رقم الهاتف' : 'Phone Number'}</label>
                         <input
                           type="tel"
                           required
                           value={customerPhone}
                           onChange={(e) => setCustomerPhone(e.target.value)}
-                          className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                          placeholder={isArabic ? 'رقم الهاتف' : 'Phone Number'}
+                          className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
                         />
                       </div>
-                    </div>
 
-                    <div>
-                      <label className="block text-slate-300 font-bold mb-1">{isArabic ? 'طريقة الاستلام' : 'Delivery Method'}</label>
-                      <div className="grid grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-2 gap-2 mb-2">
                         <button
                           type="button"
                           onClick={() => setDeliveryMethod('supplier_delivery')}
-                          className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                          className={`p-2.5 rounded-xl border text-start cursor-pointer transition-all ${
                             deliveryMethod === 'supplier_delivery'
                               ? 'border-indigo-500 bg-indigo-500/10 text-white font-bold'
-                              : 'border-white/10 bg-white/[0.02] text-slate-400'
+                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400'
                           }`}
                         >
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 text-xs">
                             <Truck className="w-3.5 h-3.5 text-indigo-400" />
-                            <span>{isArabic ? 'توصيل كوريير للعنوان' : 'Express Courier Delivery'}</span>
+                            <span>{isArabic ? 'توصيل كوريير للعنوان' : 'Courier Delivery'}</span>
                           </div>
-                          <span className="text-[10px] text-slate-400 block mt-1">2-4 Hours in City</span>
+                          <span className="text-[10px] text-zinc-500 block mt-0.5">2-4 Hours in City</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => setDeliveryMethod('pickup')}
-                          className={`p-3 rounded-xl border text-left cursor-pointer transition-all ${
+                          className={`p-2.5 rounded-xl border text-start cursor-pointer transition-all ${
                             deliveryMethod === 'pickup'
                               ? 'border-indigo-500 bg-indigo-500/10 text-white font-bold'
-                              : 'border-white/10 bg-white/[0.02] text-slate-400'
+                              : 'border-zinc-800 bg-zinc-900/40 text-zinc-400'
                           }`}
                         >
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 text-xs">
                             <Building className="w-3.5 h-3.5 text-indigo-400" />
-                            <span>{isArabic ? 'استلام من كاونتر المورد' : 'Warehouse Counter Pickup'}</span>
+                            <span>{isArabic ? 'استلام من كاونتر المورد' : 'Counter Pickup'}</span>
                           </div>
-                          <span className="text-[10px] text-slate-400 block mt-1">Free & Instant</span>
+                          <span className="text-[10px] text-zinc-500 block mt-0.5">Instant & Free</span>
                         </button>
                       </div>
-                    </div>
 
-                    {deliveryMethod === 'supplier_delivery' && (
-                      <div>
-                        <label className="block text-slate-300 font-bold mb-1">{isArabic ? 'عنوان التوصيل' : 'Delivery Address'}</label>
+                      {deliveryMethod === 'supplier_delivery' && (
                         <input
                           type="text"
                           required
                           value={deliveryAddress}
                           onChange={(e) => setDeliveryAddress(e.target.value)}
-                          className="w-full px-3.5 py-2 bg-white/[0.04] border border-white/10 rounded-xl text-white focus:outline-hidden"
+                          placeholder={isArabic ? 'عنوان التوصيل في العراق' : 'Delivery Address (City, District, Street)'}
+                          className="w-full px-3 py-2.5 bg-zinc-900/60 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-500 text-xs focus:outline-none focus:border-zinc-500"
                         />
+                      )}
+                    </div>
+
+                    {/* 100% Upfront Digital Payment Method Selector */}
+                    <div className="pt-3 border-t border-zinc-800">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
+                          <Lock className="w-4 h-4 text-emerald-400" />
+                          <span>{isArabic ? '2. سداد القيمة 100% مقدماً (دفع إلكتروني آمن)' : '2. 100% Upfront Digital Payment'}</span>
+                        </h4>
+                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          {isArabic ? 'سداد إلزامي 100%' : '100% MANDATORY'}
+                        </span>
                       </div>
-                    )}
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                        {paymentGateways.map((gw) => (
+                          <button
+                            key={gw.id}
+                            type="button"
+                            onClick={() => setPaymentMethod(gw.id)}
+                            className={`p-2.5 rounded-xl border flex flex-col justify-between text-start transition-all cursor-pointer ${
+                              paymentMethod === gw.id
+                                ? `${gw.color} ring-1 ring-emerald-500/30 font-bold`
+                                : 'bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between w-full mb-1">
+                              <span className="text-base">{gw.icon}</span>
+                              {paymentMethod === gw.id && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+                            </div>
+                            <div>
+                              <span className="font-bold text-white block text-[11px]">
+                                {isArabic ? gw.nameAr : gw.name}
+                              </span>
+                              <span className="text-[9px] text-zinc-500 block">
+                                {isArabic ? gw.badgeAr : gw.badge}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Payment Credential Inputs based on Gateway */}
+                      <div className="p-3 bg-zinc-900/70 border border-zinc-800 rounded-xl space-y-2">
+                        {paymentMethod === 'zain_cash' && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-zinc-400 block mb-1">
+                                {isArabic ? 'رقم محفظة زين كاش' : 'ZainCash Wallet Number'}
+                              </label>
+                              <input
+                                type="tel"
+                                required
+                                value={walletPhone}
+                                onChange={(e) => setWalletPhone(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-zinc-400 block mb-1">
+                                {isArabic ? 'رمز المحفظة (PIN)' : 'Wallet PIN'}
+                              </label>
+                              <input
+                                type="password"
+                                required
+                                maxLength={4}
+                                value={walletPin}
+                                onChange={(e) => setWalletPin(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {paymentMethod === 'asia_hawala' && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] text-zinc-400 block mb-1">
+                                {isArabic ? 'رقم محفظة آسيا حوالة' : 'AsiaHawala Account'}
+                              </label>
+                              <input
+                                type="tel"
+                                required
+                                value={walletPhone}
+                                onChange={(e) => setWalletPhone(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] text-zinc-400 block mb-1">
+                                {isArabic ? 'رمز التأكيد (OTP/PIN)' : 'Security PIN'}
+                              </label>
+                              <input
+                                type="password"
+                                required
+                                maxLength={4}
+                                value={walletPin}
+                                onChange={(e) => setWalletPin(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {paymentMethod === 'fib_bank' && (
+                          <div className="flex items-center justify-between text-xs text-zinc-300">
+                            <div className="flex items-center gap-2">
+                              <QrCode className="w-6 h-6 text-indigo-400" />
+                              <div>
+                                <span className="font-bold text-white block">
+                                  {isArabic ? 'مسح QR عبر تطبيق FIB' : 'FIB Quick QR Checkout'}
+                                </span>
+                                <span className="text-[10px] text-zinc-400">
+                                  {isArabic ? 'خصم مباشر 100% من حسابك المصرفي' : 'Direct 100% debit from FIB checking account'}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-emerald-400 text-[11px] font-mono font-bold">IBAN Linked</span>
+                          </div>
+                        )}
+
+                        {paymentMethod === 'credit_card' && (
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-[10px] text-zinc-400 block mb-1">
+                                {isArabic ? 'رقم البطاقة (16 رقم)' : 'Card Number'}
+                              </label>
+                              <input
+                                type="text"
+                                required
+                                value={cardNumber}
+                                onChange={(e) => setCardNumber(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              <input
+                                type="text"
+                                required
+                                placeholder="MM/YY"
+                                value={cardExpiry}
+                                onChange={(e) => setCardExpiry(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                              />
+                              <input
+                                type="password"
+                                required
+                                maxLength={4}
+                                placeholder="CVV"
+                                value={cardCvv}
+                                onChange={(e) => setCardCvv(e.target.value)}
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono text-center"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Escrow Protection Notice */}
+                        <div className="pt-2 border-t border-zinc-800/80 flex items-start gap-1.5 text-[10px] text-zinc-400">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                          <span>
+                            {isArabic
+                              ? 'حماية الضمان 100%: أموالك تظل محفوظة في حساب الوساطة ولا يتم تسليمها للتاجر إلا بعد استلام وفحص القطعة.'
+                              : '100% Escrow Protection: Full payment is held securely in escrow and only released to the supplier after parts inspection & fitment verification.'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
                     {/* Pricing Summary */}
-                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/10 space-y-2">
-                      <div className="flex justify-between text-slate-400">
+                    <div className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-2">
+                      <div className="flex justify-between text-zinc-400">
                         <span>{isArabic ? 'المجموع الفرعي:' : 'Subtotal:'}</span>
                         <span className="font-bold text-white">{formatPrice(subtotalUSD)}</span>
                       </div>
@@ -370,24 +619,42 @@ export const CartModal: React.FC = () => {
                         </div>
                       )}
 
-                      <div className="flex justify-between text-slate-400">
+                      <div className="flex justify-between text-zinc-400">
                         <span>{isArabic ? 'رسوم التوصيل:' : 'Delivery Fee:'}</span>
                         <span className="font-bold text-emerald-400">
                           {deliveryFeeUSD === 0 ? (isArabic ? 'مجاناً (Prime)' : 'FREE (Prime Member)') : formatPrice(deliveryFeeUSD)}
                         </span>
                       </div>
 
-                      <div className="flex justify-between text-base font-black text-white pt-2 border-t border-white/10">
-                        <span>{isArabic ? 'الإجمالي النهائي:' : 'Total Amount:'}</span>
+                      <div className="flex justify-between text-sm sm:text-base font-extrabold text-white pt-2 border-t border-zinc-800">
+                        <span>{isArabic ? 'المبلغ المستحق سداده (100%):' : 'Amount to Pay (100% Upfront):'}</span>
                         <span className="text-emerald-400">{formatPrice(totalUSD, totalIQD)}</span>
                       </div>
                     </div>
 
+                    {/* 100% Upfront Payment Submission Button */}
                     <button
                       type="submit"
-                      className="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl text-sm transition-all shadow-lg shadow-emerald-600/25 cursor-pointer"
+                      disabled={isProcessingPayment}
+                      className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-emerald-600/20 disabled:opacity-60"
+                      style={{ color: '#ffffff' }}
                     >
-                      {isArabic ? 'تأكيد الطلب وحجز المخزون (الدفع عند الاستلام)' : 'Place Order & Reserve Inventory (Cash on Delivery)'}
+                      {isProcessingPayment ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin text-white" />
+                          <span>{isArabic ? 'جاري سداد المبلغ وتأكيد العملية...' : 'Authorizing 100% Digital Payment...'}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-4 h-4 text-white" />
+                          <span>
+                            {isArabic
+                              ? `سداد 100% الآن (${formatPrice(totalUSD, totalIQD)})`
+                              : `Pay 100% Upfront (${formatPrice(totalUSD, totalIQD)})`}
+                          </span>
+                          <ArrowRight className="w-4 h-4 rtl:rotate-180 text-white" />
+                        </>
+                      )}
                     </button>
                   </form>
                 </div>
@@ -395,43 +662,64 @@ export const CartModal: React.FC = () => {
             </div>
           )}
 
-          {/* TAB 2: ORDERS */}
+          {/* TAB 2: PAID ORDERS */}
           {activeTab === 'orders' && (
             <div className="space-y-3">
               {orders.length === 0 ? (
-                <div className="py-10 text-center text-slate-400 text-xs">
-                  {isArabic ? 'لا توجد طلبات سابقة.' : 'No active or completed orders found.'}
+                <div className="py-10 text-center text-zinc-400 text-xs">
+                  {isArabic ? 'لا توجد طلبات مسددة سابقة.' : 'No paid orders found.'}
                 </div>
               ) : (
                 orders.map((ord) => (
                   <div
                     key={ord.id}
-                    className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-3 text-xs"
+                    className="p-4 rounded-xl bg-zinc-900/60 border border-zinc-800 space-y-3 text-xs"
                   >
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <span className="font-mono font-bold text-indigo-300">{ord.orderNumber}</span>
-                      <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        {ord.status}
+                    <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-bold text-indigo-300">{ord.orderNumber}</span>
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                          <Check className="w-3 h-3" />
+                          <span>{isArabic ? 'مسدد 100%' : '100% PAID'}</span>
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-zinc-400 font-mono">
+                        {ord.transactionId || 'TXN-PAID'}
                       </span>
                     </div>
 
                     <div className="space-y-1">
                       {ord.items.map((item, i) => (
-                        <div key={i} className="flex justify-between text-slate-300">
+                        <div key={i} className="flex justify-between text-zinc-300">
                           <span>{item.partName} ({item.brand}) x{item.quantity}</span>
-                          <span className="font-bold text-white">{formatPrice(item.unitPriceUSD * item.quantity, item.unitPriceIQD * item.quantity)}</span>
+                          <span className="font-bold text-white font-mono">
+                            {formatPrice(item.unitPriceUSD * item.quantity, item.unitPriceIQD * item.quantity)}
+                          </span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                      <span className="text-slate-400">Total: <strong className="text-emerald-400">{formatPrice(ord.totalUSD, ord.totalIQD)}</strong></span>
+                    <div className="flex items-center justify-between pt-2 border-t border-zinc-800 text-zinc-400">
+                      <span>
+                        Paid via: <strong className="text-white capitalize">{ord.paymentMethod?.replace('_', ' ') || 'Digital Wallet'}</strong>
+                      </span>
+                      <span className="text-white font-extrabold text-xs">
+                        Total: <strong className="text-emerald-400">{formatPrice(ord.totalUSD, ord.totalIQD)}</strong>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1 text-[11px]">
+                      <span className="text-emerald-400 flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>{isArabic ? 'أموالك مؤمنة بالكامل في حساب الضمان' : 'Funds Escrow Protected'}</span>
+                      </span>
+
                       <button
                         onClick={() => {
                           setSelectedOrderForRating(ord);
                           setActiveModal('rate_dealer');
                         }}
-                        className="text-amber-300 hover:text-amber-200 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                        className="text-amber-300 hover:text-amber-200 font-bold flex items-center gap-1 cursor-pointer"
                       >
                         <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                         <span>{isArabic ? 'تقييم التاجر' : 'Review Dealer'}</span>

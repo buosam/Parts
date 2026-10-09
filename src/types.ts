@@ -269,7 +269,9 @@ export interface Order {
   totalIQD: number;
   deliveryMethod: 'pickup' | 'supplier_delivery' | 'express_delivery';
   deliveryAddress?: string;
-  paymentMethod: 'cash_on_delivery' | 'pay_at_pickup';
+  paymentMethod: 'zain_cash' | 'asia_hawala' | 'fib_bank' | 'credit_card' | 'paytabs' | 'cash_on_delivery' | 'pay_at_pickup';
+  paymentStatus?: 'PAID' | 'ESCROW_HELD' | 'REFUNDED';
+  transactionId?: string;
   status: 'pending' | 'confirmed' | 'preparing' | 'ready_for_pickup' | 'dispatched' | 'delivered' | 'completed' | 'cancelled' | 'disputed';
   createdAt: string;
   estimatedDeliveryDate: string;
