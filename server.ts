@@ -1034,7 +1034,10 @@ async function startServer() {
   const possibleDistPaths = [
     path.join(process.cwd(), 'dist'),
     path.resolve('dist'),
-  ];
+    typeof __dirname !== 'undefined' ? __dirname : '',
+    typeof __dirname !== 'undefined' ? path.join(__dirname, '..', 'dist') : '',
+    path.resolve(process.cwd(), 'dist'),
+  ].filter(Boolean);
 
   const distPath = possibleDistPaths.find((p) => fs.existsSync(path.join(p, 'index.html')));
 

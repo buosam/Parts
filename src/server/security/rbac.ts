@@ -31,15 +31,17 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
   const { valid, user, session, reason } = validateSessionToken(authHeader);
 
   if (!valid || !user || !session) {
-    logAuditEvent({
-      action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
-      resourceType: 'auth',
-      resourceId: req.originalUrl,
-      ipAddress: req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1',
-      userAgent: req.headers['user-agent'],
-      status: 'DENIED',
-      metadata: { reason, path: req.originalUrl },
-    });
+    if (reason !== 'MISSING_TOKEN') {
+      logAuditEvent({
+        action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
+        resourceType: 'auth',
+        resourceId: req.originalUrl,
+        ipAddress: req.ip || (req.headers['x-forwarded-for'] as string) || '127.0.0.1',
+        userAgent: req.headers['user-agent'],
+        status: 'DENIED',
+        metadata: { reason, path: req.originalUrl },
+      });
+    }
 
     res.status(401).json({
       error: 'INVALID_TOKEN',
@@ -58,6 +60,22 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
     req.dealerId = user.dealerId;
   }
 
+  next();
+}
+
+// 1.1 Optional Authentication Middleware (Allows guests while attaching user if token is present)
+export function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  const authHeader = req.headers.authorization || (req.headers['x-session-token'] as string);
+  if (!authHeader) return next();
+
+  const { valid, user, session } = validateSessionToken(authHeader);
+  if (valid && user && session) {
+    req.user = user;
+    req.session = session;
+    if (user.dealerId) {
+      req.dealerId = user.dealerId;
+    }
+  }
   next();
 }
 

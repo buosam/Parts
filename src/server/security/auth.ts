@@ -104,11 +104,14 @@ export function createSession(
   return session;
 }
 
-// Helper: Validate Session & Account Status
 export function validateSessionToken(token?: string): { valid: boolean; user?: UserAccount; session?: UserSession; reason?: string } {
   if (!token) return { valid: false, reason: 'MISSING_TOKEN' };
 
   const cleanToken = token.replace(/^Bearer\s+/i, '').trim();
+  if (!cleanToken || cleanToken === 'null' || cleanToken === 'undefined') {
+    return { valid: false, reason: 'MISSING_TOKEN' };
+  }
+
   const session = sessionsStore.get(cleanToken);
 
   if (!session) {

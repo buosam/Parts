@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { requireAuth, AuthenticatedRequest } from '../security/rbac';
+import { requireAuth, optionalAuth, AuthenticatedRequest } from '../security/rbac';
 import { getDbPool } from '../db';
 import { logAuditEvent } from '../security/audit';
 import {
@@ -111,9 +111,9 @@ router.get('/plans', (req, res) => {
   });
 });
 
-// 2. Get Current User Active Subscription
-router.get('/current', requireAuth, async (req: AuthenticatedRequest, res) => {
-  const userId = req.user?.id || 'usr_buyer_default';
+// 2. Get Current User Active Subscription (Guest or Authenticated)
+router.get('/current', optionalAuth, async (req: AuthenticatedRequest, res) => {
+  const userId = req.user?.id;
   const pool = getDbPool();
 
   if (pool) {
@@ -149,19 +149,21 @@ router.get('/current', requireAuth, async (req: AuthenticatedRequest, res) => {
     }
   }
 
-  const existing = userSubscriptionsStore.get(userId);
-  if (existing) {
-    return res.json({ success: true, subscription: existing });
+  if (userId) {
+    const existing = userSubscriptionsStore.get(userId);
+    if (existing) {
+      return res.json({ success: true, subscription: existing });
+    }
   }
 
-  // Fallback default free tier
+  // Fallback default free tier for guest or new user
   const userRole = req.user?.role || 'customer';
   const defaultFreePlanId = userRole === 'supplier' ? 'dlr_starter' : userRole === 'workshop' ? 'wrk_basic' : 'cust_free';
   const defaultPlan = SUBSCRIPTION_PLANS.find((p) => p.id === defaultFreePlanId) || SUBSCRIPTION_PLANS[0];
 
   const defaultSub: ActiveUserSubscription = {
-    id: `sub_free_${userId.slice(-6)}`,
-    userId,
+    id: `sub_free_${userId ? userId.slice(-6) : 'guest'}`,
+    userId: userId || 'guest',
     planId: defaultPlan.id,
     role: userRole as any,
     tierName: defaultPlan.name,
@@ -176,7 +178,7 @@ router.get('/current', requireAuth, async (req: AuthenticatedRequest, res) => {
     autoRenew: true,
   };
 
-  return res.json({ success: true, subscription: defaultSub });
+  return res.json({ success: true, subscription: defaultSub, isGuest: !userId });
 });
 
 // 3. Subscribe or Upgrade Plan

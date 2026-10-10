@@ -425,7 +425,7 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Restore authenticated session from backend on app load
   useEffect(() => {
     const token = localStorage.getItem('iqm_auth_token');
-    if (!token) return;
+    if (!token || token === 'null' || token === 'undefined') return;
 
     fetch('/api/auth/me', {
       headers: { Authorization: `Bearer ${token}` },
@@ -800,7 +800,9 @@ export const MarketplaceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     try {
       const token = localStorage.getItem('iqm_auth_token');
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      if (token && token !== 'null' && token !== 'undefined') {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
 
       const res = await fetch('/api/subscriptions/current', { headers });
       const data = await res.json();
