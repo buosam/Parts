@@ -68,20 +68,34 @@ export default function CatalogSection(props: Props) {
   return (
     <section id="catalog" className="mx-auto max-w-7xl px-3 sm:px-6 py-6">
       {/* Breadcrumbs Navigation */}
-      <nav aria-label="Breadcrumb" className="mb-4 text-xs text-ink-soft flex items-center gap-1.5 flex-wrap">
-        <a href="#top" className="hover:text-terra flex items-center gap-1">
+      <nav aria-label="Breadcrumb" className="mb-3 text-xs text-ink-soft flex items-center gap-1.5 flex-wrap">
+        <a href="#top" aria-label={lang === "ar" ? "الصفحة الرئيسية" : "Homepage"} className="hover:text-terra flex items-center gap-1">
           <Home className="size-3.5" />
           <span>{lang === "ar" ? "الرئيسية" : "Home"}</span>
         </a>
-        <ChevronRight className="size-3 text-ink-faint rtl:rotate-180" />
+        <ChevronRight className="size-3 text-ink-faint rtl:rotate-180" aria-hidden="true" />
         <span className="hover:text-terra cursor-pointer">
           {lang === "ar" ? "قطع السيارات" : "Auto Parts"}
         </span>
-        <ChevronRight className="size-3 text-ink-faint rtl:rotate-180" />
+        <ChevronRight className="size-3 text-ink-faint rtl:rotate-180" aria-hidden="true" />
         <span className="font-semibold text-ink">
           {vehicle.make} {vehicle.model} ({vehicle.year})
         </span>
       </nav>
+
+      {/* Semantic Primary Page Header for Accessibility & SEO */}
+      <div className="mb-4">
+        <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
+          {lang === "ar"
+            ? "سوق قطع غيار السيارات المعتمدة والمطابقة في العراق"
+            : "Iraq Automotive Parts Marketplace & Direct Catalog"}
+        </h1>
+        <p className="text-xs sm:text-sm text-ink-muted mt-1">
+          {lang === "ar"
+            ? `تصفح أحدث قطع الغيار الأصلية والتجارية المطابقة لسيارة ${vehicle.make} ${vehicle.model} ${vehicle.year} مع شحن فوري لجميع محافظات العراق.`
+            : `Search genuine and verified aftermarket auto parts with guaranteed compatibility for ${vehicle.make} ${vehicle.model} ${vehicle.year}.`}
+        </p>
+      </div>
 
       {/* Main Grid Layout: Left Sidebar + Main Shopping Area */}
       <div className="grid gap-6 lg:grid-cols-[260px_1fr] items-start">

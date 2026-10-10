@@ -118,9 +118,16 @@ export default function SiteHeader({
               <div className="relative flex-1 flex items-center">
                 <SearchIcon className="pointer-events-none absolute start-3 size-4 text-ink-faint" />
                 <input
+                  id="site-search-input"
+                  name="q"
                   type="text"
                   value={query}
                   onChange={(e) => onQuery(e.target.value)}
+                  aria-label={
+                    isArabic
+                      ? "البحث عن قطع الغيار بالاسم أو رقم القطعة"
+                      : "Search automotive parts by name, OEM, or VIN"
+                  }
                   placeholder={
                     isArabic
                       ? "ابحث عن قطع الغيار بالاسم، رقم OEM، VIN، أو الموديل..."
@@ -131,6 +138,7 @@ export default function SiteHeader({
               </div>
               <button
                 type="submit"
+                aria-label={isArabic ? "تنفيذ البحث" : "Submit Search"}
                 className="h-9 sm:h-10 px-3 sm:px-4 bg-terra hover:bg-terra-hover text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
               >
                 <SearchIcon className="size-4" />
@@ -145,6 +153,7 @@ export default function SiteHeader({
             {onOpenPartline && (
               <button
                 onClick={onOpenPartline}
+                aria-label="Open Partline AI Assistant (Shortcut Cmd+K)"
                 className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition-colors cursor-pointer"
                 title="Partline AI (⌘K)"
               >
@@ -157,6 +166,7 @@ export default function SiteHeader({
             {/* Subscriptions / Prime Button */}
             <button
               onClick={() => setActiveModal('subscription')}
+              aria-label={isArabic ? "خطط الاشتراك وباقات العضوية" : "View Subscription Plans & Prime"}
               className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all cursor-pointer"
             >
               <Crown className="size-3.5 text-amber-400" />
@@ -172,6 +182,7 @@ export default function SiteHeader({
             {/* Language Switcher */}
             <button
               onClick={toggle}
+              aria-label={lang === "en" ? "التبديل إلى اللغة العربية" : "Switch language to English"}
               className="px-2 py-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer"
             >
               {lang === "en" ? "العربية" : "EN"}
@@ -183,6 +194,7 @@ export default function SiteHeader({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={handleProfileClick}
+                  aria-label={isArabic ? "الملف الشخصي وإدارة الحساب" : "User Profile & Account Settings"}
                   className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-start transition-all cursor-pointer group"
                   title={isArabic ? "إدارة الحساب والملف الشخصي" : "Manage Account & Profile"}
                 >
@@ -201,6 +213,7 @@ export default function SiteHeader({
 
                 <button
                   onClick={() => logout()}
+                  aria-label={isArabic ? "تسجيل الخروج من الحساب" : "Sign Out"}
                   className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-colors cursor-pointer"
                   title={isArabic ? "تسجيل الخروج" : "Sign Out"}
                 >
@@ -212,6 +225,7 @@ export default function SiteHeader({
               <div className="flex items-center gap-1.5">
                 <button
                   onClick={() => openAuthModal('customer', 'signin')}
+                  aria-label={isArabic ? "تسجيل الدخول إلى حسابك" : "Sign In to your account"}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-sm"
                   style={{ color: '#ffffff' }}
                 >
@@ -221,6 +235,7 @@ export default function SiteHeader({
 
                 <button
                   onClick={() => openAuthModal('customer', 'signup')}
+                  aria-label={isArabic ? "إنشاء حساب مشتري أو ورشة جديد" : "Create a new IQAutoMarket account"}
                   className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white font-medium text-xs transition-colors cursor-pointer"
                 >
                   <UserPlus className="size-3.5 text-slate-300" />
@@ -232,6 +247,7 @@ export default function SiteHeader({
             {/* Orders Quick Link */}
             <button
               onClick={() => onOpenCart?.()}
+              aria-label={isArabic ? "عرض وتتبع الطلبات" : "View and Track Orders"}
               className="hidden md:flex items-center gap-1 px-2 py-1.5 rounded-lg hover:bg-white/10 text-start text-gray-300 hover:text-white transition-colors cursor-pointer"
             >
               <Package className="size-4" />
@@ -244,6 +260,7 @@ export default function SiteHeader({
             {/* Cart Button */}
             <button
               onClick={onOpenCart}
+              aria-label={isArabic ? `عربة التسوق (${cartCount} عنصر)` : `Shopping Cart with ${cartCount} items`}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white font-semibold text-xs transition-colors relative cursor-pointer"
             >
               <div className="relative">

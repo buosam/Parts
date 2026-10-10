@@ -115,10 +115,13 @@ export default function CompactVehicleSelector({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs">
           {/* Make */}
           <div>
-            <label className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+            <label htmlFor="vehicle-make-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
               {lang === "ar" ? "الشركة" : "Make"}
             </label>
             <select
+              id="vehicle-make-select"
+              name="vehicle_make"
+              aria-label={lang === "ar" ? "اختر الشركة المصنعة" : "Select Vehicle Make"}
               value={vehicle.make}
               onChange={(e) => handleMakeChange(e.target.value)}
               className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none"
@@ -133,10 +136,13 @@ export default function CompactVehicleSelector({
 
           {/* Model */}
           <div>
-            <label className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+            <label htmlFor="vehicle-model-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
               {lang === "ar" ? "الموديل" : "Model"}
             </label>
             <select
+              id="vehicle-model-select"
+              name="vehicle_model"
+              aria-label={lang === "ar" ? "اختر موديل السيارة" : "Select Vehicle Model"}
               value={vehicle.model}
               onChange={(e) => handleModelChange(e.target.value)}
               className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none"
@@ -151,10 +157,13 @@ export default function CompactVehicleSelector({
 
           {/* Year */}
           <div>
-            <label className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+            <label htmlFor="vehicle-year-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
               {lang === "ar" ? "السنة" : "Year"}
             </label>
             <select
+              id="vehicle-year-select"
+              name="vehicle_year"
+              aria-label={lang === "ar" ? "اختر سنة الصنع" : "Select Vehicle Year"}
               value={vehicle.year}
               onChange={(e) => handleYearChange(e.target.value)}
               className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none"
@@ -169,10 +178,13 @@ export default function CompactVehicleSelector({
 
           {/* Engine */}
           <div>
-            <label className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+            <label htmlFor="vehicle-engine-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
               {lang === "ar" ? "المحرك" : "Engine"}
             </label>
             <select
+              id="vehicle-engine-select"
+              name="vehicle_engine"
+              aria-label={lang === "ar" ? "اختر سعة ونوع المحرك" : "Select Vehicle Engine"}
               value={vehicle.engine}
               onChange={(e) => handleEngineChange(e.target.value)}
               className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none truncate"
