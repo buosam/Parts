@@ -1045,6 +1045,89 @@ async function startServer() {
     res.send('google-site-verification: googled09e448b62467bb4.html');
   });
 
+  // Dedicated XML Sitemap Endpoint for Google Search Console & Crawlers
+  app.get('/sitemap.xml', (req, res) => {
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    const sitemapCandidates = [
+      path.join(process.cwd(), 'dist', 'sitemap.xml'),
+      path.join(process.cwd(), 'public', 'sitemap.xml'),
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'sitemap.xml') : '',
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'public', 'sitemap.xml') : '',
+      typeof __dirname !== 'undefined' ? path.join(__dirname, '..', 'public', 'sitemap.xml') : '',
+    ].filter(Boolean);
+
+    for (const candidate of sitemapCandidates) {
+      if (fs.existsSync(candidate)) {
+        return res.sendFile(candidate);
+      }
+    }
+
+    res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://iqautomarket.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://iqautomarket.com/marketplace</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://iqautomarket.com/workshops</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://iqautomarket.com/dealers</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://iqautomarket.com/subscriptions</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+</urlset>`);
+  });
+
+  // Dedicated robots.txt Endpoint
+  app.get('/robots.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    const robotsCandidates = [
+      path.join(process.cwd(), 'dist', 'robots.txt'),
+      path.join(process.cwd(), 'public', 'robots.txt'),
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'robots.txt') : '',
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'public', 'robots.txt') : '',
+      typeof __dirname !== 'undefined' ? path.join(__dirname, '..', 'public', 'robots.txt') : '',
+    ].filter(Boolean);
+
+    for (const candidate of robotsCandidates) {
+      if (fs.existsSync(candidate)) {
+        return res.sendFile(candidate);
+      }
+    }
+
+    res.send(`User-agent: *\nAllow: /\nSitemap: https://iqautomarket.com/sitemap.xml\n`);
+  });
+
+  // Dedicated LLMs.txt & LLMs-full.txt Endpoints for AI Search Engines
+  app.get('/llms.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    const llmsCandidates = [
+      path.join(process.cwd(), 'dist', 'llms.txt'),
+      path.join(process.cwd(), 'public', 'llms.txt'),
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'llms.txt') : '',
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'public', 'llms.txt') : '',
+    ].filter(Boolean);
+
+    for (const candidate of llmsCandidates) {
+      if (fs.existsSync(candidate)) {
+        return res.sendFile(candidate);
+      }
+    }
+    res.send(`# IQAutoMarket\nIraq's Premier Automotive Parts Marketplace & B2B AI Supply Network\nWebsite: https://iqautomarket.com\n`);
+  });
+
+  app.get('/llms-full.txt', (req, res) => {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    const llmsFullCandidates = [
+      path.join(process.cwd(), 'dist', 'llms-full.txt'),
+      path.join(process.cwd(), 'public', 'llms-full.txt'),
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'llms-full.txt') : '',
+      typeof __dirname !== 'undefined' ? path.join(__dirname, 'public', 'llms-full.txt') : '',
+    ].filter(Boolean);
+
+    for (const candidate of llmsFullCandidates) {
+      if (fs.existsSync(candidate)) {
+        return res.sendFile(candidate);
+      }
+    }
+    res.send(`# IQAutoMarket Detailed Docs\nWebsite: https://iqautomarket.com\n`);
+  });
+
   if (distPath) {
     console.log(`📦 Serving static production frontend from: ${distPath}`);
     app.use(express.static(distPath));
