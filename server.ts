@@ -1039,6 +1039,8 @@ async function startServer() {
     path.resolve(process.cwd(), 'dist'),
   ].filter(Boolean);
 
+  const distPath = possibleDistPaths.find((p) => fs.existsSync(path.join(p, 'index.html')));
+
   // Google Search Console Site Verification Endpoint
   app.get(['/googled09e448b62467bb4.html', '/google:googled09e448b62467bb4.html'], (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
