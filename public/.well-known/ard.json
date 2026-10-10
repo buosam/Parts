@@ -1,0 +1,53 @@
+{
+  "specVersion": "1.0",
+  "host": {
+    "identifier": "https://iqautomarket.com",
+    "displayName": "IQAutoMarket Iraq",
+    "documentationUrl": "https://iqautomarket.com/llms.txt",
+    "logoUrl": "https://iqautomarket.com/og-image.png"
+  },
+  "entries": [
+    {
+      "identifier": "iqautomarket-parts-search",
+      "displayName": "IQAutoMarket Parts Catalog Search API",
+      "type": "api",
+      "url": "https://iqautomarket.com/api/ecommerce/parts",
+      "representativeQueries": [
+        "Search Toyota Camry brake pads in Iraq",
+        "Find Hyundai Tucson oil filter Baghdad",
+        "Look up OEM parts by VIN number"
+      ]
+    },
+    {
+      "identifier": "partline-ai-assistant",
+      "displayName": "Partline AI Automotive Assistant",
+      "type": "agent",
+      "url": "https://iqautomarket.com/api/partline",
+      "representativeQueries": [
+        "Check transmission fluid compatibility for Lexus ES350",
+        "Diagnose suspension squeak and find replacement bushings",
+        "Translate Iraqi car part colloquial names to OEM numbers"
+      ]
+    },
+    {
+      "identifier": "sanawia-ocr-service",
+      "displayName": "Sanawia Iraqi Vehicle Registration OCR",
+      "type": "api",
+      "url": "https://iqautomarket.com/api/documents/scan-sanawia",
+      "representativeQueries": [
+        "Extract chassis VIN number from Iraqi vehicle registration card",
+        "Scan سنوية السيارة to automatically detect model year and engine"
+      ]
+    },
+    {
+      "identifier": "iraq-governorate-logistics",
+      "displayName": "Iraq Governorates Delivery & Shipping Matrix",
+      "type": "api",
+      "url": "https://iqautomarket.com/api/ecommerce/governorates",
+      "representativeQueries": [
+        "Calculate express shipping rate to Erbil, Basra, or Sulaymaniyah",
+        "Check same-day delivery availability in Baghdad Al-Sinak district"
+      ]
+    }
+  ]
+}

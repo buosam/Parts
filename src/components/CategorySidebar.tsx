@@ -146,12 +146,12 @@ export default function CategorySidebar({
   };
 
   return (
-    <aside className="bg-surface rounded-lg border border-line p-4 space-y-6 text-sm text-ink">
+    <aside aria-label={lang === "ar" ? "تصفية الأقسام والقطع" : "Categories and filter navigation"} className="bg-surface rounded-lg border border-line p-4 space-y-6 text-sm text-ink">
       {/* Categories Header */}
       <div>
-        <h3 className="font-bold text-base text-ink pb-2 border-b border-line flex items-center justify-between">
+        <h2 className="font-bold text-base text-ink pb-2 border-b border-line flex items-center justify-between">
           <span>{lang === "ar" ? "الأقسام" : "Categories"}</span>
-        </h3>
+        </h2>
 
         <ul className="mt-3 space-y-1 text-xs sm:text-sm">
           {CATEGORY_TREE.map((cat) => {

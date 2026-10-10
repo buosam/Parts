@@ -1,31 +1,25 @@
-# IQAutoMarket (سوق العراق الموحد لقطع الغيار)
-> Iraq's Premier Automotive Parts Marketplace & B2B AI Supply Network
+# IQAutoMarket
 
-## Overview
-IQAutoMarket (iqautomarket.com) is the unified digital marketplace and B2B procurement network for auto parts in Iraq. It connects retail car owners, certified repair workshops, and authorized parts distributors across all 18 Iraqi governorates (Baghdad, Erbil, Basra, Najaf, Karbala, Sulaymaniyah, Nineveh, etc.).
+> Iraq's premier unified automotive parts marketplace, AI catalog, and B2B supply network across all 18 governorates.
 
-## Core Capabilities
-- **Direct Marketplace**: Genuine OEM and aftermarket parts catalog for Toyota, Hyundai, Kia, Nissan, Lexus, Chevrolet, BMW, Mercedes-Benz, and European/American vehicles.
-- **Partline AI**: Intelligent OEM part number recognition, VIN chassis decoder, and cross-reference compatibility engine.
-- **Sanawia OCR**: Instant optical recognition of Iraqi vehicle registration cards (سنوية السيارة) to automatically extract VIN, chassis, make, and engine type.
-- **B2B Workshop Portal**: Trade credit, wholesale bulk procurement, and repair order management for automotive garages and fleet operators.
-- **Dealer & Supplier Hub**: Inventory syndication, automated quoting, bid dispatching, and governorate delivery logistics.
-- **Comprehensive Delivery**: Upfront digital checkout and insured express delivery across all Iraqi governorates with live tracking.
+IQAutoMarket is the unified digital platform for automotive spare parts in Iraq. It provides instant VIN matching, OEM part number cross-referencing, verified merchant inventories, and nationwide logistics.
 
-## Key Sections & URLs
-- Main Marketplace: https://iqautomarket.com/
-- Search & Catalog: https://iqautomarket.com/marketplace
-- Workshop Portal: https://iqautomarket.com/workshops
-- Dealer Network: https://iqautomarket.com/dealers
-- Prime Subscriptions: https://iqautomarket.com/subscriptions
+## Core Services
 
-## Supported Car Brands
-Toyota, Lexus, Nissan, Hyundai, Kia, Chevrolet, GMC, Ford, BMW, Mercedes-Benz, Audi, Volkswagen, Dodge, Jeep, Mitsubishi, Land Rover, MG, Chery, Geely, Changan.
+- [Main Marketplace](https://iqautomarket.com/): Comprehensive genuine OEM and aftermarket automotive parts catalog.
+- [Parts Catalog & Search](https://iqautomarket.com/marketplace): Direct search by part name, OEM reference code, or vehicle model.
+- [Partline AI Assistant](https://iqautomarket.com/api/partline): Conversational AI assistant for automotive parts compatibility and diagnostic cross-matching.
+- [Sanawia Vehicle Card OCR](https://iqautomarket.com/api/documents/scan-sanawia): Optical character recognition for Iraqi vehicle registration cards (سنوية السيارة).
+- [Workshop Portal](https://iqautomarket.com/workshops): Dedicated procurement system for automotive garages and fleet operators.
+- [Dealer & Supplier Network](https://iqautomarket.com/dealers): Syndicated inventory management and live parts bid dispatching.
 
-## Supported Part Categories
-Brake Pads & Rotors, Engine Components, Suspension & Steering, Transmissions & Clutches, Electrical & Alternators, Body Panels & Bumpers, Filters & Synthetic Oils, Cooling & Radiators, Air Conditioning & Compressors.
+## Agentic & Developer Resources
 
-## Contact & Geographic Identity
-- Location: Al-Sinak Auto Parts District, Baghdad, Iraq (Coordinates: 33.3152, 44.3661)
-- Area Served: All 18 Iraqi Governorates
-- Official Website: https://iqautomarket.com
+- [Agent Resource Discovery Catalog](https://iqautomarket.com/.well-known/ai-catalog.json): Standardized ARD and WebMCP machine-readable catalog of tools and APIs.
+- [ARD Specification Manifest](https://iqautomarket.com/.well-known/ard.json): Agentic Resource Discovery manifest adhering to v1.0 standard.
+- [XML Sitemap](https://iqautomarket.com/sitemap.xml): XML indexing map of verified parts, categories, and vehicle models.
+- [Robots Policy](https://iqautomarket.com/robots.txt): Machine crawling permissions and sitemap references.
+
+## Optional
+
+- [Full LLM Context & Specifications](https://iqautomarket.com/llms-full.txt): Comprehensive documentation including supported car makes, parts categories, and Iraq governorate shipping matrix.

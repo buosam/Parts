@@ -1,5 +1,5 @@
 # =============================================================
-# IQAutoMarket Crawler & AI Search Directives (GEO Optimization)
+# IQAutoMarket Crawler & AI Search Directives (GEO & ARD Optimization)
 # =============================================================
 
 # Standard Search Engines (Google, Bing, Yandex, Yahoo)
@@ -13,7 +13,10 @@ Allow: /brand/
 Allow: /category/
 Allow: /llms.txt
 Allow: /llms-full.txt
-Disallow: /api/
+Allow: /.well-known/ai-catalog.json
+Allow: /.well-known/ard.json
+Allow: /ai-catalog.json
+Allow: /ard.json
 Disallow: /admin
 Disallow: /api/internal/
 
@@ -21,22 +24,32 @@ Disallow: /api/internal/
 User-agent: GPTBot
 Allow: /
 Allow: /llms.txt
+Allow: /.well-known/ai-catalog.json
+Allow: /.well-known/ard.json
 
 User-agent: ChatGPT-User
 Allow: /
 Allow: /llms.txt
+Allow: /.well-known/ai-catalog.json
+Allow: /.well-known/ard.json
 
 User-agent: Google-Extended
 Allow: /
 Allow: /llms.txt
+Allow: /.well-known/ai-catalog.json
+Allow: /.well-known/ard.json
 
 User-agent: ClaudeBot
 Allow: /
 Allow: /llms.txt
+Allow: /.well-known/ai-catalog.json
+Allow: /.well-known/ard.json
 
 User-agent: PerplexityBot
 Allow: /
 Allow: /llms.txt
+Allow: /.well-known/ai-catalog.json
+Allow: /.well-known/ard.json
 
 User-agent: Applebot-Extended
 Allow: /
@@ -48,4 +61,3 @@ Allow: /llms.txt
 
 # Sitemaps & Semantic AI Knowledge Documents
 Sitemap: https://iqautomarket.com/sitemap.xml
-

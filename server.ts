@@ -1095,9 +1095,87 @@ async function startServer() {
     res.send(`User-agent: *\nAllow: /\nSitemap: https://iqautomarket.com/sitemap.xml\n`);
   });
 
+  // Dedicated Agentic Resource Discovery (ARD / WebMCP) Endpoints for AI Agents & Lighthouse
+  app.get(
+    ['/.well-known/ai-catalog.json', '/.well-known/ard.json', '/ai-catalog.json', '/ard.json'],
+    (req, res) => {
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      const catalogCandidates = [
+        path.join(process.cwd(), 'dist', '.well-known', 'ai-catalog.json'),
+        path.join(process.cwd(), 'public', '.well-known', 'ai-catalog.json'),
+        path.join(process.cwd(), 'public', 'ai-catalog.json'),
+        typeof __dirname !== 'undefined' ? path.join(__dirname, '.well-known', 'ai-catalog.json') : '',
+        typeof __dirname !== 'undefined' ? path.join(__dirname, 'public', '.well-known', 'ai-catalog.json') : '',
+      ].filter(Boolean);
+
+      for (const candidate of catalogCandidates) {
+        if (fs.existsSync(candidate)) {
+          return res.sendFile(candidate);
+        }
+      }
+
+      res.json({
+        specVersion: "1.0",
+        host: {
+          identifier: "https://iqautomarket.com",
+          displayName: "IQAutoMarket Iraq",
+          documentationUrl: "https://iqautomarket.com/llms.txt",
+          logoUrl: "https://iqautomarket.com/og-image.png"
+        },
+        entries: [
+          {
+            identifier: "iqautomarket-parts-search",
+            displayName: "IQAutoMarket Parts Catalog Search API",
+            type: "api",
+            url: "https://iqautomarket.com/api/ecommerce/parts",
+            representativeQueries: [
+              "Search Toyota Camry brake pads in Iraq",
+              "Find Hyundai Tucson oil filter Baghdad",
+              "Look up OEM parts by VIN number"
+            ]
+          },
+          {
+            identifier: "partline-ai-assistant",
+            displayName: "Partline AI Automotive Assistant",
+            type: "agent",
+            url: "https://iqautomarket.com/api/partline",
+            representativeQueries: [
+              "Check transmission fluid compatibility for Lexus ES350",
+              "Diagnose suspension squeak and find replacement bushings",
+              "Translate Iraqi car part colloquial names to OEM numbers"
+            ]
+          },
+          {
+            identifier: "sanawia-ocr-service",
+            displayName: "Sanawia Iraqi Vehicle Registration OCR",
+            type: "api",
+            url: "https://iqautomarket.com/api/documents/scan-sanawia",
+            representativeQueries: [
+              "Extract chassis VIN number from Iraqi vehicle registration card",
+              "Scan سنوية السيارة to automatically detect model year and engine"
+            ]
+          },
+          {
+            identifier: "iraq-governorate-logistics",
+            displayName: "Iraq Governorates Delivery & Shipping Matrix",
+            type: "api",
+            url: "https://iqautomarket.com/api/ecommerce/governorates",
+            representativeQueries: [
+              "Calculate express shipping rate to Erbil, Basra, or Sulaymaniyah",
+              "Check same-day delivery availability in Baghdad Al-Sinak district"
+            ]
+          }
+        ]
+      });
+    }
+  );
+
   // Dedicated LLMs.txt & LLMs-full.txt Endpoints for AI Search Engines
   app.get('/llms.txt', (req, res) => {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     const llmsCandidates = [
       path.join(process.cwd(), 'dist', 'llms.txt'),
       path.join(process.cwd(), 'public', 'llms.txt'),
@@ -1110,11 +1188,12 @@ async function startServer() {
         return res.sendFile(candidate);
       }
     }
-    res.send(`# IQAutoMarket\nIraq's Premier Automotive Parts Marketplace & B2B AI Supply Network\nWebsite: https://iqautomarket.com\n`);
+    res.send(`# IQAutoMarket\n\n> Iraq's premier unified automotive parts marketplace, AI catalog, and B2B supply network across all 18 governorates.\n\nIQAutoMarket is the unified digital platform for automotive spare parts in Iraq.\n\n## Core Services\n- [Main Marketplace](https://iqautomarket.com/): Genuine OEM parts catalog.\n- [Parts Catalog & Search](https://iqautomarket.com/marketplace): Search parts by name or VIN.\n\n## Optional\n- [Full LLM Context & Specifications](https://iqautomarket.com/llms-full.txt): Comprehensive documentation.\n`);
   });
 
   app.get('/llms-full.txt', (req, res) => {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     const llmsFullCandidates = [
       path.join(process.cwd(), 'dist', 'llms-full.txt'),
       path.join(process.cwd(), 'public', 'llms-full.txt'),
