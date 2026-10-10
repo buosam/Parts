@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getDbPool } from '../db';
+import { logAuditEvent } from '../security/audit';
 import {
   Coupon,
   CityShippingRate,
@@ -123,6 +124,15 @@ router.post('/coupons', async (req: Request, res: Response) => {
       console.warn('Coupon DB insert fallback:', e);
     }
   }
+
+  logAuditEvent({
+    action: 'COUPON_CREATED',
+    resourceType: 'coupon',
+    resourceId: newCoupon.code,
+    ipAddress: req.ip || '127.0.0.1',
+    status: 'SUCCESS',
+    metadata: { code: newCoupon.code, discountValue: newCoupon.discountValue, discountType: newCoupon.discountType },
+  });
 
   return res.status(201).json({ success: true, coupon: newCoupon });
 });

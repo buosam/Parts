@@ -19,7 +19,7 @@ import {
   UserAccount,
   UserRole,
 } from '../security/auth';
-import { requireAuth, AuthenticatedRequest } from '../security/rbac';
+import { requireAuth, optionalAuth, AuthenticatedRequest } from '../security/rbac';
 import { logAuditEvent } from '../security/audit';
 
 const router = express.Router();
@@ -123,7 +123,7 @@ router.post('/register', (req, res) => {
   logAuditEvent({
     actorId: userId,
     actorRole: newUser.role,
-    action: isDealer ? 'DEALER_REGISTRATION' : 'USER_LOGIN',
+    action: isDealer ? 'DEALER_REGISTRATION' : 'USER_REGISTER',
     resourceType: 'user',
     resourceId: userId,
     ipAddress: req.ip || '127.0.0.1',
@@ -449,6 +449,16 @@ router.post('/forgot-password', (req, res) => {
     used: false,
   });
 
+  logAuditEvent({
+    actorId: user.id,
+    actorRole: user.role,
+    action: 'PASSWORD_RESET_REQUEST',
+    resourceType: 'user_password_reset',
+    resourceId: user.id,
+    ipAddress: req.ip || '127.0.0.1',
+    status: 'SUCCESS',
+  });
+
   console.log(`🔑 [Password Reset] Issued reset code [${code}] for user ${user.email} (${user.id})`);
 
   res.json({
@@ -515,7 +525,7 @@ router.post('/reset-password', (req, res) => {
   logAuditEvent({
     actorId: user.id,
     actorRole: user.role,
-    action: 'PASSWORD_CHANGE',
+    action: 'PASSWORD_RESET_COMPLETE',
     resourceType: 'user_password_reset',
     resourceId: user.id,
     ipAddress: req.ip || '127.0.0.1',
@@ -571,6 +581,7 @@ router.get('/me', requireAuth, (req: AuthenticatedRequest, res) => {
   const user = req.user!;
   res.json({
     success: true,
+    authenticated: true,
     user: sanitizeUserResponse(user),
     session: {
       id: req.session!.id,
@@ -597,11 +608,12 @@ router.patch('/profile', requireAuth, (req: AuthenticatedRequest, res) => {
   logAuditEvent({
     actorId: user.id,
     actorRole: user.role,
-    action: 'USER_LOGIN',
-    resourceType: 'user_profile_update',
+    action: 'USER_PROFILE_UPDATE',
+    resourceType: 'user_profile',
     resourceId: user.id,
     ipAddress: req.ip || '127.0.0.1',
     status: 'SUCCESS',
+    metadata: { updatedFields: Object.keys(req.body) },
   });
 
   res.json({

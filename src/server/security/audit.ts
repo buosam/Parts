@@ -5,29 +5,46 @@
  */
 
 export type AuditAction =
+  | 'USER_REGISTER'
   | 'USER_LOGIN'
   | 'USER_LOGOUT'
+  | 'USER_PROFILE_UPDATE'
   | 'PASSWORD_CHANGE'
+  | 'PASSWORD_RESET_REQUEST'
+  | 'PASSWORD_RESET_COMPLETE'
+  | 'OTP_REQUEST'
+  | 'OTP_VERIFIED'
+  | 'OTP_FAILED'
   | 'ROLE_CHANGE'
   | 'PRIVILEGE_ESCALATION_BLOCKED'
   | 'DEALER_REGISTRATION'
   | 'DEALER_APPROVAL'
   | 'DEALER_SUSPEND'
+  | 'DEALER_INVENTORY_SYNC'
   | 'ADMIN_ACCESS'
+  | 'ADMIN_CONFIG_UPDATE'
   | 'DOCUMENT_ACCESS'
   | 'DOCUMENT_UPLOAD'
+  | 'DOCUMENT_OCR_PROCESSED'
   | 'INVENTORY_MUTATION'
   | 'PRICE_UPDATE'
   | 'OFFER_CREATE'
+  | 'PART_REQUEST_CREATED'
+  | 'PART_REQUEST_BID_ACCEPTED'
   | 'ORDER_CREATE'
+  | 'ORDER_PAYMENT_PROCESSED'
   | 'ORDER_STATUS_UPDATE'
   | 'ORDER_REFUND'
+  | 'CART_CHECKOUT_ATTEMPT'
   | 'SESSION_REVOCATION'
   | 'INTEGRATION_CREDENTIAL_CHANGE'
   | 'SUBSCRIPTION_UPGRADED'
   | 'SUBSCRIPTION_CANCELLED'
   | 'COUPON_CREATED'
+  | 'COUPON_APPLIED'
   | 'SHIPPING_RATE_UPDATE'
+  | 'SECURITY_THREAT_DETECTED'
+  | 'RATE_LIMIT_EXCEEDED'
   | 'UNAUTHORIZED_ACCESS_ATTEMPT';
 
 export interface AuditLogEntry {
@@ -75,7 +92,19 @@ export function logAuditEvent(params: {
   auditLogsStore.push(entry);
 
   if (entry.status === 'DENIED') {
-    console.warn(`🚨 [SECURITY AUDIT ALERT] Unauthorized access denied: Action=${entry.action}, Actor=${entry.actorId} (${entry.actorRole}), Resource=${entry.resourceType}:${entry.resourceId || 'N/A'}`);
+    console.warn(
+      `🚨 [SECURITY AUDIT ALERT] Unauthorized access denied: Action=${entry.action}, Actor=${entry.actorId} (${entry.actorRole}), Resource=${entry.resourceType}:${entry.resourceId || 'N/A'}`
+    );
+  } else if (
+    entry.action === 'USER_LOGIN' ||
+    entry.action === 'USER_REGISTER' ||
+    entry.action === 'ORDER_CREATE' ||
+    entry.action === 'SUBSCRIPTION_UPGRADED' ||
+    entry.action === 'COUPON_CREATED'
+  ) {
+    console.log(
+      `🛡️ [AUDIT] [${entry.action}] Actor=${entry.actorId} (${entry.actorRole}) -> Resource=${entry.resourceType}:${entry.resourceId || 'N/A'}`
+    );
   }
 
   return entry;
