@@ -275,6 +275,130 @@ export async function initDatabase(): Promise<boolean> {
         is_active BOOLEAN DEFAULT true,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS buyer_vehicles (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        make VARCHAR(100) NOT NULL,
+        model VARCHAR(100) NOT NULL,
+        year INTEGER NOT NULL,
+        engine VARCHAR(150),
+        trim VARCHAR(100),
+        vin VARCHAR(100),
+        nickname VARCHAR(100),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_buyer_vehicles_user ON buyer_vehicles(user_id);
+
+      CREATE TABLE IF NOT EXISTS buyer_part_requests (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        request_number VARCHAR(64) UNIQUE NOT NULL,
+        part_name VARCHAR(255) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        urgency VARCHAR(50) DEFAULT 'STANDARD',
+        city VARCHAR(100) NOT NULL,
+        vehicle JSONB NOT NULL,
+        preferred_condition VARCHAR(64) DEFAULT 'genuine',
+        notes TEXT,
+        photo_url TEXT,
+        status VARCHAR(32) DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'OFFERS_RECEIVED', 'ACCEPTED', 'CLOSED')),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        expires_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() + INTERVAL '48 HOURS'
+      );
+      CREATE INDEX IF NOT EXISTS idx_buyer_requests_user ON buyer_part_requests(user_id);
+      CREATE INDEX IF NOT EXISTS idx_buyer_requests_status ON buyer_part_requests(status);
+
+      CREATE TABLE IF NOT EXISTS request_offers (
+        id VARCHAR(64) PRIMARY KEY,
+        request_id VARCHAR(64) NOT NULL REFERENCES buyer_part_requests(id) ON DELETE CASCADE,
+        dealer_id VARCHAR(64) NOT NULL,
+        dealer_name VARCHAR(255) NOT NULL,
+        price_usd NUMERIC(10, 2) NOT NULL,
+        price_iqd NUMERIC(14, 2) NOT NULL,
+        quality VARCHAR(32) NOT NULL,
+        brand VARCHAR(100) NOT NULL,
+        warranty VARCHAR(150),
+        delivery_time VARCHAR(150),
+        delivery_cost_usd NUMERIC(8, 2) DEFAULT 0,
+        stock_status VARCHAR(50),
+        available_stock INTEGER DEFAULT 1,
+        rating NUMERIC(3, 1) DEFAULT 5.0,
+        verified BOOLEAN DEFAULT true,
+        notes TEXT,
+        status VARCHAR(32) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'EXPIRED')),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_request_offers_req ON request_offers(request_id);
+
+      CREATE TABLE IF NOT EXISTS buyer_orders (
+        id VARCHAR(64) PRIMARY KEY,
+        order_number VARCHAR(64) UNIQUE NOT NULL,
+        user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        dealer_id VARCHAR(64) NOT NULL,
+        dealer_name VARCHAR(255) NOT NULL,
+        total_usd NUMERIC(10, 2) NOT NULL,
+        total_iqd NUMERIC(14, 2) NOT NULL,
+        delivery_fee_usd NUMERIC(8, 2) DEFAULT 0,
+        delivery_method VARCHAR(50) NOT NULL DEFAULT 'standard',
+        delivery_address TEXT NOT NULL,
+        payment_method VARCHAR(50) NOT NULL DEFAULT 'Cash on Delivery',
+        payment_status VARCHAR(32) DEFAULT 'UNPAID',
+        status VARCHAR(32) DEFAULT 'PLACED' CHECK (status IN ('PLACED', 'CONFIRMED', 'DISPATCHED', 'DELIVERED', 'CANCELLED')),
+        items JSONB NOT NULL,
+        confirmation_pin VARCHAR(10),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_buyer_orders_user ON buyer_orders(user_id);
+      CREATE INDEX IF NOT EXISTS idx_buyer_orders_dealer ON buyer_orders(dealer_id);
+
+      CREATE TABLE IF NOT EXISTS master_parts (
+        id VARCHAR(64) PRIMARY KEY,
+        part_number VARCHAR(100) NOT NULL,
+        oem_number VARCHAR(100),
+        alternative_numbers TEXT[],
+        part_name VARCHAR(255) NOT NULL,
+        part_name_ar VARCHAR(255) NOT NULL,
+        manufacturer VARCHAR(100) NOT NULL,
+        brand VARCHAR(100) NOT NULL,
+        category VARCHAR(100) NOT NULL,
+        subcategory VARCHAR(100),
+        description TEXT,
+        description_ar TEXT,
+        specifications JSONB DEFAULT '{}'::jsonb,
+        image_url TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_master_parts_num ON master_parts(part_number, oem_number);
+
+      CREATE TABLE IF NOT EXISTS vehicle_fitments (
+        id SERIAL PRIMARY KEY,
+        master_part_id VARCHAR(64) NOT NULL REFERENCES master_parts(id) ON DELETE CASCADE,
+        make VARCHAR(100) NOT NULL,
+        model VARCHAR(100) NOT NULL,
+        generation VARCHAR(100),
+        year_start INTEGER NOT NULL,
+        year_end INTEGER NOT NULL,
+        engine VARCHAR(150),
+        position VARCHAR(100),
+        notes TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_fitments_search ON vehicle_fitments(make, model, year_start, year_end);
+
+      CREATE TABLE IF NOT EXISTS vehicle_documents (
+        id VARCHAR(64) PRIMARY KEY,
+        user_id VARCHAR(64) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        document_type VARCHAR(50) NOT NULL DEFAULT 'SANAWIA',
+        file_name VARCHAR(255),
+        mime_type VARCHAR(100),
+        storage_key_encrypted TEXT,
+        extracted_vehicle_data JSONB DEFAULT '{}'::jsonb,
+        is_verified BOOLEAN DEFAULT false,
+        retention_expires_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() + INTERVAL '365 DAYS',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_vehicle_docs_user ON vehicle_documents(user_id);
     `);
 
     client.release();
@@ -288,4 +412,21 @@ export async function initDatabase(): Promise<boolean> {
 
 export function isDbConnected(): boolean {
   return isConnected;
+}
+
+export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
+  const p = getDbPool();
+  if (!p || !isConnected) return [];
+  try {
+    const res = await p.query(text, params);
+    return res.rows as T[];
+  } catch (error) {
+    console.warn(`PostgreSQL query error: ${text.slice(0, 80)}...`, error);
+    return [];
+  }
+}
+
+export async function queryOne<T = any>(text: string, params?: any[]): Promise<T | null> {
+  const rows = await query<T>(text, params);
+  return rows.length > 0 ? rows[0] : null;
 }

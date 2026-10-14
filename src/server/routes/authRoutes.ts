@@ -16,13 +16,28 @@ import {
   createSession,
   revokeSession,
   revokeAllSessions,
+  saveUserToDb,
+  saveOtpChallengeToDb,
+  savePasswordResetToDb,
   UserAccount,
   UserRole,
 } from '../security/auth';
+import { queryOne } from '../db';
 import { requireAuth, optionalAuth, AuthenticatedRequest } from '../security/rbac';
 import { logAuditEvent } from '../security/audit';
 
 const router = express.Router();
+
+// Helper to set secure, HttpOnly session cookie
+export function setSessionCookie(res: express.Response, token: string): void {
+  res.cookie('iqm_session', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+  });
+}
 
 // Helper to format clean user profile for client responses
 function sanitizeUserResponse(user: UserAccount) {

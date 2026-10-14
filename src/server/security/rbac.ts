@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { UserRole, UserAccount, UserSession, validateSessionToken } from './auth';
+import { UserRole, UserAccount, UserSession, validateSessionToken, validateSessionTokenAsync } from './auth';
 import { logAuditEvent } from './audit';
 
 // Extend Express Request interface to hold authenticated context
@@ -15,11 +15,30 @@ export interface AuthenticatedRequest extends Request {
   dealerId?: string;
 }
 
-// 1. Mandatory Authentication Middleware
-export function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+// Helper to extract session token from Authorization header, x-session-token header, or HttpOnly cookie
+export function extractTokenFromRequest(req: Request): string | undefined {
   const authHeader = req.headers.authorization || (req.headers['x-session-token'] as string);
+  if (authHeader) {
+    const clean = authHeader.replace(/^Bearer\s+/i, '').trim();
+    if (clean && clean !== 'null' && clean !== 'undefined') return clean;
+  }
 
-  if (!authHeader) {
+  const cookieHeader = req.headers.cookie;
+  if (cookieHeader) {
+    const match = cookieHeader.match(/(?:^|;\s*)iqm_session=([^;]+)/);
+    if (match && match[1]) {
+      return decodeURIComponent(match[1]);
+    }
+  }
+
+  return undefined;
+}
+
+// 1. Mandatory Authentication Middleware (with HttpOnly cookie support and DB fallback)
+export async function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  const token = extractTokenFromRequest(req);
+
+  if (!token) {
     res.status(401).json({
       error: 'UNAUTHORIZED',
       message: 'Authentication token required.',
@@ -28,7 +47,7 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
     return;
   }
 
-  const { valid, user, session, reason } = validateSessionToken(authHeader);
+  const { valid, user, session, reason } = await validateSessionTokenAsync(token);
 
   if (!valid || !user || !session) {
     if (reason !== 'MISSING_TOKEN') {
@@ -64,11 +83,11 @@ export function requireAuth(req: AuthenticatedRequest, res: Response, next: Next
 }
 
 // 1.1 Optional Authentication Middleware (Allows guests while attaching user if token is present)
-export function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization || (req.headers['x-session-token'] as string);
-  if (!authHeader) return next();
+export async function optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  const token = extractTokenFromRequest(req);
+  if (!token) return next();
 
-  const { valid, user, session } = validateSessionToken(authHeader);
+  const { valid, user, session } = await validateSessionTokenAsync(token);
   if (valid && user && session) {
     req.user = user;
     req.session = session;
