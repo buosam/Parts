@@ -317,8 +317,8 @@ export default function SiteHeader({
       </div>
 
       {/* Second Navigation Bar - Clean Separation of B2B Portals & Categories */}
-      <div className="bg-[#1c2430] text-gray-200 border-t border-gray-800 text-xs overflow-x-auto no-scrollbar w-full max-w-full touch-pan-x">
-        <div className="mx-auto flex h-10 max-w-7xl items-center px-3 sm:px-6 gap-2 whitespace-nowrap min-w-max">
+      <div className="bg-[#1c2430] text-gray-200 border-t border-gray-800 text-xs overflow-x-auto no-scrollbar w-full max-w-full" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="flex h-10 items-center px-3 sm:px-6 gap-2 whitespace-nowrap w-max mx-auto" style={{ maxWidth: '80rem' }}>
           {/* Left: Category Quick Links */}
           <div className="flex items-center gap-1">
             <button

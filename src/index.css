@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "./design-tokens.css";
 
+/* ─── Universal box-sizing reset ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  min-width: 0;    /* Prevents flex/grid children from overflowing their containers */
+}
+
 @theme {
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -88,8 +94,7 @@ html {
   -webkit-tap-highlight-color: transparent;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
-  overflow-x: clip;
+  overflow-x: clip; /* clip is safer than hidden for sticky children */
 }
 
 body {
@@ -98,7 +103,6 @@ body {
   color: #262219;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -113,19 +117,28 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
   overflow-x: clip;
 }
 
 /* Fluid media */
-img, svg, video, canvas, audio, iframe, embed, object {
+img, video, canvas, audio, iframe, embed, object {
   max-width: 100%;
   height: auto;
+}
+/* SVG must NOT have height:auto or it breaks icon sizing */
+svg {
+  max-width: 100%;
 }
 
 /* Touch responsiveness without tap delay */
 button, input, select, textarea, a {
   touch-action: manipulation;
+}
+
+/* Horizontal scroll containers: allow touch momentum */
+.overflow-x-auto, [data-scroll-x] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 ::selection {
