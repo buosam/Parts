@@ -178,31 +178,31 @@ export const RequestsBoard: React.FC = () => {
       <div className="bg-[#0e1424] rounded-2xl border border-white/10 p-3.5 mb-6 shadow-md">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           {/* Dual Perspective Toggle */}
-          <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/5 w-full sm:w-auto">
             <button
               id="view-mode-buyer-btn"
               onClick={() => setBiddingPerspective('buyer')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer min-h-[40px] ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[40px] flex-1 ${
                 biddingPerspective === 'buyer'
                   ? 'bg-indigo-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'طلباتي ومقارنة العروض' : 'My Requests & Quotes'}</span>
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{isArabic ? 'طلباتي ومقارنة العروض' : 'My Requests & Quotes'}</span>
             </button>
 
             <button
               id="view-mode-dealer-btn"
               onClick={() => setBiddingPerspective('dealer')}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer min-h-[40px] ${
+              className={`px-3 sm:px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer min-h-[40px] flex-1 ${
                 biddingPerspective === 'dealer'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                   : 'text-slate-400 hover:text-amber-300'
               }`}
             >
-              <Store className="w-3.5 h-3.5" />
-              <span>{isArabic ? 'صالة تقديم العروض للمتاجر' : 'Dealer Quote Room'}</span>
+              <Store className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{isArabic ? 'صالة تقديم العروض للمتاجر' : 'Dealer Quote Room'}</span>
             </button>
           </div>
 

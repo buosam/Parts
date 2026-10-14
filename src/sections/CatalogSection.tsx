@@ -66,9 +66,9 @@ export default function CatalogSection(props: Props) {
     (filters.availability !== "all" ? 1 : 0);
 
   return (
-    <section id="catalog" className="mx-auto max-w-7xl px-3 sm:px-6 py-6">
+    <section id="catalog" className="mx-auto max-w-7xl px-3 sm:px-6 py-4 sm:py-6 w-full overflow-hidden sm:overflow-visible">
       {/* Breadcrumbs Navigation */}
-      <nav aria-label="Breadcrumb" className="mb-3 text-xs text-ink-soft flex items-center gap-1.5 flex-wrap">
+      <nav aria-label="Breadcrumb" className="mb-2.5 sm:mb-3 text-xs text-ink-soft flex items-center gap-1.5 flex-wrap">
         <a href="#top" aria-label={lang === "ar" ? "الصفحة الرئيسية" : "Homepage"} className="hover:text-terra flex items-center gap-1">
           <Home className="size-3.5" />
           <span>{lang === "ar" ? "الرئيسية" : "Home"}</span>
@@ -78,19 +78,19 @@ export default function CatalogSection(props: Props) {
           {lang === "ar" ? "قطع السيارات" : "Auto Parts"}
         </span>
         <ChevronRight className="size-3 text-ink-faint rtl:rotate-180" aria-hidden="true" />
-        <span className="font-semibold text-ink">
+        <span className="font-semibold text-ink truncate max-w-[200px]">
           {vehicle.make} {vehicle.model} ({vehicle.year})
         </span>
       </nav>
 
       {/* Semantic Primary Page Header for Accessibility & SEO */}
       <div className="mb-4">
-        <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight break-words">
           {lang === "ar"
             ? "سوق قطع غيار السيارات المعتمدة والمطابقة في العراق"
             : "Iraq Automotive Parts Marketplace & Direct Catalog"}
         </h1>
-        <p className="text-xs sm:text-sm text-ink-muted mt-1">
+        <p className="text-xs sm:text-sm text-ink-muted mt-1 break-words">
           {lang === "ar"
             ? `تصفح أحدث قطع الغيار الأصلية والتجارية المطابقة لسيارة ${vehicle.make} ${vehicle.model} ${vehicle.year} مع شحن فوري لجميع محافظات العراق.`
             : `Search genuine and verified aftermarket auto parts with guaranteed compatibility for ${vehicle.make} ${vehicle.model} ${vehicle.year}.`}
@@ -98,7 +98,7 @@ export default function CatalogSection(props: Props) {
       </div>
 
       {/* Main Grid Layout: Left Sidebar + Main Shopping Area */}
-      <div className="grid gap-6 lg:grid-cols-[260px_1fr] items-start">
+      <div className="grid gap-6 lg:grid-cols-[260px_1fr] items-start w-full min-w-0">
         {/* Left Category & Filter Sidebar (Desktop) */}
         <div className="hidden lg:block sticky top-20">
           <CategorySidebar
@@ -110,7 +110,7 @@ export default function CatalogSection(props: Props) {
         </div>
 
         {/* Main Shopping Area */}
-        <div className="min-w-0">
+        <div className="min-w-0 w-full">
           {/* Compact Vehicle Selector */}
           <CompactVehicleSelector
             vehicle={vehicle}
@@ -118,66 +118,69 @@ export default function CatalogSection(props: Props) {
           />
 
           {/* Results Toolbar Header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-line mb-4">
-            {/* Mobile Filter Sheet Trigger */}
-            <div className="lg:hidden">
-              <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-                <SheetTrigger asChild>
-                  <button className="flex h-9 items-center gap-2 rounded border border-line bg-surface px-3 text-xs font-semibold text-ink">
-                    <Filter className="size-3.5 text-terra" />
-                    <span>{lang === "ar" ? "التصفية والأقسام" : "Categories & Filters"}</span>
-                    {activeFilterCount > 0 && (
-                      <span className="grid min-w-4 place-items-center rounded-full bg-terra px-1 text-[10px] text-white">
-                        {activeFilterCount}
-                      </span>
-                    )}
-                  </button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[300px] overflow-y-auto bg-surface p-4">
-                  <SheetHeader className="mb-4">
-                    <SheetTitle className="text-start text-base font-bold">
-                      {lang === "ar" ? "تصفية الأقسام والقطع" : "Categories & Filters"}
-                    </SheetTitle>
-                  </SheetHeader>
-                  <CategorySidebar
-                    filters={filters}
-                    onFilters={onFilters}
-                    selectedVehicle={vehicle}
-                    availableBrands={availableBrands}
-                  />
-                </SheetContent>
-              </Sheet>
-            </div>
+          <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-3 pb-3 border-b border-line mb-4 w-full">
+            {/* Mobile Filter Sheet Trigger & Results Count */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              {/* Mobile Filter Sheet Trigger */}
+              <div className="lg:hidden shrink-0">
+                <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
+                  <SheetTrigger asChild>
+                    <button className="flex h-9 items-center gap-1.5 sm:gap-2 rounded border border-line bg-surface px-2.5 sm:px-3 text-xs font-semibold text-ink hover:bg-sand/60 transition-colors cursor-pointer">
+                      <Filter className="size-3.5 text-terra" />
+                      <span>{lang === "ar" ? "الأقسام والتصفية" : "Filters"}</span>
+                      {activeFilterCount > 0 && (
+                        <span className="grid min-w-4 place-items-center rounded-full bg-terra px-1 text-[10px] text-white font-mono">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent side={lang === "ar" ? "right" : "left"} className="w-[min(320px,85vw)] overflow-y-auto bg-surface p-4">
+                    <SheetHeader className="mb-4">
+                      <SheetTitle className="text-start text-base font-bold">
+                        {lang === "ar" ? "تصفية الأقسام والقطع" : "Categories & Filters"}
+                      </SheetTitle>
+                    </SheetHeader>
+                    <CategorySidebar
+                      filters={filters}
+                      onFilters={onFilters}
+                      selectedVehicle={vehicle}
+                      availableBrands={availableBrands}
+                    />
+                  </SheetContent>
+                </Sheet>
+              </div>
 
-            {/* Results Counter */}
-            <div className="text-xs text-ink-soft">
-              <span className="font-bold text-ink text-sm sm:text-base font-mono me-1">
-                {props.parts.length}
-              </span>
-              <span>{lang === "ar" ? "قطعة متوفرة" : "results"}</span>
-              {props.query && (
-                <span className="ms-1.5 text-terra font-mono">
-                  "{props.query}"
+              {/* Results Counter */}
+              <div className="text-xs text-ink-soft min-w-0 truncate">
+                <span className="font-bold text-ink text-sm sm:text-base font-mono me-1">
+                  {props.parts.length}
                 </span>
-              )}
+                <span>{lang === "ar" ? "قطعة" : "results"}</span>
+                {props.query && (
+                  <span className="ms-1 text-terra font-mono truncate max-w-[100px] inline-block align-bottom">
+                    "{props.query}"
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Sort & Grid/List View Controls */}
-            <div className="flex items-center gap-2 ms-auto">
+            <div className="flex items-center gap-1.5 sm:gap-2 ms-auto shrink-0">
               {/* Sort Dropdown */}
               <div className="relative">
                 <select
                   value={props.sort}
                   onChange={(e) => props.onSort(e.target.value as SortKey)}
-                  className="h-9 appearance-none rounded border border-line bg-surface ps-3 pe-8 text-xs font-semibold text-ink outline-none focus:ring-1 focus:ring-terra"
+                  className="h-9 max-w-[145px] sm:max-w-none appearance-none rounded border border-line bg-surface ps-2.5 sm:ps-3 pe-7 sm:pe-8 text-xs font-semibold text-ink outline-none focus:ring-1 focus:ring-terra truncate cursor-pointer"
                   aria-label="Sort products"
                 >
-                  <option value="match">{lang === "ar" ? "الأكثر ملاءمة" : "Sort by: Relevance"}</option>
-                  <option value="priceAsc">{lang === "ar" ? "السعر: من الأقل للأعلى" : "Sort by: Price (Low to High)"}</option>
-                  <option value="priceDesc">{lang === "ar" ? "السعر: من الأعلى للأقل" : "Sort by: Price (High to Low)"}</option>
-                  <option value="rating">{lang === "ar" ? "أعلى تقييم" : "Sort by: Top Rated"}</option>
+                  <option value="match">{lang === "ar" ? "الأكثر ملاءمة" : "Sort: Relevance"}</option>
+                  <option value="priceAsc">{lang === "ar" ? "السعر: الأقل" : "Price: Low to High"}</option>
+                  <option value="priceDesc">{lang === "ar" ? "السعر: الأعلى" : "Price: High to Low"}</option>
+                  <option value="rating">{lang === "ar" ? "أعلى تقييم" : "Top Rated"}</option>
                 </select>
-                <ChevronIcon className="pointer-events-none absolute end-2.5 top-1/2 size-3.5 -translate-y-1/2 text-ink-faint" />
+                <ChevronIcon className="pointer-events-none absolute end-2 top-1/2 size-3.5 -translate-y-1/2 text-ink-faint" />
               </div>
 
               {/* Grid/List View Toggle */}
@@ -185,7 +188,7 @@ export default function CatalogSection(props: Props) {
                 <button
                   onClick={() => props.onView("grid")}
                   aria-label="Grid view"
-                  className={`p-1.5 rounded transition-colors ${
+                  className={`p-1.5 rounded transition-colors cursor-pointer ${
                     props.view === "grid" ? "bg-night text-white" : "text-ink-faint hover:text-ink"
                   }`}
                 >
@@ -194,7 +197,7 @@ export default function CatalogSection(props: Props) {
                 <button
                   onClick={() => props.onView("list")}
                   aria-label="List view"
-                  className={`p-1.5 rounded transition-colors ${
+                  className={`p-1.5 rounded transition-colors cursor-pointer ${
                     props.view === "list" ? "bg-night text-white" : "text-ink-faint hover:text-ink"
                   }`}
                 >
@@ -209,8 +212,8 @@ export default function CatalogSection(props: Props) {
             <div
               className={
                 props.view === "grid"
-                  ? "grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-                  : "flex flex-col gap-3"
+                  ? "grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full"
+                  : "flex flex-col gap-3 w-full"
               }
             >
               {props.parts.map((p) => (
@@ -225,7 +228,7 @@ export default function CatalogSection(props: Props) {
               ))}
             </div>
           ) : (
-            <div className="rounded-lg border border-dashed border-line bg-surface p-12 text-center my-6">
+            <div className="rounded-lg border border-dashed border-line bg-surface p-6 sm:p-12 text-center my-6 w-full">
               <p className="font-bold text-base text-ink">
                 {lang === "ar" ? "لم نجد قطع غيار مطابقة للبحث" : "No matching parts found"}
               </p>
@@ -236,7 +239,7 @@ export default function CatalogSection(props: Props) {
               </p>
               <button
                 onClick={() => onFilters(EMPTY_FILTERS)}
-                className="mt-4 px-4 py-2 bg-terra text-white font-semibold text-xs rounded hover:bg-terra-hover transition-colors"
+                className="mt-4 px-4 py-2 bg-terra text-white font-semibold text-xs rounded hover:bg-terra-hover transition-colors cursor-pointer"
               >
                 {lang === "ar" ? "إعادة ضبط الفلاتر" : "Reset All Filters"}
               </button>

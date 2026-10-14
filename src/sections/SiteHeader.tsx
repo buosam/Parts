@@ -100,22 +100,22 @@ export default function SiteHeader({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-surface border-b border-line shadow-xs" dir={isArabic ? "rtl" : "ltr"}>
+    <header className="sticky top-0 z-40 w-full max-w-full bg-surface border-b border-line shadow-xs overflow-x-clip" dir={isArabic ? "rtl" : "ltr"}>
       {/* Top Header Bar */}
-      <div className="bg-[#121820] text-white">
-        <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 sm:gap-4 px-3 sm:px-6">
+      <div className="bg-[#121820] text-white w-full">
+        <div className="mx-auto flex h-13 sm:h-14 max-w-7xl items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6 w-full">
           {/* Logo */}
           <a href="#top" className="flex items-center gap-2 shrink-0 me-1 sm:me-2" aria-label="IQAutoMarket home">
             <Logo variant="light" size="md" showBadge={false} showSubtitle={false} isArabic={isArabic} />
           </a>
 
-          {/* Search Bar - Amazon style */}
-          <div className="flex-1 max-w-2xl mx-1 sm:mx-2">
+          {/* Desktop Search Bar - Amazon style (hidden on mobile, fluid row below) */}
+          <div className="hidden md:block flex-1 max-w-2xl mx-2 lg:mx-4">
             <form
               onSubmit={(e) => e.preventDefault()}
-              className="flex items-center rounded-lg overflow-hidden bg-white text-ink focus-within:ring-2 focus-within:ring-terra"
+              className="flex items-center rounded-lg overflow-hidden bg-white text-ink focus-within:ring-2 focus-within:ring-terra shadow-sm"
             >
-              <div className="relative flex-1 flex items-center">
+              <div className="relative flex-1 flex items-center min-w-0">
                 <SearchIcon className="pointer-events-none absolute start-3 size-4 text-ink-faint" />
                 <input
                   id="site-search-input"
@@ -142,7 +142,7 @@ export default function SiteHeader({
                 className="h-9 sm:h-10 px-3 sm:px-4 bg-terra hover:bg-terra-hover text-white font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
               >
                 <SearchIcon className="size-4" />
-                <span className="hidden md:inline">{isArabic ? "بحث" : "Search"}</span>
+                <span>{isArabic ? "بحث" : "Search"}</span>
               </button>
             </form>
           </div>
@@ -183,7 +183,7 @@ export default function SiteHeader({
             <button
               onClick={toggle}
               aria-label={lang === "en" ? "التبديل إلى اللغة العربية" : "Switch language to English"}
-              className="px-2 py-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer"
+              className="px-2 py-1.5 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition-colors text-xs font-semibold cursor-pointer shrink-0"
             >
               {lang === "en" ? "العربية" : "EN"}
             </button>
@@ -191,11 +191,11 @@ export default function SiteHeader({
             {/* SEPARATED AUTHENTICATION AREA - NO FLOATING DROPDOWN OVERLAYS */}
             {currentUser ? (
               /* User is Logged In: Direct Profile Button + Direct Sign Out */
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <button
                   onClick={handleProfileClick}
                   aria-label={isArabic ? "الملف الشخصي وإدارة الحساب" : "User Profile & Account Settings"}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-start transition-all cursor-pointer group"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-start transition-all cursor-pointer group"
                   title={isArabic ? "إدارة الحساب والملف الشخصي" : "Manage Account & Profile"}
                 >
                   <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[11px] shrink-0 group-hover:scale-105 transition-transform">
@@ -214,7 +214,7 @@ export default function SiteHeader({
                 <button
                   onClick={() => logout()}
                   aria-label={isArabic ? "تسجيل الخروج من الحساب" : "Sign Out"}
-                  className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-colors cursor-pointer"
+                  className="flex items-center justify-center p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 border border-red-500/20 transition-colors cursor-pointer shrink-0"
                   title={isArabic ? "تسجيل الخروج" : "Sign Out"}
                 >
                   <LogOut className="size-3.5" />
@@ -222,15 +222,16 @@ export default function SiteHeader({
               </div>
             ) : (
               /* User is NOT Logged In: Clean Sign In & Register Buttons */
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
                 <button
                   onClick={() => openAuthModal('customer', 'signin')}
                   aria-label={isArabic ? "تسجيل الدخول إلى حسابك" : "Sign In to your account"}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-sm"
+                  className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-colors cursor-pointer shadow-sm shrink-0"
                   style={{ color: '#ffffff' }}
                 >
                   <LogIn className="size-3.5 text-white" />
-                  <span>{isArabic ? "تسجيل الدخول" : "Sign In"}</span>
+                  <span className="hidden sm:inline">{isArabic ? "تسجيل الدخول" : "Sign In"}</span>
+                  <span className="sm:hidden">{isArabic ? "دخول" : "Sign In"}</span>
                 </button>
 
                 <button
@@ -261,7 +262,7 @@ export default function SiteHeader({
             <button
               onClick={onOpenCart}
               aria-label={isArabic ? `عربة التسوق (${cartCount} عنصر)` : `Shopping Cart with ${cartCount} items`}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white font-semibold text-xs transition-colors relative cursor-pointer"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white font-semibold text-xs transition-colors relative cursor-pointer shrink-0"
             >
               <div className="relative">
                 <CartIcon className="size-5 text-terra" />
@@ -275,11 +276,49 @@ export default function SiteHeader({
             </button>
           </div>
         </div>
+
+        {/* Mobile Fluid Search Bar Row (Clean Amazon/Noon Pattern for Phones) */}
+        <div className="md:hidden px-3 pb-2.5 pt-0.5 w-full">
+          <form
+            onSubmit={(e) => e.preventDefault()}
+            className="flex items-center rounded-lg overflow-hidden bg-white text-ink shadow-xs focus-within:ring-2 focus-within:ring-terra"
+          >
+            <div className="relative flex-1 flex items-center min-w-0">
+              <SearchIcon className="pointer-events-none absolute start-3 size-4 text-ink-faint" />
+              <input
+                id="site-search-input-mobile"
+                name="q"
+                type="text"
+                value={query}
+                onChange={(e) => onQuery(e.target.value)}
+                aria-label={
+                  isArabic
+                    ? "البحث عن قطع الغيار بالاسم أو رقم القطعة"
+                    : "Search automotive parts by name, OEM, or VIN"
+                }
+                placeholder={
+                  isArabic
+                    ? "ابحث برقم OEM، اسم القطعة، VIN..."
+                    : "Search by part, OEM, VIN, vehicle..."
+                }
+                className="w-full h-9 ps-9 pe-2 text-xs text-ink placeholder:text-ink-faint bg-white outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              aria-label={isArabic ? "تنفيذ البحث" : "Submit Search"}
+              className="h-9 px-3.5 bg-terra hover:bg-terra-hover text-white font-semibold text-xs flex items-center gap-1 transition-colors shrink-0 cursor-pointer"
+            >
+              <SearchIcon className="size-3.5" />
+              <span>{isArabic ? "بحث" : "Search"}</span>
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Second Navigation Bar - Clean Separation of B2B Portals & Categories */}
-      <div className="bg-[#1c2430] text-gray-200 border-t border-gray-800 text-xs overflow-x-auto scrollbar-none">
-        <div className="mx-auto flex h-10 max-w-7xl items-center px-3 sm:px-6 justify-between gap-2 whitespace-nowrap">
+      <div className="bg-[#1c2430] text-gray-200 border-t border-gray-800 text-xs overflow-x-auto no-scrollbar w-full max-w-full touch-pan-x">
+        <div className="mx-auto flex h-10 max-w-7xl items-center px-3 sm:px-6 gap-2 whitespace-nowrap min-w-max">
           {/* Left: Category Quick Links */}
           <div className="flex items-center gap-1">
             <button

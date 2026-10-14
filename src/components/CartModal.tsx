@@ -227,12 +227,12 @@ export const CartModal: React.FC = () => {
               <h2 className="font-bold text-white text-base sm:text-lg">
                 {isArabic ? 'سلة المشتريات والدفع الإلكتروني' : 'Cart & 100% Upfront Checkout'}
               </h2>
-              <div className="flex items-center gap-2 text-xs text-zinc-400">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-zinc-400">
                 <span>{cart.length} {isArabic ? 'قطع محددة' : 'items'}</span>
-                <span>•</span>
+                <span className="hidden xs:inline">•</span>
                 <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  {isArabic ? 'دفع إلكتروني مؤمن 100% مع ضمان استرداد' : '100% Upfront Payment with Escrow Protection'}
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span>{isArabic ? 'دفع إلكتروني مؤمن 100%' : '100% Escrow Protection'}</span>
                 </span>
               </div>
             </div>

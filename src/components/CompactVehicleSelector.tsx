@@ -74,11 +74,11 @@ export default function CompactVehicleSelector({
   };
 
   return (
-    <div className="bg-surface rounded-lg border border-line p-3 sm:p-4 mb-6 shadow-xs">
+    <div className="bg-surface rounded-lg border border-line p-3 sm:p-4 mb-6 shadow-xs w-full min-w-0">
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-3 border-b border-line">
-        <div className="flex items-center gap-2">
-          <Car className="size-4 text-terra" />
-          <h2 className="font-bold text-xs sm:text-sm text-ink">
+        <div className="flex items-center gap-2 min-w-0">
+          <Car className="size-4 text-terra shrink-0" />
+          <h2 className="font-bold text-xs sm:text-sm text-ink truncate">
             {lang === "ar" ? "حدد سيارتك لعرض القطع المطابقة" : "Find parts for your vehicle"}
           </h2>
         </div>
@@ -86,7 +86,7 @@ export default function CompactVehicleSelector({
         <button
           type="button"
           onClick={() => setShowVinInput(!showVinInput)}
-          className="text-xs text-terra hover:underline font-medium flex items-center gap-1"
+          className="text-xs text-terra hover:underline font-medium flex items-center gap-1 shrink-0"
         >
           {showVinInput
             ? (lang === "ar" ? "اختيار بالماركة والموديل" : "Select by Make/Model")
@@ -95,27 +95,27 @@ export default function CompactVehicleSelector({
       </div>
 
       {showVinInput ? (
-        <form onSubmit={handleVinSubmit} className="flex gap-2 max-w-xl">
+        <form onSubmit={handleVinSubmit} className="flex flex-col sm:flex-row gap-2 max-w-xl w-full">
           <input
             type="text"
             value={vinInput}
             onChange={(e) => setVinInput(e.target.value)}
             placeholder={lang === "ar" ? "ادخل رقم الشاصي (17 حرف)..." : "Enter 17-digit VIN number..."}
-            className="flex-1 h-9 px-3 rounded border border-line text-xs font-mono uppercase focus:ring-1 focus:ring-terra outline-none bg-white"
+            className="flex-1 w-full min-w-0 h-9 px-3 rounded border border-line text-xs font-mono uppercase focus:ring-1 focus:ring-terra outline-none bg-white"
           />
           <button
             type="submit"
-            className="h-9 px-4 bg-terra text-white rounded font-medium text-xs hover:bg-terra-hover flex items-center gap-1 shrink-0"
+            className="h-9 px-4 bg-terra text-white rounded font-medium text-xs hover:bg-terra-hover flex items-center justify-center gap-1 shrink-0 cursor-pointer"
           >
             <Search className="size-3.5" />
             <span>{lang === "ar" ? "مطابقة" : "Decode VIN"}</span>
           </button>
         </form>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs w-full">
           {/* Make */}
-          <div>
-            <label htmlFor="vehicle-make-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+          <div className="min-w-0">
+            <label htmlFor="vehicle-make-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1 truncate">
               {lang === "ar" ? "الشركة" : "Make"}
             </label>
             <select
@@ -124,7 +124,7 @@ export default function CompactVehicleSelector({
               aria-label={lang === "ar" ? "اختر الشركة المصنعة" : "Select Vehicle Make"}
               value={vehicle.make}
               onChange={(e) => handleMakeChange(e.target.value)}
-              className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none"
+              className="w-full max-w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none truncate"
             >
               {availableMakes.map((m) => (
                 <option key={m} value={m}>
@@ -135,8 +135,8 @@ export default function CompactVehicleSelector({
           </div>
 
           {/* Model */}
-          <div>
-            <label htmlFor="vehicle-model-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+          <div className="min-w-0">
+            <label htmlFor="vehicle-model-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1 truncate">
               {lang === "ar" ? "الموديل" : "Model"}
             </label>
             <select
@@ -145,7 +145,7 @@ export default function CompactVehicleSelector({
               aria-label={lang === "ar" ? "اختر موديل السيارة" : "Select Vehicle Model"}
               value={vehicle.model}
               onChange={(e) => handleModelChange(e.target.value)}
-              className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none"
+              className="w-full max-w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none truncate"
             >
               {availableModels.map((m) => (
                 <option key={m} value={m}>
@@ -156,8 +156,8 @@ export default function CompactVehicleSelector({
           </div>
 
           {/* Year */}
-          <div>
-            <label htmlFor="vehicle-year-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+          <div className="min-w-0">
+            <label htmlFor="vehicle-year-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1 truncate">
               {lang === "ar" ? "السنة" : "Year"}
             </label>
             <select
@@ -166,7 +166,7 @@ export default function CompactVehicleSelector({
               aria-label={lang === "ar" ? "اختر سنة الصنع" : "Select Vehicle Year"}
               value={vehicle.year}
               onChange={(e) => handleYearChange(e.target.value)}
-              className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none"
+              className="w-full max-w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none truncate"
             >
               {availableYears.map((y) => (
                 <option key={y} value={y}>
@@ -177,8 +177,8 @@ export default function CompactVehicleSelector({
           </div>
 
           {/* Engine */}
-          <div>
-            <label htmlFor="vehicle-engine-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1">
+          <div className="min-w-0">
+            <label htmlFor="vehicle-engine-select" className="block text-[10px] text-ink-faint uppercase font-mono mb-1 truncate">
               {lang === "ar" ? "المحرك" : "Engine"}
             </label>
             <select
@@ -187,7 +187,7 @@ export default function CompactVehicleSelector({
               aria-label={lang === "ar" ? "اختر سعة ونوع المحرك" : "Select Vehicle Engine"}
               value={vehicle.engine}
               onChange={(e) => handleEngineChange(e.target.value)}
-              className="w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none truncate"
+              className="w-full max-w-full h-9 rounded border border-line bg-white px-2 text-ink font-medium focus:ring-1 focus:ring-terra outline-none truncate"
             >
               {availableTrims.map((t, idx) => (
                 <option key={idx} value={t.engine}>
@@ -200,10 +200,10 @@ export default function CompactVehicleSelector({
       )}
 
       {/* Active Vehicle Compatibility Indicator */}
-      <div className="mt-3 pt-2 border-t border-line/60 flex items-center justify-between text-xs text-forest font-medium">
-        <div className="flex items-center gap-1.5">
-          <CheckCircle2 className="size-4 text-forest shrink-0" />
-          <span>
+      <div className="mt-3 pt-2 border-t border-line/60 flex items-start sm:items-center justify-between text-xs text-forest font-medium w-full">
+        <div className="flex items-start sm:items-center gap-1.5 min-w-0 flex-1">
+          <CheckCircle2 className="size-4 text-forest shrink-0 mt-0.5 sm:mt-0" />
+          <span className="break-words leading-tight">
             {lang === "ar"
               ? `عرض القطع المطابقة لسيارتك: ${vehicle.make} ${vehicle.model} ${vehicle.year} (${vehicle.engine})`
               : `Showing parts compatible with your vehicle (${vehicle.make} ${vehicle.model} ${vehicle.year} ${vehicle.engine}).`}

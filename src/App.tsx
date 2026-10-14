@@ -225,7 +225,7 @@ const MarketplaceApp: React.FC = () => {
   const cartTotalCount = cart.reduce((s, i) => s + i.quantity, 0);
 
   return (
-    <div dir={dir} className="min-h-screen bg-paper text-ink font-sans flex flex-col selection:bg-terra selection:text-white">
+    <div dir={dir} className="min-h-screen w-full max-w-full overflow-x-clip bg-paper text-ink font-sans flex flex-col selection:bg-terra selection:text-white">
       {/* Redesigned Amazon-style Site Header */}
       <SiteHeader
         query={query}
@@ -245,7 +245,7 @@ const MarketplaceApp: React.FC = () => {
       />
 
       {/* Main Role-Based Content */}
-      <main className="flex-1 pb-24 md:pb-0">
+      <main className="flex-1 w-full max-w-full min-w-0 pb-24 md:pb-0">
         {role === 'customer' && (
           <div>
             {isBiddingView ? (

@@ -11,9 +11,9 @@ const COLS: string[][] = [
 export default function SiteFooter() {
   const { t, tlist, lang } = useLang();
   return (
-    <footer className="bg-night-deep text-paper">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_2fr]">
+    <footer className="w-full max-w-full bg-night-deep text-paper overflow-hidden">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:py-14 sm:px-6 w-full">
+        <div className="grid gap-8 sm:gap-10 lg:grid-cols-[1.2fr_2fr] w-full">
           <div>
             <div className="flex items-center gap-2.5">
               <Logo variant="dark" size="md" showBadge={true} showSubtitle={false} isArabic={lang === "ar"} />
@@ -25,10 +25,10 @@ export default function SiteFooter() {
               {t("footerCities")}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 sm:gap-8 w-full min-w-0">
             {COLS.map((col, i) => (
-              <div key={i}>
-                <div className="micro-label text-paper/40">{tlist("footerCols")[i]}</div>
+              <div key={i} className="min-w-0">
+                <div className="micro-label text-paper/40 truncate">{tlist("footerCols")[i]}</div>
                 <ul className="mt-3.5 space-y-2.5">
                   {col.map((l) => (
                     <li key={l}>
@@ -45,7 +45,7 @@ export default function SiteFooter() {
             ))}
           </div>
         </div>
-        <div className="mt-12 flex flex-wrap items-center justify-between gap-3 border-t border-paper/10 pt-6">
+        <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-t border-paper/10 pt-6">
           <span className="font-mono text-[11px] text-paper/40">
             © 2026 IQAutoMarket — Baghdad, Iraq
           </span>

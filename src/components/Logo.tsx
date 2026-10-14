@@ -79,10 +79,10 @@ export const Logo: React.FC<LogoProps> = ({
   // Height map for different size presets
   const sizeMap = {
     xs: { h: 'h-6', markH: 'h-6 w-auto', text: 'text-sm', badge: 'text-[9px]' },
-    sm: { h: 'h-7 sm:h-8', markH: 'h-7 sm:h-8 w-auto', text: 'text-base', badge: 'text-[9px]' },
-    md: { h: 'h-8 sm:h-9', markH: 'h-9 sm:h-10 w-auto', text: 'text-base sm:text-lg', badge: 'text-[10px]' },
-    lg: { h: 'h-10 sm:h-12', markH: 'h-12 sm:h-14 w-auto', text: 'text-xl sm:text-2xl', badge: 'text-xs' },
-    xl: { h: 'h-14 sm:h-16', markH: 'h-16 sm:h-20 w-auto', text: 'text-2xl sm:text-3xl', badge: 'text-xs' },
+    sm: { h: 'h-6 sm:h-7 md:h-8', markH: 'h-6 sm:h-7 md:h-8 w-auto', text: 'text-sm sm:text-base', badge: 'text-[9px]' },
+    md: { h: 'h-7 sm:h-8 md:h-9', markH: 'h-7 sm:h-8 md:h-10 w-auto', text: 'text-sm sm:text-base md:text-lg', badge: 'text-[10px]' },
+    lg: { h: 'h-9 sm:h-10 md:h-12', markH: 'h-10 sm:h-12 md:h-14 w-auto', text: 'text-xl sm:text-2xl', badge: 'text-xs' },
+    xl: { h: 'h-12 sm:h-14 md:h-16', markH: 'h-14 sm:h-16 md:h-20 w-auto', text: 'text-2xl sm:text-3xl', badge: 'text-xs' },
   };
 
   const currentSize = sizeMap[size];

@@ -86,18 +86,46 @@
 html {
   scroll-behavior: smooth;
   -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {
   font-family: var(--font-primary);
   background-color: #FBFBF9;
   color: #262219;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   padding-bottom: env(safe-area-inset-bottom, 0);
   font-feature-settings: "ss01" on, "cv11" on, "tnum" on;
   text-rendering: optimizeLegibility;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+/* Fluid media */
+img, svg, video, canvas, audio, iframe, embed, object {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Touch responsiveness without tap delay */
+button, input, select, textarea, a {
+  touch-action: manipulation;
 }
 
 ::selection {
